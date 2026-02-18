@@ -67,11 +67,11 @@
                     <div class="nav-divider"></div>
                     <a href="{{ url_for('generate') }}" class="nav-link">Generator</a>
                     <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
-                    <a href="{{ url_for('logout') }}" class="nav-link nav-link-muted">Logout</a>
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link nav-link-muted">Logout</a>
                 {% else %}
                     <div class="nav-divider"></div>
-                    <a href="{{ url_for('login') }}" class="nav-link">Login</a>
-                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm nav-cta">Get Started Free</a>
+                    <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm nav-cta">Get Started Free</a>
                 {% endif %}
             </div>
         </div>
@@ -125,8 +125,8 @@
                         <a href="{{ url_for('generate') }}">Generator</a>
                         <a href="{{ url_for('account') }}">Settings</a>
                     {% else %}
-                        <a href="{{ url_for('login') }}">Login</a>
-                        <a href="{{ url_for('register') }}">Sign Up Free</a>
+                        <a href="{{ url_for('auth.login') }}">Login</a>
+                        <a href="{{ url_for('auth.register') }}">Sign Up Free</a>
                     {% endif %}
                 </div>
             </div>

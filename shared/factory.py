@@ -47,10 +47,14 @@ def setup_app(app, *, user_model, config_class):
         if current_user.is_authenticated:
             now = datetime.now(timezone.utc)
             reset = current_user.credits_reset_at
-            if reset and (now - reset).days >= 30:
-                current_user.credits_used = 0
-                current_user.credits_reset_at = now
-                db.session.commit()
+            if reset:
+                # Ensure both datetimes are timezone-aware for comparison
+                if reset.tzinfo is None:
+                    reset = reset.replace(tzinfo=timezone.utc)
+                if (now - reset).days >= 30:
+                    current_user.credits_used = 0
+                    current_user.credits_reset_at = now
+                    db.session.commit()
 
     # Common error handlers
     from flask import render_template
