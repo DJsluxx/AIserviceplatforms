@@ -4,6 +4,34 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    /* ── Navbar Scroll Effect ──────────────────────────────── */
+    const navbar = document.getElementById('navbar');
+    if (navbar) {
+        const onScroll = () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 10);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+    }
+
+    /* ── Scroll Reveal (IntersectionObserver) ──────────────── */
+    const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-stagger');
+    if (revealElements.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+    } else {
+        // Reduced motion or no JS — show everything
+        revealElements.forEach(el => el.classList.add('revealed'));
+    }
+
     /* ── Mobile Nav Toggle ─────────────────────────────────── */
     const toggle = document.getElementById('navToggle');
     const menu   = document.getElementById('navMenu');

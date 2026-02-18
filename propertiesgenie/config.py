@@ -25,7 +25,7 @@ class Config(BaseConfig):
     # Credit plans
     FREE_CREDITS = 1
     PRO_CREDITS = 30
-    UNLIMITED_CREDITS = 999_999
+    BUSINESS_CREDITS = 100
 
     # ── One-Time Credit Packs ──────────────────────────────
     CREDIT_PACKS = [
@@ -37,8 +37,8 @@ class Config(BaseConfig):
 
     # ── Subscription Plans ─────────────────────────────────
     SUBSCRIPTIONS = {
-        "pro_monthly":       {"plan": "pro",       "billing": "monthly", "price": 12.99,  "credits": 30,       "label": "Pro Monthly"},
-        "pro_annual":        {"plan": "pro",       "billing": "annual",  "price": 99.99,  "credits": 30,       "label": "Pro Annual",       "monthly_eq": 8.33,  "save_pct": 36},
-        "unlimited_monthly": {"plan": "unlimited", "billing": "monthly", "price": 29.99,  "credits": 999_999,  "label": "Unlimited Monthly"},
-        "unlimited_annual":  {"plan": "unlimited", "billing": "annual",  "price": 249.99, "credits": 999_999,  "label": "Unlimited Annual", "monthly_eq": 20.83, "save_pct": 30},
+        "pro_monthly":      {"plan": "pro",      "billing": "monthly", "price": 12.99,  "credits": 30,  "label": "Pro Monthly"},
+        "pro_annual":       {"plan": "pro",      "billing": "annual",  "price": 99.99,  "credits": 30,  "label": "Pro Annual",       "monthly_eq": 8.33,  "save_pct": 36},
+        "business_monthly": {"plan": "business", "billing": "monthly", "price": 29.99,  "credits": 100, "label": "Business Monthly"},
+        "business_annual":  {"plan": "business", "billing": "annual",  "price": 249.99, "credits": 100, "label": "Business Annual", "monthly_eq": 20.83, "save_pct": 30},
     }

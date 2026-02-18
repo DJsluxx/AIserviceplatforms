@@ -39,7 +39,7 @@ class PGUser(BaseUserMixin, UserMixin, db.Model):
         limits = {
             "free": Config.FREE_CREDITS,
             "pro": Config.PRO_CREDITS,
-            "unlimited": Config.UNLIMITED_CREDITS,
+            "business": Config.BUSINESS_CREDITS,
         }
         plan_credits = max(0, limits.get(self.plan, Config.FREE_CREDITS) - self.credits_used)
         return plan_credits + (self.bonus_credits or 0)
@@ -49,7 +49,7 @@ class PGUser(BaseUserMixin, UserMixin, db.Model):
         limits = {
             "free": Config.FREE_CREDITS,
             "pro": Config.PRO_CREDITS,
-            "unlimited": Config.UNLIMITED_CREDITS,
+            "business": Config.BUSINESS_CREDITS,
         }
         return limits.get(self.plan, Config.FREE_CREDITS)
 

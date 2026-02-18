@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Store — Properties Genie{% endblock %}
-{% block meta_description %}Buy credits or subscribe for unlimited AI-powered real estate listing descriptions. No commitment needed.{% endblock %}
+{% block meta_description %}Buy credits or subscribe for AI-powered real estate listing descriptions. Up to 100 listings/month with Business plan. No commitment needed.{% endblock %}
 
 {% block content %}
 
@@ -45,7 +45,7 @@
             </div>
         </div>
 
-        <div class="credits-grid">
+        <div class="credits-grid reveal-stagger reveal">
             {% for pack in credit_packs %}
             <div class="credit-card{% if pack.get('badge') %} credit-card-popular{% endif %}">
                 {% if pack.get('badge') %}
@@ -96,7 +96,7 @@
             {% endfor %}
         </div>
 
-        <div class="credits-perks">
+        <div class="credits-perks reveal">
             <div class="perk-item">
                 <i class="fas fa-shield-check"></i>
                 <span>One-time payment</span>
@@ -145,7 +145,7 @@
             </span>
         </div>
 
-        <div class="sub-grid">
+        <div class="sub-grid reveal-stagger reveal">
             <!-- Free -->
             <div class="sub-card">
                 <div class="sub-card-header">
@@ -216,26 +216,26 @@
                 </div>
             </div>
 
-            <!-- Unlimited -->
+            <!-- Business -->
             <div class="sub-card">
                 <div class="sub-card-header">
-                    <div class="sub-icon unlimited-bg"><i class="fas fa-infinity"></i></div>
-                    <h3>Unlimited</h3>
+                    <div class="sub-icon business-bg"><i class="fas fa-building"></i></div>
+                    <h3>Business</h3>
                     <!-- Monthly pricing -->
                     <div class="sub-price sub-price-monthly">
-                        <span class="sub-price-amount">${{ "%.2f"|format(subscriptions.unlimited_monthly.price) }}</span>
+                        <span class="sub-price-amount">${{ "%.2f"|format(subscriptions.business_monthly.price) }}</span>
                         <span class="sub-price-period">/month</span>
                     </div>
                     <!-- Annual pricing (hidden by default) -->
                     <div class="sub-price sub-price-annual" style="display:none;">
-                        <span class="sub-price-amount">${{ "%.2f"|format(subscriptions.unlimited_annual.price) }}</span>
+                        <span class="sub-price-amount">${{ "%.2f"|format(subscriptions.business_annual.price) }}</span>
                         <span class="sub-price-period">/year</span>
-                        <div class="sub-monthly-eq">${{ "%.2f"|format(subscriptions.unlimited_annual.monthly_eq) }}/mo</div>
+                        <div class="sub-monthly-eq">${{ "%.2f"|format(subscriptions.business_annual.monthly_eq) }}/mo</div>
                     </div>
                     <p class="sub-desc">For brokerages & power users</p>
                 </div>
                 <ul class="sub-features">
-                    <li><i class="fas fa-check"></i> <strong>Unlimited</strong> listings</li>
+                    <li><i class="fas fa-check"></i> <strong>100 listings</strong> per month</li>
                     <li><i class="fas fa-check"></i> All property types</li>
                     <li><i class="fas fa-check"></i> 4 writing tones</li>
                     <li><i class="fas fa-check"></i> Full listing history</li>
@@ -243,20 +243,20 @@
                     <li><i class="fas fa-check"></i> Priority support</li>
                 </ul>
                 {% if current_user.is_authenticated %}
-                    {% if current_user.plan == 'unlimited' %}
+                    {% if current_user.plan == 'business' %}
                     <span class="btn btn-outline btn-block disabled">Current Plan</span>
                     {% else %}
-                    <a href="{{ url_for('checkout_subscription', sub_key='unlimited_monthly') }}" class="btn btn-outline btn-block btn-lg sub-checkout-btn" data-monthly="unlimited_monthly" data-annual="unlimited_annual">
-                        <i class="fas fa-infinity"></i> Go Unlimited
+                    <a href="{{ url_for('checkout_subscription', sub_key='business_monthly') }}" class="btn btn-outline btn-block btn-lg sub-checkout-btn" data-monthly="business_monthly" data-annual="business_annual">
+                        <i class="fas fa-building"></i> Go Business
                     </a>
                     {% endif %}
                 {% else %}
                 <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-block btn-lg">
-                    <i class="fas fa-infinity"></i> Start Free, Upgrade Later
+                    <i class="fas fa-building"></i> Start Free, Upgrade Later
                 </a>
                 {% endif %}
                 <div class="sub-price-annual sub-annual-savings" style="display:none;">
-                    <i class="fas fa-piggy-bank"></i> Save {{ subscriptions.unlimited_annual.save_pct }}% — ${{ "%.2f"|format(subscriptions.unlimited_monthly.price * 12 - subscriptions.unlimited_annual.price) }}/year
+                    <i class="fas fa-piggy-bank"></i> Save {{ subscriptions.business_annual.save_pct }}% — ${{ "%.2f"|format(subscriptions.business_monthly.price * 12 - subscriptions.business_annual.price) }}/year
                 </div>
             </div>
         </div>
@@ -268,7 +268,7 @@
 <section class="store-comparison">
     <div class="container">
         <h2>Credits vs. Subscription — Which Is Right for You?</h2>
-        <div class="comparison-grid">
+        <div class="comparison-grid reveal">
             <div class="comparison-card">
                 <div class="comparison-icon credits-icon-bg"><i class="fas fa-coins"></i></div>
                 <h3>Credit Packs</h3>
@@ -304,7 +304,7 @@
             <h2>Frequently Asked Questions</h2>
             <p>Everything you need to know about credits and subscriptions</p>
         </div>
-        <div class="faq-grid">
+        <div class="faq-grid reveal-stagger reveal">
             <div class="faq-item">
                 <h4><i class="fas fa-circle-question"></i> What's a "credit"?</h4>
                 <p>Each credit generates one complete listing description — including a title, multi-paragraph description, and key highlights. One credit = one listing.</p>

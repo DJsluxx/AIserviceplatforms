@@ -15,7 +15,7 @@
         </div>
 
         {% if listings.items %}
-        <div class="history-grid">
+        <div class="history-grid reveal-stagger reveal">
             {% for listing in listings.items %}
             <div class="history-card">
                 <div class="history-card-header">
@@ -63,7 +63,7 @@
         {% endif %}
 
         {% else %}
-        <div class="empty-state">
+        <div class="empty-state reveal">
             <i class="fas fa-wand-magic-sparkles"></i>
             <h3>No listings yet</h3>
             <p>Your generated descriptions will appear here.</p>
