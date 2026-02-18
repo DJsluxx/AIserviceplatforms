@@ -28,7 +28,7 @@
                 <div class="stat-icon credit-icon"><i class="fas fa-coins"></i></div>
                 <div class="stat-info">
                     <span class="stat-number">{{ current_user.credits_remaining }}</span>
-                    <span class="stat-label">Credits Left</span>
+                    <span class="stat-label">Credits Left{% if current_user.bonus_credits %} ({{ current_user.bonus_credits }} bonus){% endif %}</span>
                 </div>
             </div>
             <div class="stat-card">
@@ -51,9 +51,9 @@
         <div class="upgrade-banner">
             <div class="upgrade-text">
                 <i class="fas fa-rocket"></i>
-                <span><strong>Go Pro</strong> — Get 100 descriptions/month for just ${{ pro_price }}/mo</span>
+                <span><strong>Go Pro</strong> — Get 30 descriptions/month starting at $12.99/mo, or buy credit packs!</span>
             </div>
-            <a href="{{ url_for('pricing') }}" class="btn btn-sm btn-primary">Upgrade Now</a>
+            <a href="{{ url_for('store') }}" class="btn btn-sm btn-primary">Visit Store</a>
         </div>
         {% endif %}
 

@@ -24,9 +24,21 @@ class Config(BaseConfig):
 
     # Credit plans
     FREE_CREDITS = 1
-    PRO_CREDITS = 100
+    PRO_CREDITS = 30
     UNLIMITED_CREDITS = 999_999
 
-    # Pricing (USD / month)
-    PRO_PRICE = 9.99
-    UNLIMITED_PRICE = 19.99
+    # ── One-Time Credit Packs ──────────────────────────────
+    CREDIT_PACKS = [
+        {"id": "starter",  "credits": 5,   "price": 4.99,  "per_credit": 1.00, "label": "Starter"},
+        {"id": "popular",  "credits": 15,  "price": 11.99, "per_credit": 0.80, "label": "Most Popular", "badge": True},
+        {"id": "pro_pack", "credits": 50,  "price": 29.99, "per_credit": 0.60, "label": "Pro Pack"},
+        {"id": "agency",   "credits": 150, "price": 69.99, "per_credit": 0.47, "label": "Agency", "badge_text": "Best Value"},
+    ]
+
+    # ── Subscription Plans ─────────────────────────────────
+    SUBSCRIPTIONS = {
+        "pro_monthly":       {"plan": "pro",       "billing": "monthly", "price": 12.99,  "credits": 30,       "label": "Pro Monthly"},
+        "pro_annual":        {"plan": "pro",       "billing": "annual",  "price": 99.99,  "credits": 30,       "label": "Pro Annual",       "monthly_eq": 8.33,  "save_pct": 36},
+        "unlimited_monthly": {"plan": "unlimited", "billing": "monthly", "price": 29.99,  "credits": 999_999,  "label": "Unlimited Monthly"},
+        "unlimited_annual":  {"plan": "unlimited", "billing": "annual",  "price": 249.99, "credits": 999_999,  "label": "Unlimited Annual", "monthly_eq": 20.83, "save_pct": 30},
+    }

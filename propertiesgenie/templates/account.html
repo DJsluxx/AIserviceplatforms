@@ -20,7 +20,7 @@
                     <small>{{ current_user.credits_used }} / {{ current_user.credit_limit }} used</small>
                 </div>
                 {% if current_user.plan == 'free' %}
-                <a href="{{ url_for('pricing') }}" class="btn btn-primary btn-block">Upgrade Plan</a>
+                <a href="{{ url_for('store') }}" class="btn btn-primary btn-block">Get More Credits</a>
                 {% endif %}
             </div>
 

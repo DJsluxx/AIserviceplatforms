@@ -30,6 +30,8 @@ class BaseUserMixin:
     avatar_url = db.Column(db.String(500), nullable=True)
     plan = db.Column(db.String(20), default="free")
     credits_used = db.Column(db.Integer, default=0)
+    bonus_credits = db.Column(db.Integer, default=0)   # one-time purchased credits (never reset)
+    billing_cycle = db.Column(db.String(10), default="monthly")  # "monthly" or "annual"
     credits_reset_at = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )

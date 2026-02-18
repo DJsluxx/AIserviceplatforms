@@ -24,7 +24,7 @@ from flask_login import login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from config import Config
-from models import PGUser, PGSubscription, PGListing, PGUsageLog, PGContact
+from models import PGUser, PGSubscription, PGCreditPurchase, PGListing, PGUsageLog, PGContact
 from shared.database import db
 from shared.factory import setup_app
 from shared.auth import create_auth_blueprint
@@ -60,8 +60,8 @@ def create_app():
             "site_url": Config.SITE_URL,
             "year": datetime.now(timezone.utc).year,
             "paypal_client_id": Config.PAYPAL_CLIENT_ID,
-            "pro_price": Config.PRO_PRICE,
-            "unlimited_price": Config.UNLIMITED_PRICE,
+            "credit_packs": Config.CREDIT_PACKS,
+            "subscriptions": Config.SUBSCRIPTIONS,
         }
 
     # ════════════════════════════════════════════════════════════
@@ -73,8 +73,9 @@ def create_app():
         return render_template("index.html")
 
     @app.route("/pricing")
-    def pricing():
-        return render_template("pricing.html")
+    @app.route("/store")
+    def store():
+        return render_template("store.html")
 
     @app.route("/about")
     def about():
@@ -126,8 +127,8 @@ def create_app():
             return render_template("generator.html")
 
         if current_user.credits_remaining <= 0:
-            flash("You've used all your credits this month. Upgrade for more!", "error")
-            return redirect(url_for("pricing"))
+            flash("You've used all your credits. Buy more or upgrade your plan!", "error")
+            return redirect(url_for("store"))
 
         data = {k: request.form.get(k, "") for k in (
             "property_type", "listing_type", "bedrooms", "bathrooms",
@@ -184,7 +185,14 @@ def create_app():
             tokens_used=tokens,
         )
         db.session.add(listing)
-        current_user.credits_used += 1
+
+        # Consume credit: plan credits first, then bonus credits
+        plan_limit = current_user.credit_limit
+        if current_user.credits_used < plan_limit:
+            current_user.credits_used += 1
+        else:
+            current_user.bonus_credits = max(0, (current_user.bonus_credits or 0) - 1)
+
         db.session.add(PGUsageLog(
             user_id=current_user.id, action="generate",
             tokens_used=tokens, model=Config.OPENAI_MODEL,
@@ -267,27 +275,34 @@ def create_app():
     #  PAYMENTS  (uses shared PayPal verification)
     # ════════════════════════════════════════════════════════════
 
-    @app.route("/upgrade/<plan>")
+    @app.route("/checkout/credits/<pack_id>")
     @login_required
-    def upgrade(plan):
-        if plan not in ("pro", "unlimited"):
+    def checkout_credits(pack_id):
+        pack = next((p for p in Config.CREDIT_PACKS if p["id"] == pack_id), None)
+        if not pack:
             abort(404)
-        price = Config.PRO_PRICE if plan == "pro" else Config.UNLIMITED_PRICE
-        return render_template("checkout.html", plan=plan, price=price)
+        return render_template("checkout.html", purchase_type="credits", pack=pack)
 
-    @app.route("/api/payment-success", methods=["POST"])
+    @app.route("/checkout/subscription/<sub_key>")
     @login_required
-    def payment_success():
+    def checkout_subscription(sub_key):
+        sub = Config.SUBSCRIPTIONS.get(sub_key)
+        if not sub:
+            abort(404)
+        return render_template("checkout.html", purchase_type="subscription", sub_key=sub_key, sub=sub)
+
+    @app.route("/api/purchase-credits", methods=["POST"])
+    @login_required
+    def purchase_credits():
         data = request.get_json() or {}
         order_id = data.get("orderID", "")
-        plan = data.get("plan", "")
-        if plan not in ("pro", "unlimited"):
-            return jsonify({"error": "Invalid plan"}), 400
-
-        expected = Config.PRO_PRICE if plan == "pro" else Config.UNLIMITED_PRICE
+        pack_id = data.get("pack_id", "")
+        pack = next((p for p in Config.CREDIT_PACKS if p["id"] == pack_id), None)
+        if not pack:
+            return jsonify({"error": "Invalid credit pack"}), 400
 
         verified, info = verify_paypal_order(
-            order_id, expected,
+            order_id, pack["price"],
             client_id=Config.PAYPAL_CLIENT_ID,
             client_secret=Config.PAYPAL_CLIENT_SECRET,
             mode=Config.PAYPAL_MODE,
@@ -295,27 +310,73 @@ def create_app():
         if not verified:
             return jsonify({"error": "Payment verification failed"}), 400
 
-        # Activate / update subscription
-        sub = PGSubscription.query.filter_by(user_id=current_user.id, status="active").first()
+        # Add bonus credits and log the purchase
+        current_user.bonus_credits = (current_user.bonus_credits or 0) + pack["credits"]
+        db.session.add(PGCreditPurchase(
+            user_id=current_user.id,
+            paypal_order_id=order_id,
+            pack_id=pack_id,
+            credits=pack["credits"],
+            amount=pack["price"],
+        ))
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "credits_added": pack["credits"],
+            "total_credits": current_user.credits_remaining,
+            "message": f"{pack['credits']} credits added to your account!",
+        })
+
+    @app.route("/api/payment-success", methods=["POST"])
+    @login_required
+    def payment_success():
+        data = request.get_json() or {}
+        order_id = data.get("orderID", "")
+        sub_key = data.get("sub_key", "")
+        sub = Config.SUBSCRIPTIONS.get(sub_key)
+        if not sub:
+            return jsonify({"error": "Invalid subscription"}), 400
+
+        verified, info = verify_paypal_order(
+            order_id, sub["price"],
+            client_id=Config.PAYPAL_CLIENT_ID,
+            client_secret=Config.PAYPAL_CLIENT_SECRET,
+            mode=Config.PAYPAL_MODE,
+        )
+        if not verified:
+            return jsonify({"error": "Payment verification failed"}), 400
+
+        # Determine billing period
+        is_annual = sub["billing"] == "annual"
+        duration = timedelta(days=365) if is_annual else timedelta(days=30)
         now = datetime.now(timezone.utc)
-        if sub:
-            sub.plan, sub.amount, sub.paypal_order_id = plan, expected, order_id
-            sub.started_at, sub.expires_at = now, now + timedelta(days=30)
+
+        # Activate / update subscription
+        existing = PGSubscription.query.filter_by(user_id=current_user.id, status="active").first()
+        if existing:
+            existing.plan = sub["plan"]
+            existing.amount = sub["price"]
+            existing.paypal_order_id = order_id
+            existing.started_at = now
+            existing.expires_at = now + duration
         else:
             db.session.add(PGSubscription(
                 user_id=current_user.id, paypal_order_id=order_id,
-                plan=plan, amount=expected, status="active",
-                started_at=now, expires_at=now + timedelta(days=30),
+                plan=sub["plan"], amount=sub["price"], status="active",
+                started_at=now, expires_at=now + duration,
             ))
 
-        current_user.plan = plan
+        current_user.plan = sub["plan"]
+        current_user.billing_cycle = sub["billing"]
         current_user.credits_used = 0
         current_user.credits_reset_at = now
         db.session.commit()
 
+        label = sub["label"]
         return jsonify({
-            "success": True, "plan": plan,
-            "message": f"Welcome to {plan.title()}! Your credits have been refreshed.",
+            "success": True, "plan": sub["plan"],
+            "message": f"Welcome to {label}! Your credits have been refreshed.",
         })
 
     # ════════════════════════════════════════════════════════════
@@ -331,7 +392,7 @@ def create_app():
 
     @app.route("/sitemap.xml")
     def sitemap():
-        pages = ["", "pricing", "about", "contact", "terms", "privacy"]
+        pages = ["", "store", "about", "contact", "terms", "privacy"]
         xml = ['<?xml version="1.0" encoding="UTF-8"?>',
                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
         for p in pages:

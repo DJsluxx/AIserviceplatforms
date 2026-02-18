@@ -38,7 +38,7 @@
             "@type": "Offer",
             "price": "0",
             "priceCurrency": "USD",
-            "description": "Free plan with 3 descriptions per month"
+            "description": "Free plan with 1 description per month"
         }
     }
     </script>
@@ -59,7 +59,7 @@
 
             <div class="nav-menu" id="navMenu">
                 <a href="{{ url_for('index') }}" class="nav-link">Home</a>
-                <a href="{{ url_for('pricing') }}" class="nav-link">Pricing</a>
+                <a href="{{ url_for('store') }}" class="nav-link">Store</a>
                 <a href="{{ url_for('about') }}" class="nav-link">About</a>
                 <a href="{{ url_for('contact') }}" class="nav-link">Contact</a>
 
@@ -109,7 +109,7 @@
                 </div>
                 <div class="footer-links">
                     <h4>Product</h4>
-                    <a href="{{ url_for('pricing') }}">Pricing</a>
+                    <a href="{{ url_for('store') }}">Store</a>
                     <a href="{{ url_for('about') }}">About</a>
                     <a href="{{ url_for('contact') }}">Contact</a>
                 </div>

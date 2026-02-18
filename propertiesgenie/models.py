@@ -41,7 +41,8 @@ class PGUser(BaseUserMixin, UserMixin, db.Model):
             "pro": Config.PRO_CREDITS,
             "unlimited": Config.UNLIMITED_CREDITS,
         }
-        return max(0, limits.get(self.plan, Config.FREE_CREDITS) - self.credits_used)
+        plan_credits = max(0, limits.get(self.plan, Config.FREE_CREDITS) - self.credits_used)
+        return plan_credits + (self.bonus_credits or 0)
 
     @property
     def credit_limit(self):
@@ -58,6 +59,20 @@ class PGUser(BaseUserMixin, UserMixin, db.Model):
 class PGSubscription(BaseSubscriptionMixin, db.Model):
     __tablename__ = "pg_subscriptions"
     user_id = db.Column(db.Integer, db.ForeignKey("pg_users.id"), nullable=False)
+
+
+# ── One-Time Credit Purchases ──────────────────────────────────
+
+class PGCreditPurchase(db.Model):
+    __tablename__ = "pg_credit_purchases"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("pg_users.id"), nullable=False)
+    paypal_order_id = db.Column(db.String(200))
+    pack_id = db.Column(db.String(50), nullable=False)
+    credits = db.Column(db.Integer, nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 # ── Generated Listings ──────────────────────────────────────────

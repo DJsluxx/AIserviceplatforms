@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+{% block title %}Store — Properties Genie{% endblock %}
+{% block meta_description %}Buy credits or subscribe for unlimited AI-powered real estate listing descriptions. No commitment needed.{% endblock %}
+
+{% block content %}
+
+<!-- Store Hero -->
+<section class="store-hero">
+    <div class="container">
+        <div class="store-hero-content">
+            <div class="store-hero-badge">
+                <i class="fas fa-sparkles"></i> Fuel Your Listings
+            </div>
+            <h1>Power Up Your <span class="gradient-text">Real Estate Game</span></h1>
+            <p>Buy credits when you need them, or subscribe for the best value. Either way — stunning listing descriptions in seconds.</p>
+        </div>
+
+        <!-- Toggle -->
+        <div class="store-toggle-wrapper">
+            <button class="store-tab active" data-tab="credits" onclick="switchStoreTab('credits')">
+                <i class="fas fa-coins"></i> Credit Packs
+            </button>
+            <button class="store-tab" data-tab="subscriptions" onclick="switchStoreTab('subscriptions')">
+                <i class="fas fa-crown"></i> Subscriptions
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 1 — One-Time Credit Packs
+     ═══════════════════════════════════════════════════════════ -->
+<section class="store-section" id="credits-section">
+    <div class="container">
+        <div class="store-section-header">
+            <div class="store-section-icon credits-icon-bg">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div>
+                <h2>Credit Packs</h2>
+                <p>Buy once, use anytime. <strong>No subscription required!</strong></p>
+            </div>
+            <div class="no-sub-badge">
+                <i class="fas fa-infinity"></i> Never Expires
+            </div>
+        </div>
+
+        <div class="credits-grid">
+            {% for pack in credit_packs %}
+            <div class="credit-card{% if pack.get('badge') %} credit-card-popular{% endif %}">
+                {% if pack.get('badge') %}
+                <div class="credit-badge-ribbon">Most Popular</div>
+                {% elif pack.get('badge_text') %}
+                <div class="credit-badge-ribbon badge-value">{{ pack.badge_text }}</div>
+                {% endif %}
+
+                <div class="credit-card-top">
+                    <div class="coin-stack coin-stack-{{ loop.index }}">
+                        {% for i in range(loop.index) %}
+                        <div class="coin" style="animation-delay: {{ i * 0.1 }}s">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="credit-amount">{{ pack.credits }}</div>
+                    <div class="credit-label">Credits</div>
+                </div>
+
+                <div class="credit-card-body">
+                    <div class="credit-price">
+                        <span class="credit-price-dollar">$</span>
+                        <span class="credit-price-amount">{{ "%.2f"|format(pack.price) }}</span>
+                    </div>
+                    <div class="credit-per-unit">
+                        <span>${{ "%.2f"|format(pack.per_credit) }}</span> per listing
+                    </div>
+                    {% if pack.per_credit < 1.0 %}
+                    <div class="credit-save">
+                        Save {{ ((1 - pack.per_credit / 1.0) * 100)|int }}%
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="credit-card-footer">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('checkout_credits', pack_id=pack.id) }}" class="btn {% if pack.get('badge') %}btn-primary{% else %}btn-outline{% endif %} btn-block btn-lg">
+                        <i class="fas fa-bolt"></i> Buy {{ pack.credits }} Credits
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.register') }}" class="btn {% if pack.get('badge') %}btn-primary{% else %}btn-outline{% endif %} btn-block btn-lg">
+                        <i class="fas fa-bolt"></i> Get Started
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="credits-perks">
+            <div class="perk-item">
+                <i class="fas fa-shield-check"></i>
+                <span>One-time payment</span>
+            </div>
+            <div class="perk-item">
+                <i class="fas fa-clock"></i>
+                <span>Credits never expire</span>
+            </div>
+            <div class="perk-item">
+                <i class="fas fa-ban"></i>
+                <span>No subscription needed</span>
+            </div>
+            <div class="perk-item">
+                <i class="fas fa-lock"></i>
+                <span>Secure PayPal checkout</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 2 — Subscriptions
+     ═══════════════════════════════════════════════════════════ -->
+<section class="store-section store-section-sub" id="subscriptions-section" style="display:none;">
+    <div class="container">
+        <div class="store-section-header">
+            <div class="store-section-icon sub-icon-bg">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div>
+                <h2>Subscription Plans</h2>
+                <p>Monthly credits that refresh automatically. Best value per listing.</p>
+            </div>
+        </div>
+
+        <!-- Billing Toggle -->
+        <div class="billing-toggle">
+            <span class="billing-label" id="billing-monthly-label">Monthly</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="billingToggle" onchange="toggleBilling()">
+                <span class="toggle-slider"></span>
+            </label>
+            <span class="billing-label" id="billing-annual-label">
+                Annual <span class="annual-save-badge">Save up to 36%</span>
+            </span>
+        </div>
+
+        <div class="sub-grid">
+            <!-- Free -->
+            <div class="sub-card">
+                <div class="sub-card-header">
+                    <div class="sub-icon free-bg"><i class="fas fa-feather"></i></div>
+                    <h3>Free</h3>
+                    <div class="sub-price">
+                        <span class="sub-price-amount">$0</span>
+                        <span class="sub-price-period">/month</span>
+                    </div>
+                    <p class="sub-desc">Try it out, no commitment</p>
+                </div>
+                <ul class="sub-features">
+                    <li><i class="fas fa-check"></i> 1 listing per month</li>
+                    <li><i class="fas fa-check"></i> All property types</li>
+                    <li><i class="fas fa-check"></i> 4 writing tones</li>
+                    <li><i class="fas fa-check"></i> Full listing history</li>
+                    <li class="sub-feature-muted"><i class="fas fa-times"></i> Priority generation</li>
+                </ul>
+                {% if current_user.is_authenticated and current_user.plan == 'free' %}
+                <span class="btn btn-outline btn-block disabled">Current Plan</span>
+                {% elif not current_user.is_authenticated %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-block">Start Free</a>
+                {% endif %}
+            </div>
+
+            <!-- Pro -->
+            <div class="sub-card sub-card-popular">
+                <div class="sub-popular-badge"><i class="fas fa-star"></i> Most Popular</div>
+                <div class="sub-card-header">
+                    <div class="sub-icon pro-bg"><i class="fas fa-rocket"></i></div>
+                    <h3>Pro</h3>
+                    <!-- Monthly pricing -->
+                    <div class="sub-price sub-price-monthly">
+                        <span class="sub-price-amount">${{ "%.2f"|format(subscriptions.pro_monthly.price) }}</span>
+                        <span class="sub-price-period">/month</span>
+                    </div>
+                    <!-- Annual pricing (hidden by default) -->
+                    <div class="sub-price sub-price-annual" style="display:none;">
+                        <span class="sub-price-amount">${{ "%.2f"|format(subscriptions.pro_annual.price) }}</span>
+                        <span class="sub-price-period">/year</span>
+                        <div class="sub-monthly-eq">${{ "%.2f"|format(subscriptions.pro_annual.monthly_eq) }}/mo</div>
+                    </div>
+                    <p class="sub-desc">For active agents & teams</p>
+                </div>
+                <ul class="sub-features">
+                    <li><i class="fas fa-check"></i> <strong>30 listings</strong> per month</li>
+                    <li><i class="fas fa-check"></i> All property types</li>
+                    <li><i class="fas fa-check"></i> 4 writing tones</li>
+                    <li><i class="fas fa-check"></i> Full listing history</li>
+                    <li><i class="fas fa-check"></i> Priority generation</li>
+                    <li><i class="fas fa-check"></i> Email support</li>
+                </ul>
+                {% if current_user.is_authenticated %}
+                    {% if current_user.plan == 'pro' %}
+                    <span class="btn btn-outline btn-block disabled">Current Plan</span>
+                    {% else %}
+                    <a href="{{ url_for('checkout_subscription', sub_key='pro_monthly') }}" class="btn btn-primary btn-block btn-lg sub-checkout-btn" data-monthly="pro_monthly" data-annual="pro_annual">
+                        <i class="fas fa-rocket"></i> Upgrade to Pro
+                    </a>
+                    {% endif %}
+                {% else %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-block btn-lg">
+                    <i class="fas fa-rocket"></i> Start Free, Upgrade Later
+                </a>
+                {% endif %}
+                <div class="sub-price-annual sub-annual-savings" style="display:none;">
+                    <i class="fas fa-piggy-bank"></i> Save {{ subscriptions.pro_annual.save_pct }}% — ${{ "%.2f"|format(subscriptions.pro_monthly.price * 12 - subscriptions.pro_annual.price) }}/year
+                </div>
+            </div>
+
+            <!-- Unlimited -->
+            <div class="sub-card">
+                <div class="sub-card-header">
+                    <div class="sub-icon unlimited-bg"><i class="fas fa-infinity"></i></div>
+                    <h3>Unlimited</h3>
+                    <!-- Monthly pricing -->
+                    <div class="sub-price sub-price-monthly">
+                        <span class="sub-price-amount">${{ "%.2f"|format(subscriptions.unlimited_monthly.price) }}</span>
+                        <span class="sub-price-period">/month</span>
+                    </div>
+                    <!-- Annual pricing (hidden by default) -->
+                    <div class="sub-price sub-price-annual" style="display:none;">
+                        <span class="sub-price-amount">${{ "%.2f"|format(subscriptions.unlimited_annual.price) }}</span>
+                        <span class="sub-price-period">/year</span>
+                        <div class="sub-monthly-eq">${{ "%.2f"|format(subscriptions.unlimited_annual.monthly_eq) }}/mo</div>
+                    </div>
+                    <p class="sub-desc">For brokerages & power users</p>
+                </div>
+                <ul class="sub-features">
+                    <li><i class="fas fa-check"></i> <strong>Unlimited</strong> listings</li>
+                    <li><i class="fas fa-check"></i> All property types</li>
+                    <li><i class="fas fa-check"></i> 4 writing tones</li>
+                    <li><i class="fas fa-check"></i> Full listing history</li>
+                    <li><i class="fas fa-check"></i> Priority generation</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                </ul>
+                {% if current_user.is_authenticated %}
+                    {% if current_user.plan == 'unlimited' %}
+                    <span class="btn btn-outline btn-block disabled">Current Plan</span>
+                    {% else %}
+                    <a href="{{ url_for('checkout_subscription', sub_key='unlimited_monthly') }}" class="btn btn-outline btn-block btn-lg sub-checkout-btn" data-monthly="unlimited_monthly" data-annual="unlimited_annual">
+                        <i class="fas fa-infinity"></i> Go Unlimited
+                    </a>
+                    {% endif %}
+                {% else %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-block btn-lg">
+                    <i class="fas fa-infinity"></i> Start Free, Upgrade Later
+                </a>
+                {% endif %}
+                <div class="sub-price-annual sub-annual-savings" style="display:none;">
+                    <i class="fas fa-piggy-bank"></i> Save {{ subscriptions.unlimited_annual.save_pct }}% — ${{ "%.2f"|format(subscriptions.unlimited_monthly.price * 12 - subscriptions.unlimited_annual.price) }}/year
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Comparison Table -->
+<section class="store-comparison">
+    <div class="container">
+        <h2>Credits vs. Subscription — Which Is Right for You?</h2>
+        <div class="comparison-grid">
+            <div class="comparison-card">
+                <div class="comparison-icon credits-icon-bg"><i class="fas fa-coins"></i></div>
+                <h3>Credit Packs</h3>
+                <p>Best for occasional users who need a few listings at a time.</p>
+                <ul>
+                    <li><i class="fas fa-check"></i> Pay as you go</li>
+                    <li><i class="fas fa-check"></i> Credits never expire</li>
+                    <li><i class="fas fa-check"></i> No recurring charges</li>
+                    <li><i class="fas fa-check"></i> Use at your own pace</li>
+                </ul>
+            </div>
+            <div class="comparison-vs">VS</div>
+            <div class="comparison-card comparison-card-accent">
+                <div class="comparison-icon sub-icon-bg"><i class="fas fa-crown"></i></div>
+                <h3>Subscriptions</h3>
+                <p>Best for active agents who generate listings regularly.</p>
+                <ul>
+                    <li><i class="fas fa-check"></i> Lowest cost per listing</li>
+                    <li><i class="fas fa-check"></i> Fresh credits every month</li>
+                    <li><i class="fas fa-check"></i> Priority generation</li>
+                    <li><i class="fas fa-check"></i> Cancel anytime</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- FAQ -->
+<section class="store-faq">
+    <div class="container">
+        <div class="section-header">
+            <h2>Frequently Asked Questions</h2>
+            <p>Everything you need to know about credits and subscriptions</p>
+        </div>
+        <div class="faq-grid">
+            <div class="faq-item">
+                <h4><i class="fas fa-circle-question"></i> What's a "credit"?</h4>
+                <p>Each credit generates one complete listing description — including a title, multi-paragraph description, and key highlights. One credit = one listing.</p>
+            </div>
+            <div class="faq-item">
+                <h4><i class="fas fa-circle-question"></i> Do bought credits expire?</h4>
+                <p>No! One-time credit packs never expire. They stay in your account until you use them. Subscription credits refresh monthly.</p>
+            </div>
+            <div class="faq-item">
+                <h4><i class="fas fa-circle-question"></i> Can I buy credits AND have a subscription?</h4>
+                <p>Yes! Your subscription credits are used first each month. Bonus credits from packs are only consumed when subscription credits run out.</p>
+            </div>
+            <div class="faq-item">
+                <h4><i class="fas fa-circle-question"></i> Can I cancel my subscription?</h4>
+                <p>Absolutely. Cancel anytime with no penalties. You keep access until the end of your billing period, and any purchased credit packs remain yours.</p>
+            </div>
+            <div class="faq-item">
+                <h4><i class="fas fa-circle-question"></i> Is the annual plan worth it?</h4>
+                <p>If you plan to use Properties Genie for more than a few months, the annual plan saves you up to 36%. Most active agents choose annual.</p>
+            </div>
+            <div class="faq-item">
+                <h4><i class="fas fa-circle-question"></i> What payment methods do you accept?</h4>
+                <p>We accept PayPal and all major credit/debit cards through PayPal's secure checkout. No card info is stored on our servers.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="section-cta">
+    <div class="container">
+        <div class="cta-content">
+            <h2>Ready to Write Listings That Sell?</h2>
+            <p>Join thousands of agents using AI to create compelling property descriptions in seconds.</p>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('generate') }}" class="btn btn-primary btn-lg"><i class="fas fa-wand-magic-sparkles"></i> Generate a Listing</a>
+            {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg"><i class="fas fa-rocket"></i> Start Free Today</a>
+            {% endif %}
+            <small>1 free listing included — no credit card required</small>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchStoreTab(tab) {
+    document.querySelectorAll('.store-tab').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+    document.getElementById('credits-section').style.display = tab === 'credits' ? '' : 'none';
+    document.getElementById('subscriptions-section').style.display = tab === 'subscriptions' ? '' : 'none';
+}
+
+function toggleBilling() {
+    const isAnnual = document.getElementById('billingToggle').checked;
+    document.querySelectorAll('.sub-price-monthly').forEach(el => el.style.display = isAnnual ? 'none' : '');
+    document.querySelectorAll('.sub-price-annual').forEach(el => el.style.display = isAnnual ? '' : 'none');
+
+    // Update checkout button URLs
+    document.querySelectorAll('.sub-checkout-btn').forEach(btn => {
+        const key = isAnnual ? btn.dataset.annual : btn.dataset.monthly;
+        btn.href = `/checkout/subscription/${key}`;
+    });
+
+    // Highlight annual label
+    document.getElementById('billing-monthly-label').classList.toggle('billing-active', !isAnnual);
+    document.getElementById('billing-annual-label').classList.toggle('billing-active', isAnnual);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('billing-monthly-label').classList.add('billing-active');
+});
+</script>
+{% endblock %}
