@@ -40,8 +40,8 @@
                     {{ listing.created_at.strftime('%b %d, %Y') }}
                 </div>
                 <div class="history-actions">
-                    <a href="{{ url_for('view_listing', listing_id=listing.id) }}" class="btn btn-sm btn-primary">View</a>
-                    <form method="POST" action="{{ url_for('delete_listing', listing_id=listing.id) }}" class="inline-form" onsubmit="return confirm('Delete this listing?')">
+                    <a href="{{ url_for('view_listing', lid=listing.id) }}" class="btn btn-sm btn-primary">View</a>
+                    <form method="POST" action="{{ url_for('delete_listing', lid=listing.id) }}" class="inline-form" onsubmit="return confirm('Delete this listing?')">
                         <button type="submit" class="btn btn-sm btn-ghost text-red"><i class="fas fa-trash"></i></button>
                     </form>
                 </div>
