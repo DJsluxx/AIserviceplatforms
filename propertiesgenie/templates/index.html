@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Properties Genie — AI Real Estate Listing Description Generator{% endblock %}
+{% block meta_description %}Generate stunning real estate listing descriptions in seconds. AI-powered tool for realtors, agents, and property managers. Free to start — no credit card required.{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-bolt"></i> AI-Powered Listing Descriptions
+            </div>
+            <h1>Write Listing Descriptions<br><span class="gradient-text">That Actually Sell</span></h1>
+            <p class="hero-subtitle">
+                Stop spending 30+ minutes writing property descriptions. Fill in a few details,
+                and our AI generates professional, compelling listing copy in seconds.
+            </p>
+            <div class="hero-cta">
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-wand-magic-sparkles"></i> Start Free — 3 Descriptions/Month
+                </a>
+                <a href="#how-it-works" class="btn btn-ghost btn-lg">
+                    See How It Works <i class="fas fa-arrow-down"></i>
+                </a>
+            </div>
+            <div class="hero-trust">
+                <span><i class="fas fa-check-circle"></i> No credit card required</span>
+                <span><i class="fas fa-check-circle"></i> Results in 10 seconds</span>
+                <span><i class="fas fa-check-circle"></i> Copy & paste ready</span>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="demo-card">
+                <div class="demo-card-header">
+                    <span class="demo-dot red"></span>
+                    <span class="demo-dot yellow"></span>
+                    <span class="demo-dot green"></span>
+                    <span class="demo-title">Generated Listing</span>
+                </div>
+                <div class="demo-card-body">
+                    <h3>Stunning 4BD Colonial in Prestigious Oak Hill</h3>
+                    <p>Welcome to your dream home nestled in the heart of Oak Hill's most sought-after neighborhood.
+                    This meticulously maintained 4-bedroom, 3-bathroom colonial offers 2,800 sq ft of elegant living space,
+                    featuring gleaming hardwood floors, a chef's kitchen with granite countertops, and a sun-drenched
+                    primary suite with walk-in closet...</p>
+                    <div class="demo-highlights">
+                        <span class="demo-tag"><i class="fas fa-check"></i> Move-in Ready</span>
+                        <span class="demo-tag"><i class="fas fa-check"></i> Updated Kitchen</span>
+                        <span class="demo-tag"><i class="fas fa-check"></i> Top Schools</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="section" id="how-it-works">
+    <div class="container">
+        <div class="section-header">
+            <h2>How It Works</h2>
+            <p>Three simple steps to a professional listing description</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-icon"><i class="fas fa-keyboard"></i></div>
+                <h3>Enter Property Details</h3>
+                <p>Fill in bedrooms, bathrooms, square footage, features, and location. The more details, the better the result.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                <h3>AI Generates Your Listing</h3>
+                <p>Our AI crafts a compelling, unique listing description tailored to your property in under 10 seconds.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-icon"><i class="fas fa-copy"></i></div>
+                <h3>Copy, Edit & Publish</h3>
+                <p>Copy the description to your clipboard, make any tweaks, and paste it into Zillow, Realtor.com, MLS, or anywhere.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="section section-dark">
+    <div class="container">
+        <div class="section-header">
+            <h2>Why Agents Love Properties Genie</h2>
+            <p>Built by real estate professionals, powered by cutting-edge AI</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-clock"></i></div>
+                <h3>Save 30+ Minutes Per Listing</h3>
+                <p>What used to take half an hour now takes 10 seconds. Focus on closing deals, not writing copy.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-star"></i></div>
+                <h3>Professional Quality</h3>
+                <p>AI trained on thousands of top-performing real estate listings. Every description is polished and ready to publish.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-sliders"></i></div>
+                <h3>4 Writing Tones</h3>
+                <p>Professional, luxury, friendly, or minimal — match the tone to the property and your brand.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-home"></i></div>
+                <h3>All Property Types</h3>
+                <p>Houses, apartments, condos, townhouses, commercial, land — we've got every property type covered.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-rotate"></i></div>
+                <h3>Unlimited Regeneration</h3>
+                <p>Not happy with the first result? Regenerate as many times as you want (uses 1 credit each).</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-folder-open"></i></div>
+                <h3>Listing History</h3>
+                <p>All your generated descriptions are saved. Access, copy, or favorite them anytime from your dashboard.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Social Proof -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Trusted by Real Estate Professionals</h2>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"I used to spend 30-45 minutes per listing description. Now I get better results in seconds. This tool literally pays for itself on the first listing."</p>
+                <div class="testimonial-author">
+                    <strong>Sarah M.</strong> — Real Estate Agent, Austin TX
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"The luxury tone is incredible. My high-end clients are always impressed by the descriptions. It captures the elegance perfectly."</p>
+                <div class="testimonial-author">
+                    <strong>David R.</strong> — Luxury Broker, Miami FL
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"Managing 50+ rental listings was a nightmare. Properties Genie lets me generate fresh descriptions for all of them in under an hour."</p>
+                <div class="testimonial-author">
+                    <strong>Maria L.</strong> — Property Manager, Chicago IL
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section section-cta">
+    <div class="container">
+        <div class="cta-content">
+            <h2>Ready to Write Listings That Sell?</h2>
+            <p>Join thousands of real estate professionals who save hours every week with AI-powered descriptions.</p>
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-rocket"></i> Get Started Free
+            </a>
+            <small>No credit card required · 3 free descriptions per month</small>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

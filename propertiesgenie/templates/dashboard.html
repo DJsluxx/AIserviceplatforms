@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Properties Genie{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+    <div class="container">
+        <!-- Header -->
+        <div class="dash-header">
+            <div>
+                <h1>Welcome back, {{ current_user.name or 'there' }}!</h1>
+                <p class="dash-subtitle">Your AI listing generator dashboard</p>
+            </div>
+            <a href="{{ url_for('generate') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Listing
+            </a>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                <div class="stat-info">
+                    <span class="stat-number">{{ total_listings }}</span>
+                    <span class="stat-label">Total Listings</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon credit-icon"><i class="fas fa-coins"></i></div>
+                <div class="stat-info">
+                    <span class="stat-number">{{ current_user.credits_remaining }}</span>
+                    <span class="stat-label">Credits Left</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon plan-icon"><i class="fas fa-crown"></i></div>
+                <div class="stat-info">
+                    <span class="stat-number plan-badge plan-{{ current_user.plan }}">{{ current_user.plan|title }}</span>
+                    <span class="stat-label">Current Plan</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon usage-icon"><i class="fas fa-chart-bar"></i></div>
+                <div class="stat-info">
+                    <span class="stat-number">{{ current_user.credits_used }}</span>
+                    <span class="stat-label">Used This Month</span>
+                </div>
+            </div>
+        </div>
+
+        {% if current_user.plan == 'free' %}
+        <div class="upgrade-banner">
+            <div class="upgrade-text">
+                <i class="fas fa-rocket"></i>
+                <span><strong>Go Pro</strong> — Get 100 descriptions/month for just ${{ pro_price }}/mo</span>
+            </div>
+            <a href="{{ url_for('pricing') }}" class="btn btn-sm btn-primary">Upgrade Now</a>
+        </div>
+        {% endif %}
+
+        <!-- Recent Listings -->
+        <div class="dash-section">
+            <div class="dash-section-header">
+                <h2>Recent Listings</h2>
+                {% if total_listings > 5 %}
+                <a href="{{ url_for('history') }}" class="link-arrow">View All <i class="fas fa-arrow-right"></i></a>
+                {% endif %}
+            </div>
+
+            {% if recent_listings %}
+            <div class="listings-list">
+                {% for listing in recent_listings %}
+                <a href="{{ url_for('view_listing', listing_id=listing.id) }}" class="listing-row">
+                    <div class="listing-row-icon">
+                        {% if listing.property_type == 'house' %}<i class="fas fa-house"></i>
+                        {% elif listing.property_type == 'apartment' %}<i class="fas fa-building"></i>
+                        {% elif listing.property_type == 'condo' %}<i class="fas fa-city"></i>
+                        {% elif listing.property_type == 'townhouse' %}<i class="fas fa-house-chimney"></i>
+                        {% elif listing.property_type == 'land' %}<i class="fas fa-mountain"></i>
+                        {% elif listing.property_type == 'commercial' %}<i class="fas fa-store"></i>
+                        {% else %}<i class="fas fa-home"></i>{% endif %}
+                    </div>
+                    <div class="listing-row-info">
+                        <strong>{{ listing.generated_title or 'Untitled Listing' }}</strong>
+                        <span class="listing-meta">
+                            {{ listing.property_type|title }} ·
+                            {% if listing.city %}{{ listing.city }}{% if listing.state %}, {{ listing.state }}{% endif %}{% else %}No location{% endif %}
+                            · {{ listing.created_at.strftime('%b %d, %Y') }}
+                        </span>
+                    </div>
+                    <div class="listing-row-actions">
+                        {% if listing.is_favorite %}<i class="fas fa-heart text-red"></i>{% endif %}
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                <h3>No listings yet</h3>
+                <p>Generate your first AI property listing description!</p>
+                <a href="{{ url_for('generate') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Your First Listing
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

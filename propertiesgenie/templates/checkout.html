@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Checkout — {{ plan|title }} Plan — Properties Genie{% endblock %}
+
+{% block content %}
+<section class="checkout-section">
+    <div class="container">
+        <div class="checkout-card">
+            <div class="checkout-header">
+                <h1>Upgrade to {{ plan|title }}</h1>
+                <p>Unlock {% if plan == 'pro' %}100{% else %}unlimited{% endif %} listing descriptions per month</p>
+            </div>
+
+            <div class="checkout-summary">
+                <div class="checkout-row">
+                    <span>{{ plan|title }} Plan (Monthly)</span>
+                    <span class="checkout-price">${{ "%.2f"|format(price) }}</span>
+                </div>
+                <hr>
+                <div class="checkout-row checkout-total">
+                    <span>Total</span>
+                    <span>${{ "%.2f"|format(price) }}</span>
+                </div>
+            </div>
+
+            <div class="checkout-features">
+                <h4>What you get:</h4>
+                <ul>
+                    <li><i class="fas fa-check"></i> {% if plan == 'pro' %}100{% else %}Unlimited{% endif %} listings per month</li>
+                    <li><i class="fas fa-check"></i> All property types & tones</li>
+                    <li><i class="fas fa-check"></i> Complete listing history</li>
+                    <li><i class="fas fa-check"></i> Priority generation speed</li>
+                    <li><i class="fas fa-check"></i> Cancel anytime</li>
+                </ul>
+            </div>
+
+            <!-- PayPal Button -->
+            <div id="paypal-button-container"></div>
+
+            <p class="checkout-secure">
+                <i class="fas fa-lock"></i> Secure payment via PayPal. Cancel anytime.
+            </p>
+
+            <a href="{{ url_for('pricing') }}" class="btn btn-ghost btn-block">
+                <i class="fas fa-arrow-left"></i> Back to Pricing
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
+<script>
+paypal.Buttons({
+    style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' },
+    createOrder: function(data, actions) {
+        return actions.order.create({
+            purchase_units: [{
+                description: 'Properties Genie — {{ plan|title }} Plan',
+                amount: { value: '{{ "%.2f"|format(price) }}' }
+            }]
+        });
+    },
+    onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+            // Verify on server
+            fetch('/api/payment-success', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderID: data.orderID,
+                    plan: '{{ plan }}'
+                })
+            })
+            .then(r => r.json())
+            .then(result => {
+                if (result.success) {
+                    window.location.href = '/dashboard?upgraded=1';
+                } else {
+                    alert('Payment verification failed. Please contact support.');
+                }
+            })
+            .catch(() => {
+                alert('Something went wrong. If you were charged, please contact support.');
+            });
+        });
+    },
+    onError: function(err) {
+        console.error('PayPal error:', err);
+        alert('Payment could not be completed. Please try again.');
+    }
+}).render('#paypal-button-container');
+</script>
+{% endblock %}

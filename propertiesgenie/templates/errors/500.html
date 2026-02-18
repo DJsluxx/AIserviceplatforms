@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Server Error — Properties Genie{% endblock %}
+
+{% block content %}
+<section class="error-section">
+    <div class="container error-container">
+        <div class="error-code">500</div>
+        <h1>Something Went Wrong</h1>
+        <p>We're working on fixing this. Please try again in a few moments.</p>
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary"><i class="fas fa-home"></i> Back to Home</a>
+            <a href="{{ url_for('contact') }}" class="btn btn-outline">Contact Support</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

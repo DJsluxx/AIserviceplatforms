@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Pricing — Properties Genie{% endblock %}
+
+{% block content %}
+<section class="pricing-section">
+    <div class="container">
+        <div class="section-header">
+            <h1>Simple, Transparent Pricing</h1>
+            <p>Start free. Upgrade when you need more listings.</p>
+        </div>
+
+        <div class="pricing-grid">
+            <!-- Free -->
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h3>Free</h3>
+                    <div class="pricing-price">
+                        <span class="price-amount">$0</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <p class="pricing-desc">Perfect for trying it out</p>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i> 3 listings per month</li>
+                    <li><i class="fas fa-check"></i> All property types</li>
+                    <li><i class="fas fa-check"></i> 4 writing tones</li>
+                    <li><i class="fas fa-check"></i> Listing history</li>
+                    <li><i class="fas fa-check"></i> Copy & paste ready</li>
+                    <li class="muted"><i class="fas fa-times"></i> Priority generation</li>
+                </ul>
+                {% if current_user.is_authenticated and current_user.plan == 'free' %}
+                    <span class="btn btn-outline btn-block disabled">Current Plan</span>
+                {% elif not current_user.is_authenticated %}
+                    <a href="{{ url_for('register') }}" class="btn btn-outline btn-block">Get Started Free</a>
+                {% endif %}
+            </div>
+
+            <!-- Pro -->
+            <div class="pricing-card pricing-popular">
+                <div class="popular-badge">Most Popular</div>
+                <div class="pricing-header">
+                    <h3>Pro</h3>
+                    <div class="pricing-price">
+                        <span class="price-amount">${{ pro_price }}</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <p class="pricing-desc">For active agents & teams</p>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i> 100 listings per month</li>
+                    <li><i class="fas fa-check"></i> All property types</li>
+                    <li><i class="fas fa-check"></i> 4 writing tones</li>
+                    <li><i class="fas fa-check"></i> Listing history</li>
+                    <li><i class="fas fa-check"></i> Copy & paste ready</li>
+                    <li><i class="fas fa-check"></i> Priority generation</li>
+                </ul>
+                {% if current_user.is_authenticated %}
+                    {% if current_user.plan == 'pro' %}
+                        <span class="btn btn-outline btn-block disabled">Current Plan</span>
+                    {% else %}
+                        <a href="{{ url_for('upgrade', plan='pro') }}" class="btn btn-primary btn-block">Upgrade to Pro</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-block">Start Free Trial</a>
+                {% endif %}
+            </div>
+
+            <!-- Unlimited -->
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h3>Unlimited</h3>
+                    <div class="pricing-price">
+                        <span class="price-amount">${{ unlimited_price }}</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <p class="pricing-desc">For brokerages & power users</p>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i> Unlimited listings</li>
+                    <li><i class="fas fa-check"></i> All property types</li>
+                    <li><i class="fas fa-check"></i> 4 writing tones</li>
+                    <li><i class="fas fa-check"></i> Listing history</li>
+                    <li><i class="fas fa-check"></i> Copy & paste ready</li>
+                    <li><i class="fas fa-check"></i> Priority generation</li>
+                </ul>
+                {% if current_user.is_authenticated %}
+                    {% if current_user.plan == 'unlimited' %}
+                        <span class="btn btn-outline btn-block disabled">Current Plan</span>
+                    {% else %}
+                        <a href="{{ url_for('upgrade', plan='unlimited') }}" class="btn btn-primary btn-block">Go Unlimited</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-block">Start Free Trial</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="pricing-faq">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h4>What counts as a "listing"?</h4>
+                    <p>Each time you generate a description, it uses one credit. Whether it's a sale, rental, or any property type — it's one credit.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Can I cancel anytime?</h4>
+                    <p>Absolutely. No contracts, no commitments. Cancel anytime and you keep access until the end of your billing period.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Do credits roll over?</h4>
+                    <p>No, unused credits reset at the start of each billing cycle. But with Pro's 100 credits, you'll have plenty.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Is there a free trial for paid plans?</h4>
+                    <p>The Free plan is your trial! Use 3 descriptions per month forever. Upgrade only when you're convinced it saves you time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

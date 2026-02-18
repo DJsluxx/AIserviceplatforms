@@ -1,0 +1,113 @@
+"""
+Properties Genie — Database Models
+All table names prefixed with pg_ to share the Neon database with other platforms.
+Inherits common column mixins from shared.database.
+"""
+
+import json
+from datetime import datetime, timezone
+
+from flask_login import UserMixin
+from shared.database import (
+    db,
+    BaseUserMixin,
+    BaseSubscriptionMixin,
+    BaseContactMixin,
+    BaseUsageLogMixin,
+)
+from config import Config
+
+
+# ── Users ───────────────────────────────────────────────────────
+
+class PGUser(BaseUserMixin, UserMixin, db.Model):
+    __tablename__ = "pg_users"
+
+    listings = db.relationship(
+        "PGListing", backref="user", lazy=True,
+        order_by="PGListing.created_at.desc()",
+    )
+    subscription = db.relationship(
+        "PGSubscription", backref="user", uselist=False, lazy=True,
+    )
+
+    def __repr__(self):
+        return f"<PGUser {self.email}>"
+
+    @property
+    def credits_remaining(self):
+        limits = {
+            "free": Config.FREE_CREDITS,
+            "pro": Config.PRO_CREDITS,
+            "unlimited": Config.UNLIMITED_CREDITS,
+        }
+        return max(0, limits.get(self.plan, Config.FREE_CREDITS) - self.credits_used)
+
+    @property
+    def credit_limit(self):
+        limits = {
+            "free": Config.FREE_CREDITS,
+            "pro": Config.PRO_CREDITS,
+            "unlimited": Config.UNLIMITED_CREDITS,
+        }
+        return limits.get(self.plan, Config.FREE_CREDITS)
+
+
+# ── Subscriptions ───────────────────────────────────────────────
+
+class PGSubscription(BaseSubscriptionMixin, db.Model):
+    __tablename__ = "pg_subscriptions"
+    user_id = db.Column(db.Integer, db.ForeignKey("pg_users.id"), nullable=False)
+
+
+# ── Generated Listings ──────────────────────────────────────────
+
+class PGListing(db.Model):
+    __tablename__ = "pg_listings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("pg_users.id"), nullable=False)
+
+    # Property details (input)
+    property_type = db.Column(db.String(50))
+    listing_type = db.Column(db.String(20))
+    bedrooms = db.Column(db.Integer)
+    bathrooms = db.Column(db.Float)
+    sqft = db.Column(db.Integer)
+    lot_size = db.Column(db.String(50))
+    year_built = db.Column(db.Integer)
+    price = db.Column(db.String(50))
+    address = db.Column(db.String(300))
+    city = db.Column(db.String(100))
+    state = db.Column(db.String(100))
+    zip_code = db.Column(db.String(20))
+    features = db.Column(db.Text)
+    neighborhood_info = db.Column(db.Text)
+    tone = db.Column(db.String(30))
+    additional_notes = db.Column(db.Text)
+
+    # Output
+    generated_title = db.Column(db.String(300))
+    generated_description = db.Column(db.Text)
+    generated_highlights = db.Column(db.Text)   # JSON array
+    tokens_used = db.Column(db.Integer, default=0)
+
+    # Meta
+    is_favorite = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<PGListing {self.address or self.id}>"
+
+
+# ── Usage Logs ──────────────────────────────────────────────────
+
+class PGUsageLog(BaseUsageLogMixin, db.Model):
+    __tablename__ = "pg_usage_logs"
+    user_id = db.Column(db.Integer, db.ForeignKey("pg_users.id"), nullable=False)
+
+
+# ── Contact Messages ────────────────────────────────────────────
+
+class PGContact(BaseContactMixin, db.Model):
+    __tablename__ = "pg_contacts"

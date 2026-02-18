@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Generate Listing — Properties Genie{% endblock %}
+
+{% block content %}
+<section class="generator-section">
+    <div class="container">
+        <div class="gen-header">
+            <h1><i class="fas fa-wand-magic-sparkles"></i> Listing Generator</h1>
+            <div class="credit-badge">
+                <i class="fas fa-coins"></i>
+                {{ current_user.credits_remaining }} credits left
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('generate') }}" class="gen-form" id="genForm">
+            <div class="gen-grid">
+                <!-- Left Column: Property Details -->
+                <div class="gen-col">
+                    <div class="gen-card">
+                        <h3><i class="fas fa-home"></i> Property Details</h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="property_type">Property Type *</label>
+                                <select id="property_type" name="property_type" required>
+                                    <option value="house" {% if form_data and form_data.property_type == 'house' %}selected{% endif %}>House</option>
+                                    <option value="apartment" {% if form_data and form_data.property_type == 'apartment' %}selected{% endif %}>Apartment</option>
+                                    <option value="condo" {% if form_data and form_data.property_type == 'condo' %}selected{% endif %}>Condo</option>
+                                    <option value="townhouse" {% if form_data and form_data.property_type == 'townhouse' %}selected{% endif %}>Townhouse</option>
+                                    <option value="land" {% if form_data and form_data.property_type == 'land' %}selected{% endif %}>Land / Lot</option>
+                                    <option value="commercial" {% if form_data and form_data.property_type == 'commercial' %}selected{% endif %}>Commercial</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="listing_type">Listing Type *</label>
+                                <select id="listing_type" name="listing_type" required>
+                                    <option value="sale" {% if form_data and form_data.listing_type == 'sale' %}selected{% endif %}>For Sale</option>
+                                    <option value="rent" {% if form_data and form_data.listing_type == 'rent' %}selected{% endif %}>For Rent</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row four-col">
+                            <div class="form-group">
+                                <label for="bedrooms">Bedrooms</label>
+                                <input type="number" id="bedrooms" name="bedrooms" min="0" max="20" placeholder="3" value="{{ form_data.bedrooms if form_data else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="bathrooms">Bathrooms</label>
+                                <input type="number" id="bathrooms" name="bathrooms" min="0" max="20" step="0.5" placeholder="2" value="{{ form_data.bathrooms if form_data else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="sqft">Sq Ft</label>
+                                <input type="number" id="sqft" name="sqft" min="0" placeholder="2,000" value="{{ form_data.sqft if form_data else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="year_built">Year Built</label>
+                                <input type="number" id="year_built" name="year_built" min="1800" max="2030" placeholder="2020" value="{{ form_data.year_built if form_data else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="price">Price ($)</label>
+                                <input type="text" id="price" name="price" placeholder="450,000" value="{{ form_data.price if form_data else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="lot_size">Lot Size</label>
+                                <input type="text" id="lot_size" name="lot_size" placeholder="0.25 acres" value="{{ form_data.lot_size if form_data else '' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="gen-card">
+                        <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
+                        <div class="form-group">
+                            <label for="address">Street Address</label>
+                            <input type="text" id="address" name="address" placeholder="123 Oak Hill Drive" value="{{ form_data.address if form_data else '' }}">
+                        </div>
+                        <div class="form-row three-col">
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <input type="text" id="city" name="city" placeholder="Austin" value="{{ form_data.city if form_data else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="state">State</label>
+                                <input type="text" id="state" name="state" placeholder="Texas" value="{{ form_data.state if form_data else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="zip_code">ZIP Code</label>
+                                <input type="text" id="zip_code" name="zip_code" placeholder="78701" value="{{ form_data.zip_code if form_data else '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Features & Tone -->
+                <div class="gen-col">
+                    <div class="gen-card">
+                        <h3><i class="fas fa-star"></i> Features & Highlights</h3>
+                        <div class="form-group">
+                            <label for="features">Key Features</label>
+                            <textarea id="features" name="features" rows="4" placeholder="Hardwood floors, updated kitchen, granite countertops, walk-in closet, stainless steel appliances, in-ground pool, two-car garage...">{{ form_data.features if form_data else '' }}</textarea>
+                            <small class="form-hint">Separate features with commas</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="neighborhood_info">Neighborhood Info</label>
+                            <textarea id="neighborhood_info" name="neighborhood_info" rows="3" placeholder="Top-rated school district, walking distance to parks, near downtown, quiet cul-de-sac...">{{ form_data.neighborhood_info if form_data else '' }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="additional_notes">Additional Notes</label>
+                            <textarea id="additional_notes" name="additional_notes" rows="3" placeholder="Recently renovated, must sell quickly, motivated seller, open house this weekend...">{{ form_data.additional_notes if form_data else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Tone Selector -->
+                    <div class="gen-card">
+                        <h3><i class="fas fa-palette"></i> Writing Tone</h3>
+                        <div class="tone-grid">
+                            <label class="tone-option">
+                                <input type="radio" name="tone" value="professional" {% if not form_data or form_data.tone == 'professional' %}checked{% endif %}>
+                                <div class="tone-card">
+                                    <i class="fas fa-briefcase"></i>
+                                    <strong>Professional</strong>
+                                    <small>Authoritative & polished</small>
+                                </div>
+                            </label>
+                            <label class="tone-option">
+                                <input type="radio" name="tone" value="luxury" {% if form_data and form_data.tone == 'luxury' %}checked{% endif %}>
+                                <div class="tone-card">
+                                    <i class="fas fa-gem"></i>
+                                    <strong>Luxury</strong>
+                                    <small>Elegant & aspirational</small>
+                                </div>
+                            </label>
+                            <label class="tone-option">
+                                <input type="radio" name="tone" value="friendly" {% if form_data and form_data.tone == 'friendly' %}checked{% endif %}>
+                                <div class="tone-card">
+                                    <i class="fas fa-smile"></i>
+                                    <strong>Friendly</strong>
+                                    <small>Warm & inviting</small>
+                                </div>
+                            </label>
+                            <label class="tone-option">
+                                <input type="radio" name="tone" value="minimal" {% if form_data and form_data.tone == 'minimal' %}checked{% endif %}>
+                                <div class="tone-card">
+                                    <i class="fas fa-minus-circle"></i>
+                                    <strong>Minimal</strong>
+                                    <small>Clean & concise</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="generateBtn">
+                        <i class="fas fa-wand-magic-sparkles"></i> Generate Listing Description
+                    </button>
+                    <p class="gen-note">Uses 1 credit · Results appear in ~10 seconds</p>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('genForm').addEventListener('submit', function() {
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+});
+</script>
+{% endblock %}

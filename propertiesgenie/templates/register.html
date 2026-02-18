@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Sign Up — Properties Genie{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Create Your Account</h1>
+                <p>Start generating professional listings for free</p>
+            </div>
+            <form method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" placeholder="John Smith" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="At least 6 characters" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat password" minlength="6" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-user-plus"></i> Create Free Account
+                </button>
+            </form>
+            <div class="auth-footer">
+                <p>Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+            </div>
+            <div class="auth-perks">
+                <span><i class="fas fa-check"></i> 3 free descriptions/month</span>
+                <span><i class="fas fa-check"></i> No credit card required</span>
+                <span><i class="fas fa-check"></i> Full history saved</span>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

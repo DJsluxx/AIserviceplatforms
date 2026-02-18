@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Account Settings — Properties Genie{% endblock %}
+
+{% block content %}
+<section class="account-section">
+    <div class="container">
+        <h1>Account Settings</h1>
+
+        <div class="account-grid">
+            <!-- Plan Info -->
+            <div class="account-card">
+                <h3><i class="fas fa-crown"></i> Your Plan</h3>
+                <div class="plan-info">
+                    <span class="plan-badge plan-{{ current_user.plan }}">{{ current_user.plan|title }}</span>
+                    <p>{{ current_user.credits_remaining }} credits remaining this month</p>
+                    <div class="credit-bar">
+                        {% set pct = ((current_user.credits_used / current_user.credit_limit) * 100) if current_user.credit_limit > 0 else 0 %}
+                        <div class="credit-bar-fill" style="width: {{ [pct, 100]|min }}%"></div>
+                    </div>
+                    <small>{{ current_user.credits_used }} / {{ current_user.credit_limit }} used</small>
+                </div>
+                {% if current_user.plan == 'free' %}
+                <a href="{{ url_for('pricing') }}" class="btn btn-primary btn-block">Upgrade Plan</a>
+                {% endif %}
+            </div>
+
+            <!-- Profile -->
+            <div class="account-card">
+                <h3><i class="fas fa-user"></i> Profile</h3>
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_profile">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" value="{{ current_user.name }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" value="{{ current_user.email }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+
+            <!-- Password -->
+            <div class="account-card">
+                <h3><i class="fas fa-lock"></i> Change Password</h3>
+                <form method="POST">
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="form-group">
+                        <label for="old_password">Current Password</label>
+                        <input type="password" id="old_password" name="old_password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_password">New Password</label>
+                        <input type="password" id="new_password" name="new_password" minlength="6" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Password</button>
+                </form>
+            </div>
+
+            <!-- Account Info -->
+            <div class="account-card">
+                <h3><i class="fas fa-info-circle"></i> Account Info</h3>
+                <ul class="sidebar-list">
+                    <li><strong>Member since:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}</li>
+                    <li><strong>Email:</strong> {{ current_user.email }}</li>
+                    <li><strong>Plan:</strong> {{ current_user.plan|title }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
