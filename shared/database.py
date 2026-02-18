@@ -24,8 +24,10 @@ class BaseUserMixin:
     """
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=True)  # nullable for Google-only users
     name = db.Column(db.String(120), default="")
+    google_id = db.Column(db.String(200), unique=True, nullable=True)
+    avatar_url = db.Column(db.String(500), nullable=True)
     plan = db.Column(db.String(20), default="free")
     credits_used = db.Column(db.Integer, default=0)
     credits_reset_at = db.Column(

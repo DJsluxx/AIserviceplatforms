@@ -198,6 +198,29 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
 .auth-perks span { font-size: .82rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
 .auth-perks i { color: var(--primary); font-size: .75rem; }
 
+/* Google OAuth Button */
+.btn-google {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    width: 100%; padding: 12px 20px;
+    background: #fff; color: var(--text); border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); font-size: .95rem; font-weight: 600;
+    cursor: pointer; transition: all var(--transition); text-decoration: none;
+}
+.btn-google:hover { background: #f8f9fa; border-color: #d1d5db; box-shadow: var(--shadow); color: var(--text); }
+.btn-google svg { flex-shrink: 0; }
+
+/* Auth Divider */
+.auth-divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 20px 0;
+}
+.auth-divider::before, .auth-divider::after {
+    content: ""; flex: 1; height: 1px; background: var(--border);
+}
+.auth-divider span {
+    font-size: .82rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: .05em;
+}
+
 /* ── Dashboard ──────────────────────────────────────────────── */
 .dashboard-section, .history-section, .account-section { padding: 40px 0 80px; }
 .dash-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }

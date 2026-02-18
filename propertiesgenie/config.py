@@ -23,7 +23,7 @@ class Config(BaseConfig):
     SITE_URL = os.getenv("SITE_URL", "https://propertiesgenie.com")
 
     # Credit plans
-    FREE_CREDITS = 3
+    FREE_CREDITS = 1
     PRO_CREDITS = 100
     UNLIMITED_CREDITS = 999_999
 
