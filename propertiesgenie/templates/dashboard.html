@@ -20,7 +20,7 @@
         <div class="verify-banner">
             <div class="verify-text">
                 <i class="fas fa-envelope"></i>
-                <span><strong>Verify your email</strong> to unlock your free credit. Check your inbox for a verification link.</span>
+                <span><strong>Verify your email</strong> to unlock your free key. Check your inbox for a verification link.</span>
             </div>
             <a href="{{ url_for('auth.resend_verification') }}" class="btn btn-sm btn-accent">Resend Email</a>
         </div>
@@ -36,10 +36,10 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon credit-icon"><i class="fas fa-coins"></i></div>
+                <div class="stat-icon credit-icon"><i class="fas fa-key"></i></div>
                 <div class="stat-info">
                     <span class="stat-number">{{ current_user.credits_remaining }}</span>
-                    <span class="stat-label">Credits Left{% if current_user.bonus_credits %} ({{ current_user.bonus_credits }} bonus){% endif %}</span>
+                    <span class="stat-label">Keys Left{% if current_user.bonus_credits %} ({{ current_user.bonus_credits }} bonus){% endif %}</span>
                 </div>
             </div>
             <div class="stat-card">
@@ -62,7 +62,7 @@
         <div class="upgrade-banner">
             <div class="upgrade-text">
                 <i class="fas fa-rocket"></i>
-                <span><strong>Go Pro</strong> — Get 30 descriptions/month starting at $12.99/mo, or buy credit packs!</span>
+                <span><strong>Go Top Agent</strong> — Get 30 listings/month starting at $11.55/mo, or buy key packs!</span>
             </div>
             <a href="{{ url_for('store') }}" class="btn btn-sm btn-primary">Visit Store</a>
         </div>
@@ -107,10 +107,10 @@
             </div>
             {% else %}
             <div class="empty-state">
-                <i class="fas fa-wand-magic-sparkles"></i>
+                <i class="fas fa-key"></i>
                 <h3>No listings yet</h3>
-                <p>Generate your first AI property listing description!</p>
-                <a href="{{ url_for('generate') }}" class="btn btn-primary">
+                <p>Generate your first AI property listing!</p>
+                <a href="{{ url_for('generate') }}" class="btn btn-primary btn-lg btn-glow">
                     <i class="fas fa-plus"></i> Create Your First Listing
                 </a>
             </div>

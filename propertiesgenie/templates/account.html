@@ -12,7 +12,7 @@
                 <h3><i class="fas fa-crown"></i> Your Plan</h3>
                 <div class="plan-info">
                     <span class="plan-badge plan-{{ current_user.plan }}">{{ current_user.plan|title }}</span>
-                    <p>{{ current_user.credits_remaining }} credits remaining this month</p>
+                    <p>{{ current_user.credits_remaining }} keys remaining this month</p>
                     <div class="credit-bar">
                         {% set pct = ((current_user.credits_used / current_user.credit_limit) * 100) if current_user.credit_limit > 0 else 0 %}
                         <div class="credit-bar-fill" style="width: {{ [pct, 100]|min }}%"></div>
@@ -20,7 +20,7 @@
                     <small>{{ current_user.credits_used }} / {{ current_user.credit_limit }} used</small>
                 </div>
                 {% if current_user.plan == 'free' %}
-                <a href="{{ url_for('store') }}" class="btn btn-primary btn-block">Get More Credits</a>
+                <a href="{{ url_for('store') }}" class="btn btn-primary btn-block">Get More Keys</a>
                 {% endif %}
             </div>
 

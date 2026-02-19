@@ -5,10 +5,19 @@
 <section class="generator-section">
     <div class="container">
         <div class="gen-header">
-            <h1><i class="fas fa-wand-magic-sparkles"></i> Listing Generator</h1>
-            <div class="credit-badge">
-                <i class="fas fa-coins"></i>
-                {{ current_user.credits_remaining }} credits left
+            <div>
+                <h1><i class="fas fa-key" style="color:#f5c542"></i> Listing Generator</h1>
+                <p style="color:rgba(255,255,255,0.5);margin-top:4px;font-size:0.9rem">Fill in property details and let our AI create a compelling listing</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+                <div class="powered-badge" style="font-size:0.75rem;padding:6px 12px">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="margin-right:4px"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729z"/></svg>
+                    OpenAI
+                </div>
+                <div class="credit-badge">
+                    <span class="key-icon"><i class="fas fa-key"></i></span>
+                    {{ current_user.credits_remaining }} keys left
+                </div>
             </div>
         </div>
 
@@ -84,7 +93,7 @@
                                 <input type="text" id="city" name="city" placeholder="Austin" value="{{ form_data.city if form_data else '' }}">
                             </div>
                             <div class="form-group">
-                                <label for="state">State</label>
+                                <label for="state">State/Country</label>
                                 <input type="text" id="state" name="state" placeholder="Texas" value="{{ form_data.state if form_data else '' }}">
                             </div>
                             <div class="form-group">
@@ -154,10 +163,10 @@
                     </div>
 
                     <!-- Submit -->
-                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="generateBtn">
-                        <i class="fas fa-wand-magic-sparkles"></i> Generate Listing Description
+                    <button type="submit" class="btn btn-primary btn-block btn-lg btn-glow" id="generateBtn">
+                        <i class="fas fa-key"></i> Generate Listing
                     </button>
-                    <p class="gen-note">Uses 1 credit · Results appear in ~10 seconds</p>
+                    <p class="gen-note">Uses 1 key · Results appear in ~4 seconds</p>
                 </div>
             </div>
         </form>

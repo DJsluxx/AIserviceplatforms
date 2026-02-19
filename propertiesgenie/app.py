@@ -36,6 +36,18 @@ from shared.ai_client import call_openai
 # ║  APP FACTORY                                                 ║
 # ╚══════════════════════════════════════════════════════════════╝
 
+def get_launch_price(original_price, annual=False):
+    """Return the discounted price if a launch discount is active, else the original.
+    Annual plans get an extra discount (30% launch + 10% annual = 40% total)."""
+    discount = getattr(Config, "LAUNCH_DISCOUNT", None)
+    if discount and discount.get("enabled"):
+        pct = discount.get("percent", 0)
+        if annual:
+            pct += discount.get("annual_extra", 0)
+        return round(original_price * (1 - pct / 100), 2)
+    return original_price
+
+
 def create_app():
     app = Flask(__name__)
 
@@ -48,9 +60,26 @@ def create_app():
         db=db,
         site_name=Config.SITE_NAME,
         free_credits=Config.FREE_CREDITS,
-        welcome_message=f"Welcome to Properties Genie! You have {Config.FREE_CREDITS} free descriptions.",
+        welcome_message=f"Welcome to Properties Genie! You have {Config.FREE_CREDITS} free listings.",
     )
     app.register_blueprint(auth_bp)
+
+    # ── Jinja2 Filters ────────────────────────────────────────
+    @app.template_filter("launch_price")
+    def launch_price_filter(value):
+        """Jinja2 filter: {{ some_price|launch_price }}"""
+        try:
+            return get_launch_price(float(value))
+        except (TypeError, ValueError):
+            return value
+
+    @app.template_filter("launch_price_annual")
+    def launch_price_annual_filter(value):
+        """Jinja2 filter: {{ some_price|launch_price_annual }} — 40% for annual plans."""
+        try:
+            return get_launch_price(float(value), annual=True)
+        except (TypeError, ValueError):
+            return value
 
     # ── Context Processors ─────────────────────────────────────
     @app.context_processor
@@ -62,6 +91,7 @@ def create_app():
             "paypal_client_id": Config.PAYPAL_CLIENT_ID,
             "credit_packs": Config.CREDIT_PACKS,
             "subscriptions": Config.SUBSCRIPTIONS,
+            "launch_discount": getattr(Config, "LAUNCH_DISCOUNT", {}),
         }
 
     # ════════════════════════════════════════════════════════════
@@ -289,7 +319,8 @@ def create_app():
         sub = Config.SUBSCRIPTIONS.get(sub_key)
         if not sub:
             abort(404)
-        return render_template("checkout.html", purchase_type="subscription", sub_key=sub_key, sub=sub)
+        is_annual = sub.get("billing") == "annual"
+        return render_template("checkout.html", purchase_type="subscription", sub_key=sub_key, sub=sub, is_annual=is_annual)
 
     # ── Server-side order creation (price set by server, not client) ──
 
@@ -304,13 +335,14 @@ def create_app():
             pack = next((p for p in Config.CREDIT_PACKS if p["id"] == item_id), None)
             if not pack:
                 return jsonify({"error": "Invalid credit pack"}), 400
-            amount = pack["price"]
+            amount = get_launch_price(pack["price"])
             description = f"Properties Genie — {pack['credits']} Credit Pack"
         elif purchase_type == "subscription":
             sub = Config.SUBSCRIPTIONS.get(item_id)
             if not sub:
                 return jsonify({"error": "Invalid subscription"}), 400
-            amount = sub["price"]
+            is_annual = sub.get("billing") == "annual"
+            amount = get_launch_price(sub["price"], annual=is_annual)
             description = f"Properties Genie — {sub['label']}"
         else:
             return jsonify({"error": "Invalid purchase type"}), 400
@@ -355,7 +387,7 @@ def create_app():
                 })
 
             captured, info = capture_paypal_order(
-                order_id, pack["price"],
+                order_id, get_launch_price(pack["price"]),
                 client_id=Config.PAYPAL_CLIENT_ID,
                 client_secret=Config.PAYPAL_CLIENT_SECRET,
                 mode=Config.PAYPAL_MODE,
@@ -395,7 +427,7 @@ def create_app():
                 })
 
             captured, info = capture_paypal_order(
-                order_id, sub["price"],
+                order_id, get_launch_price(sub["price"], annual=(sub.get("billing") == "annual")),
                 client_id=Config.PAYPAL_CLIENT_ID,
                 client_secret=Config.PAYPAL_CLIENT_SECRET,
                 mode=Config.PAYPAL_MODE,

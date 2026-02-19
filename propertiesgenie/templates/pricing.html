@@ -13,7 +13,7 @@
             <!-- Free -->
             <div class="pricing-card">
                 <div class="pricing-header">
-                    <h3>Free</h3>
+                    <h3>Open House</h3>
                     <div class="pricing-price">
                         <span class="price-amount">$0</span>
                         <span class="price-period">/month</span>
@@ -39,12 +39,18 @@
             <div class="pricing-card pricing-popular">
                 <div class="popular-badge">Most Popular</div>
                 <div class="pricing-header">
-                    <h3>Pro</h3>
+                    <h3>Top Agent</h3>
                     <div class="pricing-price">
+                        {% if launch_discount and launch_discount.enabled %}
+                        <span class="price-original">${{ "%.2f"|format(subscriptions.pro_monthly.price) }}</span>
+                        <span class="discount-badge">{{ launch_discount.badge }}</span><br>
+                        <span class="price-amount">${{ "%.2f"|format(subscriptions.pro_monthly.price|launch_price) }}</span>
+                        {% else %}
                         <span class="price-amount">${{ "%.2f"|format(subscriptions.pro_monthly.price) }}</span>
+                        {% endif %}
                         <span class="price-period">/month</span>
                     </div>
-                    <p class="pricing-desc">For active agents & teams</p>
+                    <p class="pricing-desc">For active agents & top producers</p>
                 </div>
                 <ul class="pricing-features">
                     <li><i class="fas fa-check"></i> 30 listings per month</li>
@@ -58,7 +64,7 @@
                     {% if current_user.plan == 'pro' %}
                         <span class="btn btn-outline btn-block disabled">Current Plan</span>
                     {% else %}
-                        <a href="{{ url_for('checkout_subscription', sub_key='pro_monthly') }}" class="btn btn-primary btn-block">Upgrade to Pro</a>
+                        <a href="{{ url_for('checkout_subscription', sub_key='pro_monthly') }}" class="btn btn-primary btn-block">Upgrade to Top Agent</a>
                     {% endif %}
                 {% else %}
                     <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-block">Start Free Trial</a>
@@ -68,12 +74,18 @@
             <!-- Business -->
             <div class="pricing-card">
                 <div class="pricing-header">
-                    <h3>Business</h3>
+                    <h3>Elite Broker</h3>
                     <div class="pricing-price">
+                        {% if launch_discount and launch_discount.enabled %}
+                        <span class="price-original">${{ "%.2f"|format(subscriptions.business_monthly.price) }}</span>
+                        <span class="discount-badge">{{ launch_discount.badge }}</span><br>
+                        <span class="price-amount">${{ "%.2f"|format(subscriptions.business_monthly.price|launch_price) }}</span>
+                        {% else %}
                         <span class="price-amount">${{ "%.2f"|format(subscriptions.business_monthly.price) }}</span>
+                        {% endif %}
                         <span class="price-period">/month</span>
                     </div>
-                    <p class="pricing-desc">For brokerages & power users</p>
+                    <p class="pricing-desc">For brokerages & power teams</p>
                 </div>
                 <ul class="pricing-features">
                     <li><i class="fas fa-check"></i> 100 listings per month</li>
@@ -87,7 +99,7 @@
                     {% if current_user.plan == 'business' %}
                         <span class="btn btn-outline btn-block disabled">Current Plan</span>
                     {% else %}
-                        <a href="{{ url_for('checkout_subscription', sub_key='business_monthly') }}" class="btn btn-primary btn-block">Go Business</a>
+                        <a href="{{ url_for('checkout_subscription', sub_key='business_monthly') }}" class="btn btn-primary btn-block">Go Elite Broker</a>
                     {% endif %}
                 {% else %}
                     <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-block">Start Free Trial</a>
@@ -101,19 +113,19 @@
             <div class="faq-grid">
                 <div class="faq-item">
                     <h4>What counts as a "listing"?</h4>
-                    <p>Each time you generate a description, it uses one credit. Whether it's a sale, rental, or any property type — it's one credit.</p>
+                    <p>Each time you generate a listing, it uses one key. Whether it's a sale, rental, or any property type — it's one key.</p>
                 </div>
                 <div class="faq-item">
                     <h4>Can I cancel anytime?</h4>
                     <p>Absolutely. No contracts, no commitments. Cancel anytime and you keep access until the end of your billing period.</p>
                 </div>
                 <div class="faq-item">
-                    <h4>Do credits roll over?</h4>
-                    <p>No, unused credits reset at the start of each billing cycle. Bonus credits from packs never expire.</p>
+                    <h4>Do keys roll over?</h4>
+                    <p>No, unused keys reset at the start of each billing cycle. Bonus keys from bundles never expire.</p>
                 </div>
                 <div class="faq-item">
                     <h4>Is there a free trial for paid plans?</h4>
-                    <p>The Free plan is your trial! Use 1 description per month forever. Upgrade only when you're convinced it saves you time.</p>
+                    <p>The Free plan is your trial! Use 1 listing per month forever. Upgrade only when you're convinced it saves you time.</p>
                 </div>
             </div>
         </div>

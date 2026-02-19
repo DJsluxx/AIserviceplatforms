@@ -16,7 +16,7 @@
                 <button class="btn btn-ghost btn-sm" onclick="copyTitle()" title="Copy title">
                     <i class="fas fa-heading"></i> Copy Title
                 </button>
-                <button class="btn btn-primary btn-sm" onclick="copyAll()" title="Copy full description">
+                <button class="btn btn-primary btn-sm" onclick="copyAll()" title="Copy full listing">
                     <i class="fas fa-copy"></i> Copy All
                 </button>
             </div>
@@ -27,7 +27,11 @@
             <div class="result-main reveal">
                 <div class="result-card">
                     <div class="result-badge">
-                        <i class="fas fa-wand-magic-sparkles"></i> AI Generated
+                        <i class="fas fa-key"></i> AI Generated
+                        <span style="margin-left:auto;font-size:0.7rem;opacity:0.7">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:-1px;margin-right:2px"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729z"/></svg>
+                            Powered by OpenAI
+                        </span>
                     </div>
 
                     <h1 class="result-title" id="resultTitle">{{ listing.generated_title }}</h1>
@@ -99,7 +103,7 @@
 
                 <div class="sidebar-card sidebar-tip">
                     <h4><i class="fas fa-lightbulb"></i> Pro Tip</h4>
-                    <p>Copy the description and paste it directly into Zillow, Realtor.com, or your MLS system. Make any final tweaks to personalize it.</p>
+                    <p>Copy the listing and paste it directly into Zillow, Realtor.com, or your MLS system. Make any final tweaks to personalize it.</p>
                 </div>
             </div>
         </div>

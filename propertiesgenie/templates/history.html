@@ -7,7 +7,7 @@
         <div class="dash-header">
             <div>
                 <h1>Listing History</h1>
-                <p class="dash-subtitle">All your generated listing descriptions</p>
+                <p class="dash-subtitle">All your generated listings</p>
             </div>
             <a href="{{ url_for('generate') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> New Listing
@@ -64,9 +64,9 @@
 
         {% else %}
         <div class="empty-state reveal">
-            <i class="fas fa-wand-magic-sparkles"></i>
+            <i class="fas fa-key"></i>
             <h3>No listings yet</h3>
-            <p>Your generated descriptions will appear here.</p>
+            <p>Your generated listings will appear here.</p>
             <a href="{{ url_for('generate') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Generate Your First Listing
             </a>

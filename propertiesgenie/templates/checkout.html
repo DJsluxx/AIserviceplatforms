@@ -8,32 +8,42 @@
             {% if purchase_type == 'credits' %}
             <!-- ═══ CREDIT PACK CHECKOUT ═══ -->
             <div class="checkout-header">
-                <div class="checkout-icon credits-icon-bg"><i class="fas fa-coins"></i></div>
-                <h1>{{ pack.credits }} Credits</h1>
+                <div class="checkout-icon credits-icon-bg"><i class="fas fa-key"></i></div>
+                <h1>{{ pack.credits }} Keys</h1>
                 <p>One-time purchase — no subscription required</p>
             </div>
 
             <div class="checkout-summary">
                 <div class="checkout-row">
-                    <span>{{ pack.label }} Credit Pack ({{ pack.credits }} credits)</span>
+                    <span>{{ pack.label }} Key Bundle ({{ pack.credits }} keys)</span>
                     <span class="checkout-price">${{ "%.2f"|format(pack.price) }}</span>
                 </div>
                 <div class="checkout-row checkout-per-unit">
                     <span>Cost per listing</span>
                     <span>${{ "%.2f"|format(pack.per_credit) }}</span>
                 </div>
+                {% if launch_discount and launch_discount.enabled %}
+                <div class="checkout-row" style="color:#f5c542">
+                    <span><i class="fas fa-tag"></i> {{ launch_discount.badge }} Launch Discount</span>
+                    <span>-${{ "%.2f"|format(pack.price - pack.price|launch_price) }}</span>
+                </div>
+                {% endif %}
                 <hr>
                 <div class="checkout-row checkout-total">
                     <span>Total (one-time)</span>
+                    {% if launch_discount and launch_discount.enabled %}
+                    <span><span class="price-original">${{ "%.2f"|format(pack.price) }}</span> ${{ "%.2f"|format(pack.price|launch_price) }}</span>
+                    {% else %}
                     <span>${{ "%.2f"|format(pack.price) }}</span>
+                    {% endif %}
                 </div>
             </div>
 
             <div class="checkout-features">
                 <h4>What you get:</h4>
                 <ul>
-                    <li><i class="fas fa-check"></i> {{ pack.credits }} listing descriptions</li>
-                    <li><i class="fas fa-check"></i> Credits never expire</li>
+                    <li><i class="fas fa-check"></i> {{ pack.credits }} listings</li>
+                    <li><i class="fas fa-check"></i> Keys never expire</li>
                     <li><i class="fas fa-check"></i> All property types & tones</li>
                     <li><i class="fas fa-check"></i> No recurring charges</li>
                     <li><i class="fas fa-check"></i> Instant activation</li>
@@ -52,7 +62,7 @@
             <div class="checkout-header">
                 <div class="checkout-icon sub-icon-bg"><i class="fas fa-crown"></i></div>
                 <h1>{{ sub.label }}</h1>
-                <p>{% if sub.credits >= 999_999 %}Unlimited{% else %}{{ sub.credits }}{% endif %} listing descriptions per month</p>
+                <p>{% if sub.credits >= 999_999 %}Unlimited{% else %}{{ sub.credits }}{% endif %} listings per month</p>
             </div>
 
             <div class="checkout-summary">
@@ -70,10 +80,20 @@
                     <span class="text-green">{{ sub.save_pct }}% off monthly price</span>
                 </div>
                 {% endif %}
+                {% if launch_discount and launch_discount.enabled %}
+                <div class="checkout-row" style="color:#f5c542">
+                    <span><i class="fas fa-tag"></i> {% if is_annual %}40% OFF{% else %}{{ launch_discount.badge }}{% endif %} Launch Discount</span>
+                    <span>-${{ "%.2f"|format(sub.price - (sub.price|launch_price_annual if is_annual else sub.price|launch_price)) }}</span>
+                </div>
+                {% endif %}
                 <hr>
                 <div class="checkout-row checkout-total">
                     <span>Total</span>
+                    {% if launch_discount and launch_discount.enabled %}
+                    <span><span class="price-original">${{ "%.2f"|format(sub.price) }}</span> ${{ "%.2f"|format(sub.price|launch_price_annual if is_annual else sub.price|launch_price) }}</span>
+                    {% else %}
                     <span>${{ "%.2f"|format(sub.price) }}</span>
+                    {% endif %}
                 </div>
             </div>
 
