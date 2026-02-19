@@ -74,7 +74,7 @@
             <!-- Business -->
             <div class="pricing-card">
                 <div class="pricing-header">
-                    <h3>Market Mogul</h3>
+                    <h3>Elite Broker</h3>
                     <div class="pricing-price">
                         {% if launch_discount and launch_discount.enabled %}
                         <span class="price-original">${{ "%.2f"|format(subscriptions.business_monthly.price) }}</span>
@@ -99,7 +99,7 @@
                     {% if current_user.plan == 'business' %}
                         <span class="btn btn-outline btn-block disabled">Current Plan</span>
                     {% else %}
-                        <a href="{{ url_for('checkout_subscription', sub_key='business_monthly') }}" class="btn btn-primary btn-block">Go Mogul</a>
+                        <a href="{{ url_for('checkout_subscription', sub_key='business_monthly') }}" class="btn btn-primary btn-block">Go Elite</a>
                     {% endif %}
                 {% else %}
                     <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-block">Start Free Trial</a>
