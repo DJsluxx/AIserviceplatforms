@@ -15,6 +15,17 @@
             </a>
         </div>
 
+        <!-- Email Verification Banner -->
+        {% if not current_user.email_verified %}
+        <div class="verify-banner">
+            <div class="verify-text">
+                <i class="fas fa-envelope"></i>
+                <span><strong>Verify your email</strong> to unlock your free credit. Check your inbox for a verification link.</span>
+            </div>
+            <a href="{{ url_for('auth.resend_verification') }}" class="btn btn-sm btn-accent">Resend Email</a>
+        </div>
+        {% endif %}
+
         <!-- Stats Cards -->
         <div class="stats-grid reveal-stagger reveal">
             <div class="stat-card">

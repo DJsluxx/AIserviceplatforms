@@ -41,7 +41,11 @@ class PGUser(BaseUserMixin, UserMixin, db.Model):
             "pro": Config.PRO_CREDITS,
             "business": Config.BUSINESS_CREDITS,
         }
-        plan_credits = max(0, limits.get(self.plan, Config.FREE_CREDITS) - self.credits_used)
+        plan_limit = limits.get(self.plan, Config.FREE_CREDITS)
+        # Free-plan users must verify email to unlock their free credit
+        if self.plan == "free" and not self.email_verified:
+            plan_limit = 0
+        plan_credits = max(0, plan_limit - self.credits_used)
         return plan_credits + (self.bonus_credits or 0)
 
     @property

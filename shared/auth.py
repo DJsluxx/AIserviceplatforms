@@ -4,6 +4,7 @@ Shared — Auth Blueprint Factory
 Creates a reusable Flask blueprint that handles:
   - Email/password register / login / logout
   - Google OAuth sign-in (one-click)
+  - Email verification to prevent abuse
 
 Each platform calls create_auth_blueprint() with its own User model.
 
@@ -19,6 +20,7 @@ Usage:
     app.register_blueprint(auth_bp)
 """
 
+import secrets
 from datetime import datetime, timezone
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
@@ -70,23 +72,67 @@ def create_auth_blueprint(
                 flash("An account with this email already exists.", "error")
                 return redirect(url_for("auth.register"))
 
+            verify_token = secrets.token_urlsafe(32)
             user = user_model(
                 email=email,
                 name=name,
                 password_hash=generate_password_hash(password),
                 plan="free",
                 credits_used=0,
+                email_verified=False,
+                email_verify_token=verify_token,
                 credits_reset_at=datetime.now(timezone.utc),
             )
             db.session.add(user)
             db.session.commit()
             login_user(user)
 
-            msg = welcome_message or f"Welcome to {site_name}! You have {free_credits} free credits."
-            flash(msg, "success")
+            # Send verification email (best-effort)
+            _send_verification_email(user, site_name)
+
+            flash(
+                "Account created! Please check your email to verify your address and unlock your free credit.",
+                "success",
+            )
             return redirect(url_for("dashboard"))
 
         return render_template(register_template)
+
+    # ── Email Verification ──────────────────────────────────
+    @bp.route("/verify-email/<token>")
+    def verify_email(token):
+        user = user_model.query.filter_by(email_verify_token=token).first()
+        if not user:
+            flash("Invalid or expired verification link.", "error")
+            return redirect(url_for("index"))
+        if user.email_verified:
+            flash("Your email is already verified.", "info")
+            return redirect(url_for("dashboard"))
+
+        user.email_verified = True
+        user.email_verify_token = None
+        db.session.commit()
+
+        if current_user.is_authenticated and current_user.id == user.id:
+            pass  # already logged in
+        else:
+            login_user(user)
+
+        flash(f"Email verified! You now have {free_credits} free credit(s). Enjoy!", "success")
+        return redirect(url_for("dashboard"))
+
+    @bp.route("/resend-verification")
+    @login_required
+    def resend_verification():
+        if current_user.email_verified:
+            flash("Your email is already verified.", "info")
+            return redirect(url_for("dashboard"))
+        token = secrets.token_urlsafe(32)
+        current_user.email_verify_token = token
+        db.session.commit()
+        _send_verification_email(current_user, site_name)
+        flash("Verification email resent. Check your inbox!", "success")
+        return redirect(url_for("dashboard"))
 
     # ── Email/Password Login ────────────────────────────────
     @bp.route("/login", methods=["GET", "POST"])
@@ -170,7 +216,7 @@ def create_auth_blueprint(
                     user.name = name
                 db.session.commit()
             else:
-                # Brand new user via Google
+                # Brand new user via Google — email already verified by Google
                 user = user_model(
                     email=email,
                     name=name,
@@ -179,6 +225,7 @@ def create_auth_blueprint(
                     password_hash=None,
                     plan="free",
                     credits_used=0,
+                    email_verified=True,
                     credits_reset_at=datetime.now(timezone.utc),
                 )
                 db.session.add(user)
@@ -207,3 +254,38 @@ def create_auth_blueprint(
             )
 
     return bp
+
+
+def _send_verification_email(user, site_name):
+    """Send a verification email. Best-effort — logs errors but doesn't crash."""
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        from flask import current_app, url_for
+        from flask_mail import Mail, Message as MailMessage
+
+        app = current_app._get_current_object()
+        if not app.config.get("MAIL_SERVER"):
+            logger.info("MAIL_SERVER not configured — skipping verification email for %s", user.email)
+            return
+
+        mail = Mail(app)
+        verify_url = url_for("auth.verify_email", token=user.email_verify_token, _external=True)
+        msg = MailMessage(
+            subject=f"Verify your {site_name} email",
+            sender=app.config.get("MAIL_DEFAULT_SENDER", f"noreply@{site_name.lower().replace(' ', '')}.com"),
+            recipients=[user.email],
+            html=(
+                f"<h2>Welcome to {site_name}!</h2>"
+                f"<p>Click the link below to verify your email and activate your free credit:</p>"
+                f'<p><a href="{verify_url}" style="display:inline-block;padding:12px 28px;'
+                f'background:#7c3aed;color:#fff;text-decoration:none;border-radius:8px;'
+                f'font-weight:600;">Verify My Email</a></p>'
+                f"<p>Or copy this link: {verify_url}</p>"
+                f"<p>If you didn't create an account, you can ignore this email.</p>"
+            ),
+        )
+        mail.send(msg)
+        logger.info("Verification email sent to %s", user.email)
+    except Exception as e:
+        logger.warning("Could not send verification email to %s: %s", user.email, e)

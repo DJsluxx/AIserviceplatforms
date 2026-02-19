@@ -36,6 +36,8 @@ class BaseUserMixin:
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )
     is_active = db.Column(db.Boolean, default=True)
+    email_verified = db.Column(db.Boolean, default=False)
+    email_verify_token = db.Column(db.String(200), nullable=True)
     created_at = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )

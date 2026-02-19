@@ -110,35 +110,38 @@
 {% if purchase_type == 'credits' %}
 paypal.Buttons({
     style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'pay' },
-    createOrder: function(data, actions) {
-        return actions.order.create({
-            purchase_units: [{
-                description: 'Properties Genie — {{ pack.credits }} Credit Pack',
-                amount: { value: '{{ "%.2f"|format(pack.price) }}' }
-            }]
+    createOrder: function() {
+        return fetch('/api/paypal/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'credits', item_id: '{{ pack.id }}' })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) { alert(data.error); throw new Error(data.error); }
+            return data.orderID;
         });
     },
-    onApprove: function(data, actions) {
-        return actions.order.capture().then(function(details) {
-            fetch('/api/purchase-credits', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    orderID: data.orderID,
-                    pack_id: '{{ pack.id }}'
-                })
+    onApprove: function(data) {
+        return fetch('/api/paypal/capture-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderID: data.orderID,
+                type: 'credits',
+                item_id: '{{ pack.id }}'
             })
-            .then(r => r.json())
-            .then(result => {
-                if (result.success) {
-                    window.location.href = '/dashboard?credits_added={{ pack.credits }}';
-                } else {
-                    alert('Payment verification failed. Please contact support.');
-                }
-            })
-            .catch(() => {
-                alert('Something went wrong. If you were charged, please contact support.');
-            });
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.success) {
+                window.location.href = '/dashboard?credits_added={{ pack.credits }}';
+            } else {
+                alert(result.error || 'Payment verification failed. Please contact support.');
+            }
+        })
+        .catch(() => {
+            alert('Something went wrong. If you were charged, please contact support.');
         });
     },
     onError: function(err) {
@@ -150,35 +153,38 @@ paypal.Buttons({
 {% else %}
 paypal.Buttons({
     style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' },
-    createOrder: function(data, actions) {
-        return actions.order.create({
-            purchase_units: [{
-                description: 'Properties Genie — {{ sub.label }}',
-                amount: { value: '{{ "%.2f"|format(sub.price) }}' }
-            }]
+    createOrder: function() {
+        return fetch('/api/paypal/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'subscription', item_id: '{{ sub_key }}' })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) { alert(data.error); throw new Error(data.error); }
+            return data.orderID;
         });
     },
-    onApprove: function(data, actions) {
-        return actions.order.capture().then(function(details) {
-            fetch('/api/payment-success', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    orderID: data.orderID,
-                    sub_key: '{{ sub_key }}'
-                })
+    onApprove: function(data) {
+        return fetch('/api/paypal/capture-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderID: data.orderID,
+                type: 'subscription',
+                item_id: '{{ sub_key }}'
             })
-            .then(r => r.json())
-            .then(result => {
-                if (result.success) {
-                    window.location.href = '/dashboard?upgraded=1';
-                } else {
-                    alert('Payment verification failed. Please contact support.');
-                }
-            })
-            .catch(() => {
-                alert('Something went wrong. If you were charged, please contact support.');
-            });
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.success) {
+                window.location.href = '/dashboard?upgraded=1';
+            } else {
+                alert(result.error || 'Payment verification failed. Please contact support.');
+            }
+        })
+        .catch(() => {
+            alert('Something went wrong. If you were charged, please contact support.');
         });
     },
     onError: function(err) {

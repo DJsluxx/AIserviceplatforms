@@ -41,13 +41,13 @@
                 <div class="pricing-header">
                     <h3>Pro</h3>
                     <div class="pricing-price">
-                        <span class="price-amount">${{ pro_price }}</span>
+                        <span class="price-amount">${{ "%.2f"|format(subscriptions.pro_monthly.price) }}</span>
                         <span class="price-period">/month</span>
                     </div>
                     <p class="pricing-desc">For active agents & teams</p>
                 </div>
                 <ul class="pricing-features">
-                    <li><i class="fas fa-check"></i> 100 listings per month</li>
+                    <li><i class="fas fa-check"></i> 30 listings per month</li>
                     <li><i class="fas fa-check"></i> All property types</li>
                     <li><i class="fas fa-check"></i> 4 writing tones</li>
                     <li><i class="fas fa-check"></i> Listing history</li>
@@ -58,25 +58,25 @@
                     {% if current_user.plan == 'pro' %}
                         <span class="btn btn-outline btn-block disabled">Current Plan</span>
                     {% else %}
-                        <a href="{{ url_for('upgrade', plan='pro') }}" class="btn btn-primary btn-block">Upgrade to Pro</a>
+                        <a href="{{ url_for('checkout_subscription', sub_key='pro_monthly') }}" class="btn btn-primary btn-block">Upgrade to Pro</a>
                     {% endif %}
                 {% else %}
                     <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-block">Start Free Trial</a>
                 {% endif %}
             </div>
 
-            <!-- Unlimited -->
+            <!-- Business -->
             <div class="pricing-card">
                 <div class="pricing-header">
-                    <h3>Unlimited</h3>
+                    <h3>Business</h3>
                     <div class="pricing-price">
-                        <span class="price-amount">${{ unlimited_price }}</span>
+                        <span class="price-amount">${{ "%.2f"|format(subscriptions.business_monthly.price) }}</span>
                         <span class="price-period">/month</span>
                     </div>
                     <p class="pricing-desc">For brokerages & power users</p>
                 </div>
                 <ul class="pricing-features">
-                    <li><i class="fas fa-check"></i> Unlimited listings</li>
+                    <li><i class="fas fa-check"></i> 100 listings per month</li>
                     <li><i class="fas fa-check"></i> All property types</li>
                     <li><i class="fas fa-check"></i> 4 writing tones</li>
                     <li><i class="fas fa-check"></i> Listing history</li>
@@ -84,10 +84,10 @@
                     <li><i class="fas fa-check"></i> Priority generation</li>
                 </ul>
                 {% if current_user.is_authenticated %}
-                    {% if current_user.plan == 'unlimited' %}
+                    {% if current_user.plan == 'business' %}
                         <span class="btn btn-outline btn-block disabled">Current Plan</span>
                     {% else %}
-                        <a href="{{ url_for('upgrade', plan='unlimited') }}" class="btn btn-primary btn-block">Go Unlimited</a>
+                        <a href="{{ url_for('checkout_subscription', sub_key='business_monthly') }}" class="btn btn-primary btn-block">Go Business</a>
                     {% endif %}
                 {% else %}
                     <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-block">Start Free Trial</a>
@@ -109,7 +109,7 @@
                 </div>
                 <div class="faq-item">
                     <h4>Do credits roll over?</h4>
-                    <p>No, unused credits reset at the start of each billing cycle. But with Pro's 100 credits, you'll have plenty.</p>
+                    <p>No, unused credits reset at the start of each billing cycle. Bonus credits from packs never expire.</p>
                 </div>
                 <div class="faq-item">
                     <h4>Is there a free trial for paid plans?</h4>

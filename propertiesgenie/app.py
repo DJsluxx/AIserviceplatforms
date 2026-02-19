@@ -28,7 +28,7 @@ from models import PGUser, PGSubscription, PGCreditPurchase, PGListing, PGUsageL
 from shared.database import db
 from shared.factory import setup_app
 from shared.auth import create_auth_blueprint
-from shared.payments import verify_paypal_order
+from shared.payments import verify_paypal_order, create_paypal_order, capture_paypal_order
 from shared.ai_client import call_openai
 
 
@@ -272,7 +272,7 @@ def create_app():
         return render_template("account.html")
 
     # ════════════════════════════════════════════════════════════
-    #  PAYMENTS  (uses shared PayPal verification)
+    #  PAYMENTS  (server-side PayPal create → capture → verify)
     # ════════════════════════════════════════════════════════════
 
     @app.route("/checkout/credits/<pack_id>")
@@ -291,93 +291,148 @@ def create_app():
             abort(404)
         return render_template("checkout.html", purchase_type="subscription", sub_key=sub_key, sub=sub)
 
-    @app.route("/api/purchase-credits", methods=["POST"])
+    # ── Server-side order creation (price set by server, not client) ──
+
+    @app.route("/api/paypal/create-order", methods=["POST"])
     @login_required
-    def purchase_credits():
+    def paypal_create_order():
         data = request.get_json() or {}
-        order_id = data.get("orderID", "")
-        pack_id = data.get("pack_id", "")
-        pack = next((p for p in Config.CREDIT_PACKS if p["id"] == pack_id), None)
-        if not pack:
-            return jsonify({"error": "Invalid credit pack"}), 400
+        purchase_type = data.get("type", "")
+        item_id = data.get("item_id", "")
 
-        verified, info = verify_paypal_order(
-            order_id, pack["price"],
-            client_id=Config.PAYPAL_CLIENT_ID,
-            client_secret=Config.PAYPAL_CLIENT_SECRET,
-            mode=Config.PAYPAL_MODE,
-        )
-        if not verified:
-            return jsonify({"error": "Payment verification failed"}), 400
-
-        # Add bonus credits and log the purchase
-        current_user.bonus_credits = (current_user.bonus_credits or 0) + pack["credits"]
-        db.session.add(PGCreditPurchase(
-            user_id=current_user.id,
-            paypal_order_id=order_id,
-            pack_id=pack_id,
-            credits=pack["credits"],
-            amount=pack["price"],
-        ))
-        db.session.commit()
-
-        return jsonify({
-            "success": True,
-            "credits_added": pack["credits"],
-            "total_credits": current_user.credits_remaining,
-            "message": f"{pack['credits']} credits added to your account!",
-        })
-
-    @app.route("/api/payment-success", methods=["POST"])
-    @login_required
-    def payment_success():
-        data = request.get_json() or {}
-        order_id = data.get("orderID", "")
-        sub_key = data.get("sub_key", "")
-        sub = Config.SUBSCRIPTIONS.get(sub_key)
-        if not sub:
-            return jsonify({"error": "Invalid subscription"}), 400
-
-        verified, info = verify_paypal_order(
-            order_id, sub["price"],
-            client_id=Config.PAYPAL_CLIENT_ID,
-            client_secret=Config.PAYPAL_CLIENT_SECRET,
-            mode=Config.PAYPAL_MODE,
-        )
-        if not verified:
-            return jsonify({"error": "Payment verification failed"}), 400
-
-        # Determine billing period
-        is_annual = sub["billing"] == "annual"
-        duration = timedelta(days=365) if is_annual else timedelta(days=30)
-        now = datetime.now(timezone.utc)
-
-        # Activate / update subscription
-        existing = PGSubscription.query.filter_by(user_id=current_user.id, status="active").first()
-        if existing:
-            existing.plan = sub["plan"]
-            existing.amount = sub["price"]
-            existing.paypal_order_id = order_id
-            existing.started_at = now
-            existing.expires_at = now + duration
+        if purchase_type == "credits":
+            pack = next((p for p in Config.CREDIT_PACKS if p["id"] == item_id), None)
+            if not pack:
+                return jsonify({"error": "Invalid credit pack"}), 400
+            amount = pack["price"]
+            description = f"Properties Genie — {pack['credits']} Credit Pack"
+        elif purchase_type == "subscription":
+            sub = Config.SUBSCRIPTIONS.get(item_id)
+            if not sub:
+                return jsonify({"error": "Invalid subscription"}), 400
+            amount = sub["price"]
+            description = f"Properties Genie — {sub['label']}"
         else:
-            db.session.add(PGSubscription(
-                user_id=current_user.id, paypal_order_id=order_id,
-                plan=sub["plan"], amount=sub["price"], status="active",
-                started_at=now, expires_at=now + duration,
+            return jsonify({"error": "Invalid purchase type"}), 400
+
+        order_id, error = create_paypal_order(
+            amount, "USD", description,
+            client_id=Config.PAYPAL_CLIENT_ID,
+            client_secret=Config.PAYPAL_CLIENT_SECRET,
+            mode=Config.PAYPAL_MODE,
+        )
+        if error:
+            return jsonify({"error": error}), 500
+        return jsonify({"orderID": order_id})
+
+    # ── Server-side capture + fulfilment ──
+
+    @app.route("/api/paypal/capture-order", methods=["POST"])
+    @login_required
+    def paypal_capture_order():
+        data = request.get_json() or {}
+        order_id = data.get("orderID", "")
+        purchase_type = data.get("type", "")
+        item_id = data.get("item_id", "")
+
+        if not order_id:
+            return jsonify({"error": "Missing order ID"}), 400
+
+        # ── Credit pack purchase ──
+        if purchase_type == "credits":
+            pack = next((p for p in Config.CREDIT_PACKS if p["id"] == item_id), None)
+            if not pack:
+                return jsonify({"error": "Invalid credit pack"}), 400
+
+            # Duplicate check
+            existing = PGCreditPurchase.query.filter_by(paypal_order_id=order_id).first()
+            if existing:
+                return jsonify({
+                    "success": True,
+                    "credits_added": existing.credits,
+                    "total_credits": current_user.credits_remaining,
+                    "message": "Credits already added (duplicate detected).",
+                })
+
+            captured, info = capture_paypal_order(
+                order_id, pack["price"],
+                client_id=Config.PAYPAL_CLIENT_ID,
+                client_secret=Config.PAYPAL_CLIENT_SECRET,
+                mode=Config.PAYPAL_MODE,
+            )
+            if not captured:
+                return jsonify({"error": "Payment capture failed. Please contact support."}), 400
+
+            current_user.bonus_credits = (current_user.bonus_credits or 0) + pack["credits"]
+            db.session.add(PGCreditPurchase(
+                user_id=current_user.id,
+                paypal_order_id=order_id,
+                pack_id=item_id,
+                credits=pack["credits"],
+                amount=pack["price"],
             ))
+            db.session.commit()
 
-        current_user.plan = sub["plan"]
-        current_user.billing_cycle = sub["billing"]
-        current_user.credits_used = 0
-        current_user.credits_reset_at = now
-        db.session.commit()
+            return jsonify({
+                "success": True,
+                "credits_added": pack["credits"],
+                "total_credits": current_user.credits_remaining,
+                "message": f"{pack['credits']} credits added to your account!",
+            })
 
-        label = sub["label"]
-        return jsonify({
-            "success": True, "plan": sub["plan"],
-            "message": f"Welcome to {label}! Your credits have been refreshed.",
-        })
+        # ── Subscription purchase ──
+        elif purchase_type == "subscription":
+            sub = Config.SUBSCRIPTIONS.get(item_id)
+            if not sub:
+                return jsonify({"error": "Invalid subscription"}), 400
+
+            # Duplicate check
+            existing = PGSubscription.query.filter_by(paypal_order_id=order_id).first()
+            if existing:
+                return jsonify({
+                    "success": True, "plan": existing.plan,
+                    "message": "Subscription already activated (duplicate detected).",
+                })
+
+            captured, info = capture_paypal_order(
+                order_id, sub["price"],
+                client_id=Config.PAYPAL_CLIENT_ID,
+                client_secret=Config.PAYPAL_CLIENT_SECRET,
+                mode=Config.PAYPAL_MODE,
+            )
+            if not captured:
+                return jsonify({"error": "Payment capture failed. Please contact support."}), 400
+
+            is_annual = sub["billing"] == "annual"
+            duration = timedelta(days=365) if is_annual else timedelta(days=30)
+            now = datetime.now(timezone.utc)
+
+            existing_sub = PGSubscription.query.filter_by(user_id=current_user.id, status="active").first()
+            if existing_sub:
+                existing_sub.plan = sub["plan"]
+                existing_sub.amount = sub["price"]
+                existing_sub.paypal_order_id = order_id
+                existing_sub.started_at = now
+                existing_sub.expires_at = now + duration
+            else:
+                db.session.add(PGSubscription(
+                    user_id=current_user.id, paypal_order_id=order_id,
+                    plan=sub["plan"], amount=sub["price"], status="active",
+                    started_at=now, expires_at=now + duration,
+                ))
+
+            current_user.plan = sub["plan"]
+            current_user.billing_cycle = sub["billing"]
+            current_user.credits_used = 0
+            current_user.credits_reset_at = now
+            db.session.commit()
+
+            return jsonify({
+                "success": True, "plan": sub["plan"],
+                "message": f"Welcome to {sub['label']}! Your credits have been refreshed.",
+            })
+
+        return jsonify({"error": "Invalid purchase type"}), 400
 
     # ════════════════════════════════════════════════════════════
     #  SEO

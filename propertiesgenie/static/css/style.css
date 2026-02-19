@@ -668,7 +668,7 @@ input, select, textarea, button {
 
 .step-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, .5), 0 0 50px rgb 58, 237, .2);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, .5), 0 0 50px rgba(124, 58, 237, .2);
     border-color: var(--primary);
     background: var(--bg-card-light);
 }
@@ -872,6 +872,14 @@ input, select, textarea, button {
     background: rgba(124, 58, 237, .05);
 }
 
+/* Gradient Text Utility */
+.gradient-text {
+    background: linear-gradient(135deg, var(--secondary), var(--primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 /* ══════════════════════════════════════════════════════════════
    FOOTER
    ══════════════════════════════════════════════════════════════ */
@@ -993,6 +1001,11 @@ input, select, textarea, button {
 .upgrade-banner { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(124, 58, 237, .08); border: 1.5px solid var(--border-accent); border-radius: var(--radius-sm); margin-bottom: 32px; }
 .upgrade-text { display: flex; align-items: center; gap: 10px; font-size: .95rem; }
 .upgrade-text i { color: var(--primary); }
+
+/* Email Verification Banner */
+.verify-banner { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(244, 63, 94, .08); border: 1.5px solid rgba(244, 63, 94, .3); border-radius: var(--radius-sm); margin-bottom: 24px; }
+.verify-text { display: flex; align-items: center; gap: 10px; font-size: .95rem; }
+.verify-text i { color: var(--accent); }
 
 /* Listing Rows */
 .listings-list { background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -1216,6 +1229,7 @@ input, select, textarea, button {
 .history-preview { font-size: .85rem; color: var(--text-light); flex: 1; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .history-meta { font-size: .8rem; color: var(--text-muted); margin-bottom: 12px; }
 .history-actions { display: flex; gap: 8px; }
+.inline-form { display: inline; }
 
 /* Pagination */
 .pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 32px; }
@@ -1255,6 +1269,119 @@ input, select, textarea, button {
 
 /* ── About / Contact ────────────────────────────────────────– */
 .about-section, .contact-section { padding: 60px 0 80px; }
+
+/* ── Auth Pages (Login / Register) ──────────────────────────── */
+.auth-section {
+    padding: 60px 0 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 70px - 200px);
+}
+.auth-card {
+    max-width: 440px;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    box-shadow: var(--shadow-lg);
+}
+.auth-header { text-align: center; margin-bottom: 28px; }
+.auth-header h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; }
+.auth-header p { color: var(--text-light); font-size: .95rem; }
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 20px;
+    background: #fff;
+    color: #333;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: .95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-md);
+    text-decoration: none;
+}
+.btn-google:hover {
+    background: #f8f8f8;
+    border-color: var(--border-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+    transform: translateY(-1px);
+    color: #333;
+}
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+    color: var(--text-muted);
+    font-size: .85rem;
+}
+.auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+.auth-form { margin-bottom: 20px; }
+.auth-footer { text-align: center; font-size: .9rem; color: var(--text-light); }
+.auth-footer a { color: var(--secondary); font-weight: 600; }
+.auth-perks {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+.auth-perks span {
+    font-size: .82rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.auth-perks i { color: var(--secondary); }
+
+/* ── Error Pages (404 / 500) ────────────────────────────────── */
+.error-section {
+    padding: 80px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 70px - 200px);
+}
+.error-container { text-align: center; }
+.error-code {
+    font-size: 8rem;
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+}
+.error-container h1 { font-size: 1.8rem; margin-bottom: 12px; }
+.error-container p { color: var(--text-light); font-size: 1.05rem; margin-bottom: 32px; }
+.error-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+/* ── Legal Pages (Privacy / Terms) ──────────────────────────── */
+.legal-section { padding: 60px 0 80px; }
+.legal-container { max-width: 800px; margin: 0 auto; }
+.legal-container h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.legal-updated { color: var(--text-muted); font-size: .9rem; margin-bottom: 32px; }
+.legal-container h2 { font-size: 1.2rem; margin-top: 28px; margin-bottom: 12px; color: var(--text); }
+.legal-container p { font-size: .95rem; color: var(--text-light); line-height: 1.8; margin-bottom: 12px; }
+.legal-container ul { margin-bottom: 16px; padding-left: 0; }
+.legal-container li { font-size: .95rem; color: var(--text-light); line-height: 1.8; padding: 4px 0; padding-left: 20px; position: relative; }
+.legal-container li::before { content: '•'; position: absolute; left: 0; color: var(--secondary); font-weight: 700; }
 .about-content { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; align-items: start; }
 .about-text h2 { font-size: 1.5rem; margin-bottom: 16px; }
 .about-text p { font-size: .95rem; color: var(--text-light); margin-bottom: 16px; line-height: 1.7; }
