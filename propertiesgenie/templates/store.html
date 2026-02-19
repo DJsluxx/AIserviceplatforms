@@ -254,7 +254,7 @@
             <div class="sub-card">
                 <div class="sub-card-header">
                     <div class="sub-icon business-bg"><i class="fas fa-city"></i></div>
-                    <h3>Elite Broker</h3>
+                    <h3>Market Mogul</h3>
                     <!-- Monthly pricing -->
                     <div class="sub-price sub-price-monthly">
                         {% if launch_discount and launch_discount.enabled %}
@@ -293,7 +293,7 @@
                     <span class="btn btn-outline btn-block disabled">Current Plan</span>
                     {% else %}
                     <a href="{{ url_for('checkout_subscription', sub_key='business_monthly') }}" class="btn btn-outline btn-block btn-lg sub-checkout-btn" data-monthly="business_monthly" data-annual="business_annual">
-                        <i class="fas fa-city"></i> Go Elite Broker
+                        <i class="fas fa-city"></i> Go Mogul
                     </a>
                     {% endif %}
                 {% else %}
@@ -337,6 +337,50 @@
                     <li><i class="fas fa-check"></i> Priority generation</li>
                     <li><i class="fas fa-check"></i> Cancel anytime</li>
                 </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Giveaway Raffle -->
+<section class="store-section" style="padding-top:20px;padding-bottom:40px;">
+    <div class="container" style="max-width:860px;">
+        <div class="raffle-card reveal-scale">
+            <div class="raffle-sparkles">
+                <span class="raffle-sparkle"></span>
+                <span class="raffle-sparkle"></span>
+                <span class="raffle-sparkle"></span>
+                <span class="raffle-sparkle"></span>
+                <span class="raffle-sparkle"></span>
+            </div>
+            <div class="raffle-inner">
+                <div class="raffle-visual">
+                    <div class="raffle-trophy">🏆</div>
+                    <span class="raffle-prize-label">Grand Prize</span>
+                </div>
+                <div class="raffle-content">
+                    <span class="raffle-eyebrow"><i class="fas fa-gift"></i> Giveaway</span>
+                    <h3 class="raffle-title">Win a Full Year of Market Mogul</h3>
+                    <p class="raffle-subtitle">
+                        Spend over <strong>$10</strong> on any purchase — upgrade to Top Agent, go Market Mogul, or buy 15+ keys —
+                        and get <strong>1 raffle entry</strong> to win a full year of Market Mogul (100 listings/mo, priority everything).
+                    </p>
+                    <div class="raffle-qualifiers">
+                        <span class="raffle-qual"><i class="fas fa-user-tie"></i> Top Agent+</span>
+                        <span class="raffle-qual"><i class="fas fa-key"></i> 15+ Keys</span>
+                        <span class="raffle-qual"><i class="fas fa-ticket"></i> 1 Entry Each</span>
+                    </div>
+                    <div class="raffle-countdown">
+                        <div class="raffle-timer" id="raffleTimerStore">
+                            <div class="raffle-timer-block"><span class="raffle-timer-num" data-unit="days">--</span><span class="raffle-timer-label">Days</span></div>
+                            <div class="raffle-timer-block"><span class="raffle-timer-num" data-unit="hrs">--</span><span class="raffle-timer-label">Hrs</span></div>
+                            <div class="raffle-timer-block"><span class="raffle-timer-num" data-unit="min">--</span><span class="raffle-timer-label">Min</span></div>
+                            <div class="raffle-timer-block"><span class="raffle-timer-num" data-unit="sec">--</span><span class="raffle-timer-label">Sec</span></div>
+                        </div>
+                        <span class="raffle-end-note"><i class="fas fa-calendar-days"></i> Drawing on April 1, 2026</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -428,5 +472,22 @@ function toggleBilling() {
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('billing-monthly-label').classList.add('billing-active');
 });
+
+// Raffle countdown
+(function(){
+    const end = new Date('2026-04-01T00:00:00').getTime();
+    function tick(){
+        const now = Date.now(), diff = Math.max(0, end - now);
+        const d = Math.floor(diff/864e5), h = Math.floor(diff%864e5/36e5),
+              m = Math.floor(diff%36e5/6e4), s = Math.floor(diff%6e4/1e3);
+        document.querySelectorAll('.raffle-timer').forEach(t => {
+            t.querySelector('[data-unit="days"]').textContent = String(d).padStart(2,'0');
+            t.querySelector('[data-unit="hrs"]').textContent = String(h).padStart(2,'0');
+            t.querySelector('[data-unit="min"]').textContent = String(m).padStart(2,'0');
+            t.querySelector('[data-unit="sec"]').textContent = String(s).padStart(2,'0');
+        });
+    }
+    tick(); setInterval(tick, 1000);
+})();
 </script>
 {% endblock %}

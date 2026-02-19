@@ -39,8 +39,8 @@ class Config(BaseConfig):
     SUBSCRIPTIONS = {
         "pro_monthly":      {"plan": "pro",      "billing": "monthly", "price": 16.50,  "credits": 30,  "label": "Top Agent Monthly"},
         "pro_annual":       {"plan": "pro",      "billing": "annual",  "price": 127.00, "credits": 30,  "label": "Top Agent Annual",       "monthly_eq": 10.58, "save_pct": 36},
-        "business_monthly": {"plan": "business", "billing": "monthly", "price": 38.00,  "credits": 100, "label": "Elite Broker Monthly"},
-        "business_annual":  {"plan": "business", "billing": "annual",  "price": 316.50, "credits": 100, "label": "Elite Broker Annual", "monthly_eq": 26.38, "save_pct": 31},
+        "business_monthly": {"plan": "business", "billing": "monthly", "price": 38.00,  "credits": 100, "label": "Market Mogul Monthly"},
+        "business_annual":  {"plan": "business", "billing": "annual",  "price": 316.50, "credits": 100, "label": "Market Mogul Annual", "monthly_eq": 26.38, "save_pct": 31},
     }
 
     # ── Launch Discount ────────────────────────────────────
