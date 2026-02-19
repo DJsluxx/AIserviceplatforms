@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: propertiesgenie
+    runtime: python
+    plan: free
+    rootDir: propertiesgenie
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:application -c gunicorn.conf.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.11"
+      - key: FLASK_ENV
+        value: "production"
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_MODE
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: SITE_URL
+        value: "https://propertiesgenie.com"
+      - key: MAIL_SERVER
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USE_TLS
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false

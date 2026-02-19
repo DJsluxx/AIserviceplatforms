@@ -1123,7 +1123,7 @@ input, select, textarea, button {
 
 /* ── Credit Cards ─────────────────────────────────────────── */
 .credits-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 40px; }
-.credit-card { background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 32px 24px; text-align: center; position: relative; transition: all var(--transition-md); overflow: hidden; }
+.credit-card { background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 32px 24px; text-align: center; position: relative; transition: all var(--transition-md); overflow: hidden; display: flex; flex-direction: column; }
 .credit-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(124, 58, 237, .05)); opacity: 0; transition: opacity var(--transition-md); pointer-events: none; }
 .credit-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0, 0, 0, .5); border-color: var(--primary); background: var(--bg-card-light); }
 .credit-card:hover::before { opacity: 1; }
@@ -1143,7 +1143,7 @@ input, select, textarea, button {
 .credit-price-amount { font-size: 2.6rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .credit-per-unit { font-size: .9rem; color: var(--text-light); }
 .credit-save { display: inline-block; margin-top: 8px; padding: 4px 14px; background: rgba(16, 185, 129, .15); color: var(--success); border-radius: 50px; font-size: .78rem; font-weight: 600; }
-.credit-card-footer { padding-top: 0; }
+.credit-card-footer { padding-top: 0; margin-top: auto; }
 
 /* Credit Perks Bar */
 .credits-perks { display: flex; justify-content: center; gap: 32px; padding: 32px 0; border-top: 1px solid var(--border); flex-wrap: wrap; }
@@ -1162,7 +1162,7 @@ input, select, textarea, button {
 .toggle-switch input:checked + .toggle-slider { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); box-shadow: 0 0 20px var(--primary-glow); }
 .toggle-switch input:checked + .toggle-slider::before { transform: translateX(26px); }
 .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1000px; margin: 0 auto; }
-.sub-card { background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 36px 28px; text-align: center; position: relative; transition: all var(--transition-md); }
+.sub-card { background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 36px 28px; text-align: center; position: relative; transition: all var(--transition-md); display: flex; flex-direction: column; }
 .sub-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0, 0, 0, .5); border-color: var(--secondary); background: var(--bg-card-light); }
 .sub-card-popular { border: 2px solid var(--primary); box-shadow: 0 0 50px var(--primary-glow); background: var(--bg-card-light); }
 .sub-card-popular:hover { box-shadow: 0 20px 60px var(--primary-glow); }
@@ -1177,7 +1177,7 @@ input, select, textarea, button {
 .sub-price-period { font-size: .95rem; color: var(--text-light); }
 .sub-monthly-eq { font-size: .85rem; color: var(--secondary); font-weight: 600; margin-top: 4px; }
 .sub-desc { font-size: .9rem; color: var(--text-light); margin-top: 6px; }
-.sub-features { text-align: left; margin-bottom: 28px; }
+.sub-features { text-align: left; margin-bottom: 28px; flex-grow: 1; }
 .sub-features li { padding: 10px 0; font-size: .9rem; display: flex; align-items: center; gap: 12px; color: var(--text-light); }
 .sub-features i { color: var(--secondary); width: 18px; text-align: center; flex-shrink: 0; font-size: .95rem; }
 .sub-feature-muted { color: var(--text-muted) !important; }
@@ -1191,6 +1191,7 @@ input, select, textarea, button {
     background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius-lg);
     padding: 32px; text-align: center; position: relative;
     transition: transform var(--transition-md), box-shadow var(--transition-md);
+    display: flex; flex-direction: column;
 }
 .pricing-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(0, 0, 0, .5); }
 .pricing-popular { border-color: var(--primary); border-width: 2px; box-shadow: 0 0 50px var(--primary-glow); }
@@ -1200,7 +1201,7 @@ input, select, textarea, button {
 .price-amount { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .price-period { font-size: .9rem; color: var(--text-muted); }
 .pricing-desc { font-size: .88rem; color: var(--text-light); margin-top: 4px; }
-.pricing-features { margin-bottom: 24px; text-align: left; }
+.pricing-features { margin-bottom: 24px; text-align: left; flex-grow: 1; }
 .pricing-features li { padding: 8px 0; font-size: .9rem; display: flex; align-items: center; gap: 10px; }
 .pricing-features i { color: var(--secondary); width: 16px; text-align: center; }
 .pricing-features .muted { color: var(--text-muted); }
