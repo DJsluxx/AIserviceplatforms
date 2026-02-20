@@ -25,22 +25,22 @@ class Config(BaseConfig):
     # Credit plans
     FREE_CREDITS = 1
     PRO_CREDITS = 30
-    BUSINESS_CREDITS = 100
+    BUSINESS_CREDITS = 90
 
     # ── One-Time Credit Packs ──────────────────────────────
     CREDIT_PACKS = [
-        {"id": "starter",  "credits": 5,   "price": 6.50,  "per_credit": 1.30, "label": "Starter"},
-        {"id": "popular",  "credits": 15,  "price": 15.50, "per_credit": 1.03, "label": "Most Popular", "badge": True},
-        {"id": "pro_pack", "credits": 50,  "price": 38.00, "per_credit": 0.76, "label": "Pro Pack"},
-        {"id": "agency",   "credits": 150, "price": 89.00, "per_credit": 0.59, "label": "Agency", "badge_text": "Best Value"},
+        {"id": "starter",  "credits": 5,   "price": 7.50,  "per_credit": 1.50, "label": "Starter"},
+        {"id": "popular",  "credits": 15,  "price": 17.50, "per_credit": 1.17, "label": "Most Popular", "badge": True},
+        {"id": "pro_pack", "credits": 50,  "price": 42.50, "per_credit": 0.85, "label": "Pro Pack"},
+        {"id": "agency",   "credits": 150, "price": 99.50, "per_credit": 0.66, "label": "Agency", "badge_text": "Best Value"},
     ]
 
     # ── Subscription Plans ─────────────────────────────────
     SUBSCRIPTIONS = {
-        "pro_monthly":      {"plan": "pro",      "billing": "monthly", "price": 16.50,  "credits": 30,  "label": "Top Agent Monthly"},
-        "pro_annual":       {"plan": "pro",      "billing": "annual",  "price": 127.00, "credits": 30,  "label": "Top Agent Annual",       "monthly_eq": 10.58, "save_pct": 36},
-        "business_monthly": {"plan": "business", "billing": "monthly", "price": 38.00,  "credits": 100, "label": "Elite Broker Monthly"},
-        "business_annual":  {"plan": "business", "billing": "annual",  "price": 316.50, "credits": 100, "label": "Elite Broker Annual", "monthly_eq": 26.38, "save_pct": 31},
+        "pro_monthly":      {"plan": "pro",      "billing": "monthly", "price": 19.50,  "credits": 30,  "label": "Top Agent Monthly"},
+        "pro_annual":       {"plan": "pro",      "billing": "annual",  "price": 149.00, "credits": 30,  "label": "Top Agent Annual",       "monthly_eq": 12.42, "save_pct": 36},
+        "business_monthly": {"plan": "business", "billing": "monthly", "price": 49.50,  "credits": 90,  "label": "Elite Broker Monthly"},
+        "business_annual":  {"plan": "business", "billing": "annual",  "price": 399.00, "credits": 90,  "label": "Elite Broker Annual", "monthly_eq": 33.25, "save_pct": 33},
     }
 
     # ── Launch Discount ────────────────────────────────────
