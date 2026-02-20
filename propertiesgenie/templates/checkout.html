@@ -156,6 +156,12 @@ paypal.Buttons({
         .then(r => r.json())
         .then(result => {
             if (result.success) {
+                gtag('event', 'purchase', {
+                    transaction_id: data.orderID,
+                    value: {{ pack.price }},
+                    currency: 'USD',
+                    items: [{ item_id: '{{ pack.id }}', item_name: '{{ pack.label }}', quantity: 1, price: {{ pack.price }} }]
+                });
                 window.location.href = '/dashboard?credits_added={{ pack.credits }}';
             } else {
                 alert(result.error || 'Payment verification failed. Please contact support.');
@@ -199,6 +205,12 @@ paypal.Buttons({
         .then(r => r.json())
         .then(result => {
             if (result.success) {
+                gtag('event', 'purchase', {
+                    transaction_id: data.orderID,
+                    value: {{ sub.price }},
+                    currency: 'USD',
+                    items: [{ item_id: '{{ sub_key }}', item_name: '{{ sub.label }}', quantity: 1, price: {{ sub.price }} }]
+                });
                 window.location.href = '/dashboard?upgraded=1';
             } else {
                 alert(result.error || 'Payment verification failed. Please contact support.');
