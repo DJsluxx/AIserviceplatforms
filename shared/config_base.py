@@ -51,7 +51,11 @@ class BaseConfig:
     # ── PayPal ──────────────────────────────────────────────
     PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
     PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
-    PAYPAL_MODE = os.getenv("PAYPAL_MODE", "live")  # live | sandbox
+    # Auto-sandbox when developing locally, always live in production
+    PAYPAL_MODE = os.getenv(
+        "PAYPAL_MODE",
+        "sandbox" if os.getenv("FLASK_ENV") == "development" else "live",
+    )
 
     # ── Email ───────────────────────────────────────────────
     MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
