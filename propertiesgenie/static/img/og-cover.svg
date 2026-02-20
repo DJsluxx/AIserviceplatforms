@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="50%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0f0c29"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f5c542"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Subtle grid -->
+  <g opacity="0.03" stroke="#8b5cf6" stroke-width="1">
+    <line x1="0" y1="0" x2="1200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+  </g>
+  <!-- Glow circle -->
+  <circle cx="600" cy="280" r="200" fill="#8b5cf6" opacity="0.06"/>
+  <circle cx="600" cy="280" r="120" fill="#22d3ee" opacity="0.04"/>
+  <!-- Key icon -->
+  <text x="600" y="210" text-anchor="middle" font-size="72" fill="url(#gold)">🔑</text>
+  <!-- Title -->
+  <text x="600" y="310" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="800" fill="white">Properties<tspan fill="url(#accent)">Genie</tspan></text>
+  <!-- Subtitle -->
+  <text x="600" y="370" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="24" fill="#a0a0c0">AI Real Estate Listing Generator</text>
+  <!-- CTA line -->
+  <rect x="420" y="410" width="360" height="48" rx="24" fill="url(#accent)" opacity="0.15"/>
+  <text x="600" y="442" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="700" fill="#22d3ee">Generate Listings in 4 Seconds</text>
+  <!-- Bottom badge -->
+  <text x="600" y="530" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" fill="#6b7280">Free to Start · No Credit Card Required</text>
+  <!-- Top accent line -->
+  <rect x="0" y="0" width="1200" height="3" fill="url(#accent)"/>
+  <!-- Launch badge -->
+  <rect x="460" y="470" width="280" height="32" rx="16" fill="#f59e0b" opacity="0.15"/>
+  <text x="600" y="492" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#f5c542">🚀 30% OFF — Launch Special</text>
+</svg>

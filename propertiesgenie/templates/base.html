@@ -15,6 +15,25 @@
     <title>{% block title %}Properties Genie — AI Listing Generator{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}Generate professional real estate listings in seconds with AI. Free to start.{% endblock %}">
 
+    <!-- Canonical -->
+    <link rel="canonical" href="{{ request.url }}">
+
+    <!-- Open Graph (Facebook, Instagram, LinkedIn, Google) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Properties Genie">
+    <meta property="og:title" content="{% block og_title %}Properties Genie — AI Real Estate Listing Generator{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Stop spending 30+ minutes writing listings. Our AI generates professional, compelling real estate copy in 4 seconds. Free to start.{% endblock %}">
+    <meta property="og:image" content="{{ url_for('static', filename='img/og-cover.png', _external=True) }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="{{ request.url }}">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Properties Genie — AI Listing Generator">
+    <meta name="twitter:description" content="Generate professional real estate listings in seconds with AI. Free to start.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='img/og-cover.png', _external=True) }}">
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
