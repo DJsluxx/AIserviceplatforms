@@ -167,7 +167,7 @@ def create_app():
             "neighborhood_info", "tone", "additional_notes", "language",
         )}
 
-        prompt = _build_prompt(data)
+        prompt = _build_prompt(data, include_social=(current_user.plan != 'free'))
 
         try:
             result = call_openai(
@@ -190,6 +190,7 @@ def create_app():
         title = ai.get("title", "Beautiful Property Listing")
         description = ai.get("description", "")
         highlights = ai.get("highlights", [])
+        social_kit = ai.get("social_media_kit", None)
 
         listing = PGListing(
             user_id=current_user.id,
@@ -212,6 +213,7 @@ def create_app():
             generated_title=title,
             generated_description=description,
             generated_highlights=json.dumps(highlights),
+            generated_social_kit=json.dumps(social_kit) if social_kit else None,
             tokens_used=tokens,
         )
         db.session.add(listing)
@@ -229,14 +231,15 @@ def create_app():
         ))
         db.session.commit()
 
-        return render_template("result.html", listing=listing, highlights=highlights)
+        return render_template("result.html", listing=listing, highlights=highlights, social_kit=social_kit)
 
     @app.route("/listing/<int:lid>")
     @login_required
     def view_listing(lid):
         listing = PGListing.query.filter_by(id=lid, user_id=current_user.id).first_or_404()
         hl = json.loads(listing.generated_highlights) if listing.generated_highlights else []
-        return render_template("result.html", listing=listing, highlights=hl)
+        sk = json.loads(listing.generated_social_kit) if listing.generated_social_kit else None
+        return render_template("result.html", listing=listing, highlights=hl, social_kit=sk)
 
     @app.route("/listing/<int:lid>/favorite", methods=["POST"])
     @login_required
@@ -494,7 +497,7 @@ def create_app():
 #  PROMPT BUILDER  (platform-specific)
 # ════════════════════════════════════════════════════════════════
 
-def _build_prompt(data):
+def _build_prompt(data, include_social=False):
     """Build a detailed prompt from property form data."""
     parts = ["Generate a professional real estate listing description.\n"]
     prop_type = data.get("property_type", "house").replace("_", " ").title()
@@ -539,13 +542,22 @@ def _build_prompt(data):
     else:
         parts.append("\nOutput Language: English")
 
-    parts.append("""
+    social_block = ""
+    if include_social:
+        social_block = """,
+  "social_media_kit": {
+    "instagram": "An engaging Instagram caption (2-3 sentences with emojis, then a blank line, then 20 relevant hashtags starting with # separated by spaces)",
+    "facebook": "A Facebook post (3-4 sentences, conversational, with a call to action to schedule a showing)",
+    "twitter": "A Twitter/X post (max 280 characters, punchy, with 2-3 hashtags)"
+  }"""
+
+    parts.append(f"""
 Please respond with valid JSON containing:
-{
+{{
   "title": "An eye-catching listing headline (max 15 words)",
   "description": "A compelling 2-4 paragraph listing description (200-400 words). Include sensory language, highlight key features, and create urgency.",
-  "highlights": ["Feature 1", "Feature 2", "Feature 3", "Feature 4", "Feature 5"]
-}
+  "highlights": ["Feature 1", "Feature 2", "Feature 3", "Feature 4", "Feature 5"]{social_block}
+}}
 
 Rules:
 - Sound natural, not AI-generated

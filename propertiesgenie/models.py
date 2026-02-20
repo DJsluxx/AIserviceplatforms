@@ -109,6 +109,7 @@ class PGListing(db.Model):
     generated_title = db.Column(db.String(300))
     generated_description = db.Column(db.Text)
     generated_highlights = db.Column(db.Text)   # JSON array
+    generated_social_kit = db.Column(db.Text)   # JSON: {instagram, facebook, twitter}
     tokens_used = db.Column(db.Integer, default=0)
 
     # Meta

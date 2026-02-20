@@ -73,6 +73,91 @@
                 </div>
             </div>
 
+            <!-- Social Media Kit -->
+            <div class="social-kit-section reveal">
+                {% if social_kit and current_user.plan != 'free' %}
+                <div class="social-kit-card">
+                    <div class="social-kit-header">
+                        <h2><i class="fas fa-share-nodes"></i> Social Media Kit</h2>
+                        <span class="social-kit-badge"><i class="fas fa-sparkles"></i> Auto-Generated</span>
+                    </div>
+                    <div class="social-kit-grid">
+                        <!-- Instagram -->
+                        <div class="social-platform-card social-instagram">
+                            <div class="social-platform-header">
+                                <i class="fab fa-instagram"></i>
+                                <span>Instagram</span>
+                                <button class="btn btn-ghost btn-sm social-copy-btn" onclick="copySocial('instagram')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="social-platform-body" id="socialInstagram">{{ social_kit.instagram }}</div>
+                        </div>
+                        <!-- Facebook -->
+                        <div class="social-platform-card social-facebook">
+                            <div class="social-platform-header">
+                                <i class="fab fa-facebook"></i>
+                                <span>Facebook</span>
+                                <button class="btn btn-ghost btn-sm social-copy-btn" onclick="copySocial('facebook')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="social-platform-body" id="socialFacebook">{{ social_kit.facebook }}</div>
+                        </div>
+                        <!-- Twitter/X -->
+                        <div class="social-platform-card social-twitter">
+                            <div class="social-platform-header">
+                                <i class="fab fa-x-twitter"></i>
+                                <span>Twitter / X</span>
+                                <button class="btn btn-ghost btn-sm social-copy-btn" onclick="copySocial('twitter')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="social-platform-body" id="socialTwitter">{{ social_kit.twitter }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Locked Social Media Kit for free users -->
+                <div class="social-kit-card social-kit-locked">
+                    <div class="social-kit-blur-overlay">
+                        <div class="social-kit-header">
+                            <h2><i class="fas fa-share-nodes"></i> Social Media Kit</h2>
+                            <span class="social-kit-badge social-kit-badge-locked"><i class="fas fa-lock"></i> Paid Plans Only</span>
+                        </div>
+                        <div class="social-kit-grid">
+                            <div class="social-platform-card social-instagram">
+                                <div class="social-platform-header">
+                                    <i class="fab fa-instagram"></i><span>Instagram</span>
+                                </div>
+                                <div class="social-platform-body social-blur-text">🏡 Stunning 4BD colonial in Beverly Hills! Chef's kitchen, hardwood floors, pool & spa. Your dream home awaits... ✨🔑 #RealEstate #LuxuryHome #BeverlyHills #DreamHome #JustListed</div>
+                            </div>
+                            <div class="social-platform-card social-facebook">
+                                <div class="social-platform-header">
+                                    <i class="fab fa-facebook"></i><span>Facebook</span>
+                                </div>
+                                <div class="social-platform-body social-blur-text">Just listed! This stunning 4-bedroom colonial in Beverly Hills has everything you've been looking for. Schedule a showing today!</div>
+                            </div>
+                            <div class="social-platform-card social-twitter">
+                                <div class="social-platform-header">
+                                    <i class="fab fa-x-twitter"></i><span>Twitter / X</span>
+                                </div>
+                                <div class="social-platform-body social-blur-text">🏡 4BD colonial in Beverly Hills — updated kitchen, pool, top schools. Won't last! #RealEstate #BeverlyHills</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="social-kit-lock-cta">
+                        <div class="social-kit-lock-icon"><i class="fas fa-lock"></i></div>
+                        <h3>Unlock Your Social Media Kit</h3>
+                        <p>Paid plans auto-generate ready-to-post captions for Instagram, Facebook & Twitter/X with every listing.</p>
+                        <a href="{{ url_for('store') }}" class="btn btn-primary btn-glow">
+                            <i class="fas fa-key"></i> Upgrade to Unlock
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
             <!-- Sidebar -->
             <div class="result-sidebar reveal-right">
                 <div class="sidebar-card">
@@ -153,6 +238,13 @@ function toggleFavorite(listingId) {
             const icon = btn.querySelector('i');
             icon.className = data.is_favorite ? 'fas fa-heart' : 'far fa-heart';
         });
+}
+
+function copySocial(platform) {
+    const el = document.getElementById('social' + platform.charAt(0).toUpperCase() + platform.slice(1));
+    if (el) {
+        navigator.clipboard.writeText(el.innerText).then(() => showToast());
+    }
 }
 </script>
 {% endblock %}

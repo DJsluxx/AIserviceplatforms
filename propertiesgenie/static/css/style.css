@@ -1224,6 +1224,189 @@ footer {
 .sidebar-tip h4 i { color: var(--primary-light); }
 .sidebar-tip p { font-size: .85rem; color: var(--text-light); }
 
+/* ── Social Media Kit ───────────────────────────────────────── */
+.social-kit-section {
+    grid-column: 1 / -1;
+}
+
+.social-kit-card {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+}
+
+.social-kit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.social-kit-header h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.social-kit-header h2 i {
+    color: var(--secondary);
+}
+
+.social-kit-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 50px;
+    font-size: .75rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(34,211,238,.15));
+    color: var(--secondary);
+    border: 1px solid rgba(34,211,238,.2);
+}
+
+.social-kit-badge-locked {
+    background: rgba(139,92,246,.1);
+    color: var(--primary-light);
+    border-color: rgba(139,92,246,.2);
+}
+
+.social-kit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.social-platform-card {
+    background: rgba(11, 14, 24, .5);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all var(--transition-md);
+}
+
+.social-platform-card:hover {
+    border-color: var(--border-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,.3);
+}
+
+.social-platform-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: .9rem;
+    font-weight: 600;
+}
+
+.social-platform-header .social-copy-btn {
+    margin-left: auto;
+    padding: 4px 10px;
+    font-size: .75rem;
+}
+
+.social-instagram .social-platform-header i {
+    background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 1.2rem;
+}
+
+.social-facebook .social-platform-header i {
+    color: #1877f2;
+    font-size: 1.2rem;
+}
+
+.social-twitter .social-platform-header i {
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.social-platform-body {
+    padding: 16px;
+    font-size: .88rem;
+    line-height: 1.7;
+    color: var(--text-light);
+    white-space: pre-wrap;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+/* — Locked / blurred state — */
+.social-kit-locked {
+    position: relative;
+}
+
+.social-kit-blur-overlay {
+    filter: blur(5px);
+    pointer-events: none;
+    user-select: none;
+    opacity: .5;
+}
+
+.social-blur-text {
+    color: var(--text-muted);
+}
+
+.social-kit-lock-cta {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    z-index: 2;
+}
+
+.social-kit-lock-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 16px;
+    box-shadow: 0 0 30px rgba(139,92,246,.3);
+}
+
+.social-kit-lock-cta h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.social-kit-lock-cta p {
+    font-size: .9rem;
+    color: var(--text-light);
+    max-width: 460px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+    .social-kit-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Copy Toast */
 .copy-toast { position: fixed; bottom: -60px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background: var(--bg-card-light); color: #fff; border-radius: var(--radius-sm); font-size: .9rem; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: bottom .3s ease; z-index: 999; border: 1px solid var(--border); box-shadow: var(--shadow-lg); }
 .copy-toast.show { bottom: 30px; }

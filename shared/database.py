@@ -89,4 +89,17 @@ def init_db(app):
     db.init_app(app)
     with app.app_context():
         db.create_all()
+        # ── Safe column migrations ─────────────────────────
+        _safe_add_column(db, "pg_listings", "generated_social_kit", "TEXT")
     return db
+
+
+def _safe_add_column(database, table, column, col_type):
+    """Add a column if it doesn't already exist (works with PostgreSQL & SQLite)."""
+    try:
+        database.session.execute(
+            db.text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
+        )
+        database.session.commit()
+    except Exception:
+        database.session.rollback()
