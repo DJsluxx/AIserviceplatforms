@@ -164,7 +164,7 @@ def create_app():
             "property_type", "listing_type", "bedrooms", "bathrooms",
             "sqft", "lot_size", "year_built", "price", "address",
             "city", "state", "zip_code", "features",
-            "neighborhood_info", "tone", "additional_notes",
+            "neighborhood_info", "tone", "additional_notes", "language",
         )}
 
         prompt = _build_prompt(data)
@@ -531,6 +531,13 @@ def _build_prompt(data):
         "minimal": "Clean, concise, and modern",
     }
     parts.append(f"\nTone: {tone_map.get(data.get('tone', 'professional'), 'Professional')}")
+
+    # Language selection
+    language = data.get("language", "English") or "English"
+    if language != "English":
+        parts.append(f"\nIMPORTANT — Output Language: Write the ENTIRE listing (title, description, and highlights) in {language}. Do NOT write in English.")
+    else:
+        parts.append("\nOutput Language: English")
 
     parts.append("""
 Please respond with valid JSON containing:

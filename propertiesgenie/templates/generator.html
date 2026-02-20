@@ -123,6 +123,40 @@
                         </div>
                     </div>
 
+                    <!-- Language Selector -->
+                    <div class="gen-card reveal">
+                        <h3><i class="fas fa-globe"></i> Output Language</h3>
+                        <p class="lang-hint">Choose the language your listing will be written in</p>
+                        <div class="lang-select-wrap">
+                            <select id="language" name="language" class="lang-select">
+                                <option value="English" {% if form_data and form_data.language == 'English' %}selected{% endif %}>🇺🇸 English</option>
+                                <option value="Spanish" {% if form_data and form_data.language == 'Spanish' %}selected{% endif %}>🇪🇸 Spanish (Español)</option>
+                                <option value="French" {% if form_data and form_data.language == 'French' %}selected{% endif %}>🇫🇷 French (Français)</option>
+                                <option value="German" {% if form_data and form_data.language == 'German' %}selected{% endif %}>🇩🇪 German (Deutsch)</option>
+                                <option value="Portuguese" {% if form_data and form_data.language == 'Portuguese' %}selected{% endif %}>🇧🇷 Portuguese (Português)</option>
+                                <option value="Italian" {% if form_data and form_data.language == 'Italian' %}selected{% endif %}>🇮🇹 Italian (Italiano)</option>
+                                <option value="Dutch" {% if form_data and form_data.language == 'Dutch' %}selected{% endif %}>🇳🇱 Dutch (Nederlands)</option>
+                                <option value="Russian" {% if form_data and form_data.language == 'Russian' %}selected{% endif %}>🇷🇺 Russian (Русский)</option>
+                                <option value="Chinese" {% if form_data and form_data.language == 'Chinese' %}selected{% endif %}>🇨🇳 Chinese (中文)</option>
+                                <option value="Japanese" {% if form_data and form_data.language == 'Japanese' %}selected{% endif %}>🇯🇵 Japanese (日本語)</option>
+                                <option value="Korean" {% if form_data and form_data.language == 'Korean' %}selected{% endif %}>🇰🇷 Korean (한국어)</option>
+                                <option value="Arabic" {% if form_data and form_data.language == 'Arabic' %}selected{% endif %}>🇸🇦 Arabic (العربية)</option>
+                                <option value="Hindi" {% if form_data and form_data.language == 'Hindi' %}selected{% endif %}>🇮🇳 Hindi (हिन्दी)</option>
+                                <option value="Turkish" {% if form_data and form_data.language == 'Turkish' %}selected{% endif %}>🇹🇷 Turkish (Türkçe)</option>
+                                <option value="Polish" {% if form_data and form_data.language == 'Polish' %}selected{% endif %}>🇵🇱 Polish (Polski)</option>
+                                <option value="Swedish" {% if form_data and form_data.language == 'Swedish' %}selected{% endif %}>🇸🇪 Swedish (Svenska)</option>
+                                <option value="Hebrew" {% if form_data and form_data.language == 'Hebrew' %}selected{% endif %}>🇮🇱 Hebrew (עברית)</option>
+                                <option value="Thai" {% if form_data and form_data.language == 'Thai' %}selected{% endif %}>🇹🇭 Thai (ไทย)</option>
+                                <option value="Vietnamese" {% if form_data and form_data.language == 'Vietnamese' %}selected{% endif %}>🇻🇳 Vietnamese (Tiếng Việt)</option>
+                                <option value="Indonesian" {% if form_data and form_data.language == 'Indonesian' %}selected{% endif %}>🇮🇩 Indonesian (Bahasa)</option>
+                            </select>
+                            <div class="lang-globe-icon"><i class="fas fa-language"></i></div>
+                        </div>
+                        <div class="lang-badge">
+                            <i class="fas fa-check-circle"></i> 20+ languages supported
+                        </div>
+                    </div>
+
                     <!-- Tone Selector -->
                     <div class="gen-card reveal">
                         <h3><i class="fas fa-palette"></i> Writing Tone</h3>
