@@ -158,6 +158,129 @@
                 {% endif %}
             </div>
 
+            <!-- SEO & Marketing Booster -->
+            <div class="marketing-section reveal">
+                {% if marketing and current_user.plan != 'free' %}
+                <div class="marketing-card">
+                    <div class="marketing-header">
+                        <h2><i class="fas fa-rocket"></i> SEO & Marketing Booster</h2>
+                        <span class="marketing-badge"><i class="fas fa-sparkles"></i> AI-Powered</span>
+                    </div>
+                    <div class="marketing-grid">
+                        <!-- SEO Meta Title -->
+                        <div class="marketing-item marketing-seo-title">
+                            <div class="marketing-item-header">
+                                <i class="fas fa-heading"></i>
+                                <span>SEO Meta Title</span>
+                                <button class="btn btn-ghost btn-sm social-copy-btn" onclick="copyMarketing('seoTitle')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="marketing-item-body" id="mktSeoTitle">{{ marketing.seo_title }}</div>
+                        </div>
+                        <!-- SEO Meta Description -->
+                        <div class="marketing-item marketing-seo-desc">
+                            <div class="marketing-item-header">
+                                <i class="fas fa-align-left"></i>
+                                <span>SEO Meta Description</span>
+                                <button class="btn btn-ghost btn-sm social-copy-btn" onclick="copyMarketing('seoDesc')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="marketing-item-body" id="mktSeoDesc">{{ marketing.seo_description }}</div>
+                        </div>
+                        <!-- Ad Keywords -->
+                        <div class="marketing-item marketing-keywords">
+                            <div class="marketing-item-header">
+                                <i class="fas fa-tags"></i>
+                                <span>Ad Keywords</span>
+                                <button class="btn btn-ghost btn-sm social-copy-btn" onclick="copyMarketing('keywords')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="marketing-item-body" id="mktKeywords">
+                                <div class="marketing-keywords-list">
+                                    {% for kw in marketing.keywords %}
+                                    <span class="marketing-keyword-tag">{{ kw }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Email Subject -->
+                        <div class="marketing-item marketing-email-subject">
+                            <div class="marketing-item-header">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email Subject Line</span>
+                                <button class="btn btn-ghost btn-sm social-copy-btn" onclick="copyMarketing('emailSubject')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="marketing-item-body" id="mktEmailSubject">{{ marketing.email_subject }}</div>
+                        </div>
+                        <!-- Email Body -->
+                        <div class="marketing-item marketing-email-body">
+                            <div class="marketing-item-header">
+                                <i class="fas fa-paper-plane"></i>
+                                <span>Email Body</span>
+                                <button class="btn btn-ghost btn-sm social-copy-btn" onclick="copyMarketing('emailBody')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="marketing-item-body" id="mktEmailBody">{{ marketing.email_body }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Locked Marketing Booster for free users -->
+                <div class="marketing-card marketing-locked">
+                    <div class="marketing-blur-overlay">
+                        <div class="marketing-header">
+                            <h2><i class="fas fa-rocket"></i> SEO & Marketing Booster</h2>
+                            <span class="marketing-badge marketing-badge-locked"><i class="fas fa-lock"></i> Paid Plans Only</span>
+                        </div>
+                        <div class="marketing-grid">
+                            <div class="marketing-item marketing-seo-title">
+                                <div class="marketing-item-header"><i class="fas fa-heading"></i><span>SEO Meta Title</span></div>
+                                <div class="marketing-item-body marketing-blur-text">Luxury 4BD Colonial Home for Sale in Beverly Hills | Top Agent Realty</div>
+                            </div>
+                            <div class="marketing-item marketing-seo-desc">
+                                <div class="marketing-item-header"><i class="fas fa-align-left"></i><span>SEO Meta Description</span></div>
+                                <div class="marketing-item-body marketing-blur-text">Discover this stunning 4-bedroom colonial home in Beverly Hills featuring a chef's kitchen, hardwood floors, and resort-style pool.</div>
+                            </div>
+                            <div class="marketing-item marketing-keywords">
+                                <div class="marketing-item-header"><i class="fas fa-tags"></i><span>Ad Keywords</span></div>
+                                <div class="marketing-item-body marketing-blur-text">
+                                    <div class="marketing-keywords-list">
+                                        <span class="marketing-keyword-tag">Beverly Hills homes</span>
+                                        <span class="marketing-keyword-tag">luxury colonial</span>
+                                        <span class="marketing-keyword-tag">4 bedroom pool home</span>
+                                        <span class="marketing-keyword-tag">real estate Beverly Hills</span>
+                                        <span class="marketing-keyword-tag">homes for sale</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="marketing-item marketing-email-subject">
+                                <div class="marketing-item-header"><i class="fas fa-envelope"></i><span>Email Subject Line</span></div>
+                                <div class="marketing-item-body marketing-blur-text">Just Listed: Stunning Colonial in Beverly Hills — Schedule Your Private Tour</div>
+                            </div>
+                            <div class="marketing-item marketing-email-body">
+                                <div class="marketing-item-header"><i class="fas fa-paper-plane"></i><span>Email Body</span></div>
+                                <div class="marketing-item-body marketing-blur-text">I'm excited to share this brand-new listing with you. This gorgeous 4-bedroom colonial in Beverly Hills features a chef's kitchen, hardwood floors throughout, and a stunning pool area. Contact me today to schedule a private tour before it's gone!</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="marketing-lock-cta">
+                        <div class="marketing-lock-icon"><i class="fas fa-lock"></i></div>
+                        <h3>Unlock SEO & Marketing Booster</h3>
+                        <p>Paid plans auto-generate SEO metadata, ad keywords & email copy with every listing — market smarter, not harder.</p>
+                        <a href="{{ url_for('store') }}" class="btn btn-primary btn-glow">
+                            <i class="fas fa-key"></i> Upgrade to Unlock
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
             <!-- Sidebar -->
             <div class="result-sidebar reveal-right">
                 <div class="sidebar-card">
@@ -242,6 +365,14 @@ function toggleFavorite(listingId) {
 
 function copySocial(platform) {
     const el = document.getElementById('social' + platform.charAt(0).toUpperCase() + platform.slice(1));
+    if (el) {
+        navigator.clipboard.writeText(el.innerText).then(() => showToast());
+    }
+}
+
+function copyMarketing(field) {
+    const map = { seoTitle: 'mktSeoTitle', seoDesc: 'mktSeoDesc', keywords: 'mktKeywords', emailSubject: 'mktEmailSubject', emailBody: 'mktEmailBody' };
+    const el = document.getElementById(map[field]);
     if (el) {
         navigator.clipboard.writeText(el.innerText).then(() => showToast());
     }

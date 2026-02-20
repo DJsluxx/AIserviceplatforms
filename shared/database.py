@@ -91,6 +91,7 @@ def init_db(app):
         db.create_all()
         # ── Safe column migrations ─────────────────────────
         _safe_add_column(db, "pg_listings", "generated_social_kit", "TEXT")
+        _safe_add_column(db, "pg_listings", "generated_marketing", "TEXT")
     return db
 
 

@@ -110,6 +110,7 @@ class PGListing(db.Model):
     generated_description = db.Column(db.Text)
     generated_highlights = db.Column(db.Text)   # JSON array
     generated_social_kit = db.Column(db.Text)   # JSON: {instagram, facebook, twitter}
+    generated_marketing = db.Column(db.Text)     # JSON: {seo_title, seo_description, keywords, email_subject, email_body}
     tokens_used = db.Column(db.Integer, default=0)
 
     # Meta
