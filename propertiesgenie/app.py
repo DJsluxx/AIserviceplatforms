@@ -18,7 +18,7 @@ if _root not in sys.path:
 
 from flask import (
     Flask, render_template, request, redirect, url_for,
-    flash, jsonify, abort,
+    flash, jsonify, abort, Response, make_response,
 )
 from flask_login import login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -478,20 +478,51 @@ def create_app():
 
     @app.route("/robots.txt")
     def robots():
-        return (
-            f"User-agent: *\nAllow: /\nSitemap: {Config.SITE_URL}/sitemap.xml\n",
-            200, {"Content-Type": "text/plain"},
-        )
+        lines = [
+            "User-agent: *",
+            "Allow: /",
+            "",
+            "# Private pages",
+            "Disallow: /dashboard",
+            "Disallow: /account",
+            "Disallow: /history",
+            "Disallow: /result/",
+            "Disallow: /checkout/",
+            "Disallow: /api/",
+            "",
+            f"Sitemap: {Config.SITE_URL}/sitemap.xml",
+        ]
+        return "\n".join(lines) + "\n", 200, {"Content-Type": "text/plain"}
 
     @app.route("/sitemap.xml")
     def sitemap():
-        pages = ["", "store", "about", "contact", "terms", "privacy"]
-        xml = ['<?xml version="1.0" encoding="UTF-8"?>',
-               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-        for p in pages:
-            xml.append(f"  <url><loc>{Config.SITE_URL}/{p}</loc></url>")
+        base = Config.SITE_URL
+        pages = [
+            ("", "1.0", "weekly"),
+            ("pricing", "0.9", "weekly"),
+            ("store", "0.8", "weekly"),
+            ("generator", "0.7", "monthly"),
+            ("register", "0.7", "monthly"),
+            ("login", "0.6", "monthly"),
+            ("about", "0.5", "monthly"),
+            ("contact", "0.5", "monthly"),
+            ("terms", "0.3", "yearly"),
+            ("privacy", "0.3", "yearly"),
+        ]
+        xml = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        ]
+        for path, priority, freq in pages:
+            xml.append(f"  <url>")
+            xml.append(f"    <loc>{base}/{path}</loc>")
+            xml.append(f"    <priority>{priority}</priority>")
+            xml.append(f"    <changefreq>{freq}</changefreq>")
+            xml.append(f"  </url>")
         xml.append("</urlset>")
-        return "\n".join(xml), 200, {"Content-Type": "application/xml"}
+        resp = make_response("\n".join(xml))
+        resp.headers["Content-Type"] = "application/xml"
+        return resp
 
     return app
 

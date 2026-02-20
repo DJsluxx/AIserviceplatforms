@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ listing.generated_title or 'Generated Listing' }} — Properties Genie{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
 
 {% block content %}
 <section class="result-section">
