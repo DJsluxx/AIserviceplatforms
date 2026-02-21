@@ -48,3 +48,15 @@
     </div>
 </section>
 {% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelector('.auth-form').addEventListener('submit', function () {
+    var btn = this.querySelector('button[type="submit"]');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in…';
+    }
+});
+</script>
+{% endblock %}

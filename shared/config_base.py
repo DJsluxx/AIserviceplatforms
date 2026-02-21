@@ -3,9 +3,11 @@ Shared — Base Configuration
 Every platform inherits from BaseConfig and only overrides what's unique.
 """
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-load_dotenv()
+# Search from the current working directory so each platform's .env is found
+# regardless of which file triggers the import.
+load_dotenv(find_dotenv(usecwd=True))
 
 
 class BaseConfig:
@@ -19,9 +21,10 @@ class BaseConfig:
     # ── Database (Neon Postgres — shared across all platforms) ──
     @staticmethod
     def _build_db_url():
-        if os.getenv("FLASK_ENV") == "development":
+        url = os.getenv("DATABASE_URL", "")
+        if not url:
+            # No DATABASE_URL set — fall back to local SQLite for development
             return "sqlite:///dev.db"
-        url = os.getenv("DATABASE_URL", "sqlite:///dev.db")
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
         if "channel_binding=require" in url:

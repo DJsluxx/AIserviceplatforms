@@ -257,35 +257,53 @@ def create_auth_blueprint(
 
 
 def _send_verification_email(user, site_name):
-    """Send a verification email. Best-effort — logs errors but doesn't crash."""
+    """Send a verification email in a background thread so the request returns instantly."""
     import logging
+    import threading
     logger = logging.getLogger(__name__)
     try:
         from flask import current_app, url_for
-        from flask_mail import Mail, Message as MailMessage
 
         app = current_app._get_current_object()
         if not app.config.get("MAIL_SERVER"):
             logger.info("MAIL_SERVER not configured — skipping verification email for %s", user.email)
             return
 
-        mail = Mail(app)
+        # Build everything we need while still inside the request context
         verify_url = url_for("auth.verify_email", token=user.email_verify_token, _external=True)
-        msg = MailMessage(
-            subject=f"Verify your {site_name} email",
-            sender=app.config.get("MAIL_DEFAULT_SENDER", f"noreply@{site_name.lower().replace(' ', '')}.com"),
-            recipients=[user.email],
-            html=(
-                f"<h2>Welcome to {site_name}!</h2>"
-                f"<p>Click the link below to verify your email and activate your free credit:</p>"
-                f'<p><a href="{verify_url}" style="display:inline-block;padding:12px 28px;'
-                f'background:#7c3aed;color:#fff;text-decoration:none;border-radius:8px;'
-                f'font-weight:600;">Verify My Email</a></p>'
-                f"<p>Or copy this link: {verify_url}</p>"
-                f"<p>If you didn't create an account, you can ignore this email.</p>"
-            ),
+        sender = app.config.get("MAIL_DEFAULT_SENDER", f"noreply@{site_name.lower().replace(' ', '')}.com")
+        recipient = user.email
+        html_body = (
+            f"<h2>Welcome to {site_name}!</h2>"
+            f"<p>Click the link below to verify your email and activate your free credit:</p>"
+            f'<p><a href="{verify_url}" style="display:inline-block;padding:12px 28px;'
+            f'background:#7c3aed;color:#fff;text-decoration:none;border-radius:8px;'
+            f'font-weight:600;">Verify My Email</a></p>'
+            f"<p>Or copy this link: {verify_url}</p>"
+            f"<p>If you didn't create an account, you can ignore this email.</p>"
         )
-        mail.send(msg)
-        logger.info("Verification email sent to %s", user.email)
+
+        def _send_in_background(app, recipient, sender, html_body, site_name):
+            try:
+                from flask_mail import Mail, Message as MailMessage
+                with app.app_context():
+                    mail = Mail(app)
+                    msg = MailMessage(
+                        subject=f"Verify your {site_name} email",
+                        sender=sender,
+                        recipients=[recipient],
+                        html=html_body,
+                    )
+                    mail.send(msg)
+                    logger.info("Verification email sent to %s", recipient)
+            except Exception as e:
+                logger.warning("Could not send verification email to %s: %s", recipient, e)
+
+        thread = threading.Thread(
+            target=_send_in_background,
+            args=(app, recipient, sender, html_body, site_name),
+            daemon=True,
+        )
+        thread.start()
     except Exception as e:
-        logger.warning("Could not send verification email to %s: %s", user.email, e)
+        logger.warning("Could not prepare verification email for %s: %s", user.email, e)
