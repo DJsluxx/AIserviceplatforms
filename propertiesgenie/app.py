@@ -489,6 +489,8 @@ def create_app():
             "Disallow: /result/",
             "Disallow: /checkout/",
             "Disallow: /api/",
+            "Disallow: /login",
+            "Disallow: /register",
             "",
             f"Sitemap: {Config.SITE_URL}/sitemap.xml",
         ]
@@ -502,8 +504,6 @@ def create_app():
             ("pricing", "0.9", "weekly"),
             ("store", "0.8", "weekly"),
             ("generator", "0.7", "monthly"),
-            ("register", "0.7", "monthly"),
-            ("login", "0.6", "monthly"),
             ("about", "0.5", "monthly"),
             ("contact", "0.5", "monthly"),
             ("terms", "0.3", "yearly"),
