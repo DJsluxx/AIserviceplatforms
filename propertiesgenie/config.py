@@ -43,12 +43,12 @@ class Config(BaseConfig):
         "business_annual":  {"plan": "business", "billing": "annual",  "price": 399.00, "credits": 90,  "label": "Elite Broker Annual", "monthly_eq": 33.25, "save_pct": 33},
     }
 
-    # ── Launch Discount ────────────────────────────────────
+    # ── Spring Sale Discount ─────────────────────────────
     LAUNCH_DISCOUNT = {
         "enabled":    True,
         "percent":    30,
         "annual_extra": 10,            # extra % off for annual billing (30+10=40)
-        "banner":     "We just launched!",
+        "banner":     "🌸 Spring Sale!",
         "badge":      "30% OFF EVERYTHING",
         "note":       "Automatically applied at checkout \u2014 no code needed!",
     }

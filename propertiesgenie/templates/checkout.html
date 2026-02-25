@@ -25,7 +25,7 @@
                 </div>
                 {% if launch_discount and launch_discount.enabled %}
                 <div class="checkout-row" style="color:#f5c542">
-                    <span><i class="fas fa-tag"></i> {{ launch_discount.badge }} Launch Discount</span>
+                    <span><i class="fas fa-tag"></i> {{ launch_discount.badge }} Spring Sale</span>
                     <span>-${{ "%.2f"|format(pack.price - pack.price|launch_price) }}</span>
                 </div>
                 {% endif %}
@@ -83,7 +83,7 @@
                 {% endif %}
                 {% if launch_discount and launch_discount.enabled %}
                 <div class="checkout-row" style="color:#f5c542">
-                    <span><i class="fas fa-tag"></i> {% if is_annual %}40% OFF{% else %}{{ launch_discount.badge }}{% endif %} Launch Discount</span>
+                    <span><i class="fas fa-tag"></i> {% if is_annual %}40% OFF{% else %}{{ launch_discount.badge }}{% endif %} Spring Sale</span>
                     <span>-${{ "%.2f"|format(sub.price - (sub.price|launch_price_annual if is_annual else sub.price|launch_price)) }}</span>
                 </div>
                 {% endif %}
