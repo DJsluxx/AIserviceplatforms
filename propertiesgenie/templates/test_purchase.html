@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Test Purchase — Google Ads Conversion Verify</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+
+    <!-- Google tag (gtag.js) — GA4 + Google Ads -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZZNXQVMLTM"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-ZZNXQVMLTM');
+      {% if gads_id %}gtag('config', '{{ gads_id }}');{% endif %}
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; margin: 0; min-height: 100vh;
+               display: flex; align-items: center; justify-content: center;
+               background: #0f172a; color: #e2e8f0; }
+        .test-card { max-width: 520px; width: 90%; padding: 2.5rem; text-align: center;
+                     background: #1e293b; border-radius: 16px; border: 2px dashed #3b82f6; }
+        .badge { display: inline-block; background: rgba(59,130,246,.15); color: #3b82f6;
+                 padding: 4px 14px; border-radius: 20px; font-size: .75rem; font-weight: 700;
+                 text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
+        h1 { font-size: 1.5rem; margin: 0 0 .5rem; }
+        .price { font-size: 2.5rem; font-weight: 800; color: #22c55e; margin: 1rem 0; }
+        .info { color: #94a3b8; font-size: .9rem; line-height: 1.7; margin-bottom: 1.5rem; }
+        #paypal-button-container { max-width: 350px; margin: 0 auto; }
+        .success-msg { display: none; padding: 1.5rem; background: rgba(34,197,94,.1);
+                       border: 1px solid rgba(34,197,94,.3); border-radius: 12px; margin-top: 1.5rem; }
+        .success-msg h2 { color: #22c55e; margin: 0 0 .5rem; }
+        .success-msg p { color: #94a3b8; margin: .3rem 0; font-size: .85rem; }
+        .tag-status { margin-top: 1.5rem; text-align: left; font-size: .82rem; }
+        .tag-status div { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+        .tag-status .label { color: #94a3b8; }
+        .tag-status .value { color: #22c55e; font-weight: 600; }
+        .tag-status .value.missing { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="test-card">
+        <div class="badge">🧪 Internal Test Only</div>
+        <h1>Google Ads Conversion Test</h1>
+        <p class="info">
+            This page verifies that Google Ads conversion tracking fires correctly
+            on a real PayPal purchase. Pay <strong>$0.50</strong> to trigger the conversion event.
+        </p>
+        <div class="price">$0.50</div>
+
+        <!-- Tag status -->
+        <div class="tag-status">
+            <div>
+                <span class="label">GA4 ID:</span>
+                <span class="value">G-ZZNXQVMLTM</span>
+            </div>
+            <div>
+                <span class="label">Google Ads ID:</span>
+                <span class="value {% if not gads_id %}missing{% endif %}">{{ gads_id or 'NOT SET' }}</span>
+            </div>
+            <div>
+                <span class="label">Conversion Label:</span>
+                <span class="value {% if not gads_conversion_label %}missing{% endif %}">{{ gads_conversion_label or 'NOT SET' }}</span>
+            </div>
+            <div>
+                <span class="label">PayPal Mode:</span>
+                <span class="value">{{ paypal_mode }}</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+            <div id="paypal-button-container"></div>
+        </div>
+
+        <div id="success-msg" class="success-msg">
+            <h2>✅ Purchase Complete!</h2>
+            <p><strong>Order ID:</strong> <span id="order-id">—</span></p>
+            <p><strong>gtag purchase event:</strong> Fired ✓</p>
+            <p><strong>gtag conversion event:</strong> <span id="conv-status">—</span></p>
+            <p style="margin-top: .75rem; color: #3b82f6;">
+                Check Google Ads → Conversions to verify it was registered.
+            </p>
+        </div>
+    </div>
+
+    <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
+    <script>
+    paypal.Buttons({
+        style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' },
+        createOrder: function() {
+            return fetch('/api/test-paypal/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ item: 'gads_test' })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) { alert(data.error); throw new Error(data.error); }
+                return data.orderID;
+            });
+        },
+        onApprove: function(data) {
+            return fetch('/api/test-paypal/capture-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderID: data.orderID })
+            })
+            .then(r => r.json())
+            .then(result => {
+                if (result.success) {
+                    // Fire GA4 purchase event
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'purchase', {
+                            transaction_id: data.orderID,
+                            value: 0.50,
+                            currency: 'USD',
+                            items: [{ item_id: 'gads_test', item_name: 'Google Ads Conversion Test', quantity: 1, price: 0.50 }]
+                        });
+                        console.log('[TEST] gtag purchase event fired');
+
+                        // Fire Google Ads conversion event
+                        var gadsId = '{{ gads_id }}';
+                        var convLabel = '{{ gads_conversion_label }}';
+                        if (gadsId && convLabel) {
+                            gtag('event', 'conversion', {
+                                'send_to': gadsId + '/' + convLabel,
+                                'value': 0.50,
+                                'currency': 'USD',
+                                'transaction_id': data.orderID
+                            });
+                            console.log('[TEST] gtag conversion event fired: ' + gadsId + '/' + convLabel);
+                            document.getElementById('conv-status').textContent = 'Fired ✓ (' + gadsId + '/' + convLabel + ')';
+                        } else {
+                            console.warn('[TEST] Google Ads ID or conversion label not set');
+                            document.getElementById('conv-status').textContent = 'SKIPPED — env vars missing';
+                        }
+                    }
+
+                    // Show success
+                    document.getElementById('order-id').textContent = data.orderID;
+                    document.getElementById('success-msg').style.display = 'block';
+                    document.getElementById('paypal-button-container').style.display = 'none';
+                } else {
+                    alert(result.error || 'Capture failed');
+                }
+            })
+            .catch(err => {
+                console.error('Capture error:', err);
+                alert('Something went wrong. Check console.');
+            });
+        },
+        onError: function(err) {
+            console.error('PayPal error:', err);
+            alert('PayPal error. Check console.');
+        }
+    }).render('#paypal-button-container');
+    </script>
+</body>
+</html>

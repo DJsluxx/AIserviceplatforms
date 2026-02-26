@@ -524,6 +524,53 @@ def create_app():
         resp.headers["Content-Type"] = "application/xml"
         return resp
 
+    # ═══════════════════════════════════════════════════════════
+    #  HIDDEN TEST PURCHASE — Google Ads Conversion Verification
+    # ═══════════════════════════════════════════════════════════
+
+    @app.route("/test-purchase-gads-verify")
+    def test_purchase_page():
+        """Hidden page for verifying Google Ads conversion tracking with a real $0.50 purchase."""
+        return render_template("test_purchase.html",
+            paypal_client_id=Config.PAYPAL_CLIENT_ID,
+            paypal_mode=Config.PAYPAL_MODE,
+            gads_id=os.environ.get("GOOGLE_ADS_ID", ""),
+            gads_conversion_label=os.environ.get("GOOGLE_ADS_CONVERSION_LABEL", ""),
+        )
+
+    @app.route("/api/test-paypal/create-order", methods=["POST"])
+    def test_paypal_create_order():
+        """Create a $0.50 test PayPal order for conversion verification."""
+        order_id, error = create_paypal_order(
+            0.50, "USD", "Google Ads Conversion Test — $0.50",
+            client_id=Config.PAYPAL_CLIENT_ID,
+            client_secret=Config.PAYPAL_CLIENT_SECRET,
+            mode=Config.PAYPAL_MODE,
+        )
+        if error:
+            return jsonify({"error": error}), 500
+        return jsonify({"orderID": order_id})
+
+    @app.route("/api/test-paypal/capture-order", methods=["POST"])
+    def test_paypal_capture_order():
+        """Capture a test PayPal order (no credits/subscription added)."""
+        data = request.get_json() or {}
+        order_id = data.get("orderID", "")
+        if not order_id:
+            return jsonify({"error": "Missing order ID"}), 400
+
+        captured, info = capture_paypal_order(
+            order_id, 0.50,
+            client_id=Config.PAYPAL_CLIENT_ID,
+            client_secret=Config.PAYPAL_CLIENT_SECRET,
+            mode=Config.PAYPAL_MODE,
+        )
+        if not captured:
+            return jsonify({"error": f"Capture failed: {info.get('status', 'unknown')}"}), 400
+
+        app.logger.info(f"[TEST] Conversion test payment captured: {order_id}")
+        return jsonify({"success": True, "order_id": order_id})
+
     return app
 
 
