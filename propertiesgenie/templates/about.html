@@ -1,8 +1,21 @@
 {% extends "base.html" %}
-{% block title %}About — Properties Genie{% endblock %}
-{% block meta_description %}Learn about Properties Genie — the AI-powered real estate listing generator built for agents, realtors, and property managers.{% endblock %}
-{% block og_title %}About Properties Genie{% endblock %}
-{% block og_description %}Properties Genie helps real estate professionals create stunning listings in seconds using AI. Learn our story.{% endblock %}
+{% block title %}About Properties Genie — AI Real Estate Listing Generator{% endblock %}
+{% block meta_description %}Properties Genie is an AI-powered real estate listing generator built for agents, realtors, and property managers. Generate professional listings in 20+ languages in seconds.{% endblock %}
+{% block og_title %}About Properties Genie — AI Listing Generator for Real Estate{% endblock %}
+{% block og_description %}Properties Genie helps real estate professionals create stunning listings in seconds using AI. Learn our story, mission, and why agents love us.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ config.SITE_URL }}"},
+        {"@type": "ListItem", "position": 2, "name": "About", "item": "{{ config.SITE_URL }}/about"}
+    ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <section class="about-section">

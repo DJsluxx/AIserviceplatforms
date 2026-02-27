@@ -473,7 +473,94 @@ def create_app():
         return jsonify({"error": "Invalid purchase type"}), 400
 
     # ════════════════════════════════════════════════════════════
-    #  SEO
+    #  PROGRAMMATIC SEO LANDING PAGES
+    # ════════════════════════════════════════════════════════════
+
+    SEO_PAGES = {
+        "ai-real-estate-listing-generator": {
+            "title": "AI Real Estate Listing Generator — Write Listings in Seconds",
+            "description": "Generate professional real estate listings with AI. Our tool creates compelling property descriptions, social media captions, and SEO metadata in under 4 seconds.",
+            "h1": "AI Real Estate Listing Generator",
+            "content": "Stop wasting hours writing property listings. Properties Genie uses advanced AI to generate professional, compelling real estate descriptions that sell. Enter your property details — bedrooms, bathrooms, square footage, features — and get a polished listing in seconds. Supports 20+ languages, 4 writing tones, and all property types.",
+        },
+        "ai-property-description-writer": {
+            "title": "AI Property Description Writer — Professional Listings Fast",
+            "description": "Write stunning property descriptions with AI. Perfect for realtors, agents, and property managers who want professional copy without the hassle.",
+            "h1": "AI Property Description Writer",
+            "content": "Properties Genie is the #1 AI property description writer used by real estate professionals worldwide. Generate MLS-ready descriptions, social media captions, and marketing copy in one click. Works for houses, apartments, condos, commercial properties, and land.",
+        },
+        "real-estate-listing-tool-for-agents": {
+            "title": "Real Estate Listing Tool for Agents — Save 30+ Minutes Per Listing",
+            "description": "The best listing tool for real estate agents. AI-powered descriptions, social media kit, SEO metadata, and email marketing copy. Free to start.",
+            "h1": "The #1 Listing Tool for Real Estate Agents",
+            "content": "Real estate agents save an average of 30 minutes per listing with Properties Genie. Instead of staring at a blank page, enter your property details and get a professional, ready-to-publish listing in seconds. Includes Instagram, Facebook, and Twitter captions plus SEO optimization.",
+        },
+        "mls-listing-description-generator": {
+            "title": "MLS Listing Description Generator — AI-Powered & Free to Try",
+            "description": "Generate MLS-ready property descriptions with AI. Professional quality, instant results. Perfect for agents posting to Zillow, Realtor.com, and MLS.",
+            "h1": "MLS Listing Description Generator",
+            "content": "Generate polished, MLS-compliant property descriptions in seconds. Properties Genie creates listings optimized for Zillow, Realtor.com, Redfin, and your local MLS. Choose from professional, luxury, friendly, or minimal tones to match every property.",
+        },
+        "luxury-real-estate-listing-writer": {
+            "title": "Luxury Real Estate Listing Writer — Elegant AI-Generated Copy",
+            "description": "Create luxurious, aspirational property listings with our AI luxury writing mode. Perfect for high-end homes, estates, and premium properties.",
+            "h1": "Luxury Real Estate Listing Writer",
+            "content": "Elevate your luxury listings with AI-crafted descriptions that capture elegance and exclusivity. Properties Genie's luxury tone mode creates aspirational copy perfect for high-end homes, penthouses, waterfront estates, and exclusive properties. Impress your most discerning clients.",
+        },
+        "rental-listing-generator": {
+            "title": "Rental Listing Generator — AI-Powered Descriptions for Landlords",
+            "description": "Generate professional rental property listings with AI. Perfect for landlords and property managers posting to Zillow, Apartments.com, and Craigslist.",
+            "h1": "Rental Listing Generator",
+            "content": "Attract quality tenants with professional rental listings. Properties Genie generates compelling descriptions for apartments, houses, condos, and commercial rentals. Highlight amenities, location benefits, and move-in specials — all optimized for rental platforms.",
+        },
+        "real-estate-social-media-captions": {
+            "title": "Real Estate Social Media Captions — AI-Generated Instagram & Facebook Posts",
+            "description": "Generate ready-to-post real estate captions for Instagram, Facebook, and Twitter/X. Includes hashtags, CTAs, and engagement-optimized copy.",
+            "h1": "Real Estate Social Media Captions Generator",
+            "content": "Every Properties Genie listing includes a full social media kit. Get Instagram captions with 20 relevant hashtags, Facebook posts with calls-to-action, and Twitter/X posts under 280 characters. Copy, paste, and post — grow your following while you list.",
+        },
+        "multilingual-real-estate-listings": {
+            "title": "Multilingual Real Estate Listings — Generate in 20+ Languages",
+            "description": "Create property listings in Spanish, French, Chinese, Arabic, Portuguese, and 15+ more languages. Reach international buyers with AI-powered translations.",
+            "h1": "Generate Listings in 20+ Languages",
+            "content": "Reach international buyers in their language. Properties Genie generates native-quality real estate listings in 20+ languages including Spanish, French, Mandarin Chinese, Arabic, Portuguese, German, Japanese, Korean, Italian, Russian, and more. Expand your market instantly.",
+        },
+        "commercial-property-listing-generator": {
+            "title": "Commercial Property Listing Generator — AI Descriptions for CRE",
+            "description": "Generate professional commercial real estate listings with AI. Office spaces, retail, warehouses, industrial, and mixed-use properties.",
+            "h1": "Commercial Property Listing Generator",
+            "content": "Create compelling commercial property listings in seconds. Properties Genie handles office buildings, retail spaces, warehouses, industrial properties, mixed-use developments, and vacant commercial land. Professional tone optimized for commercial real estate buyers and tenants.",
+        },
+        "real-estate-email-marketing-generator": {
+            "title": "Real Estate Email Marketing Generator — AI Property Emails",
+            "description": "Generate email subject lines and marketing copy for your property listings. AI-powered email templates that drive showings and offers.",
+            "h1": "Real Estate Email Marketing Generator",
+            "content": "Every Properties Genie listing can include an email marketing booster: a compelling subject line and 3-4 sentence email body designed to drive showing requests. Plus SEO meta tags and 10 targeted keywords for your listing pages.",
+        },
+        "zillow-listing-description-generator": {
+            "title": "Zillow Listing Description Generator — AI-Powered & Instant",
+            "description": "Write better Zillow listing descriptions with AI. Optimized for the Zillow platform, compelling, and ready to copy-paste in seconds.",
+            "h1": "Zillow Listing Description Generator",
+            "content": "Get Zillow-optimized property descriptions in seconds. Properties Genie creates listings designed to stand out on Zillow, with compelling headlines, sensory language, and clear calls-to-action that drive buyer inquiries.",
+        },
+        "airbnb-listing-description-generator": {
+            "title": "Airbnb Listing Description Generator — Write Better Listings",
+            "description": "Generate compelling Airbnb listing descriptions with AI. Highlight amenities, location, and guest experience. Perfect for hosts and property managers.",
+            "h1": "Airbnb Listing Description Generator",
+            "content": "Create Airbnb listings that attract 5-star guests. Properties Genie crafts compelling descriptions, highlights unique amenities, and emphasizes the guest experience. Works for vacation rentals, short-term stays, and unique accommodations.",
+        },
+    }
+
+    @app.route("/tools/<slug>")
+    def seo_landing(slug):
+        """Programmatic SEO landing pages for maximum organic traffic."""
+        page = SEO_PAGES.get(slug)
+        if not page:
+            abort(404)
+        return render_template("seo_landing.html", page=page, slug=slug)
+
+    # ════════════════════════════════════════════════════════════
+    #  SEO — SITEMAP, ROBOTS, INDEXNOW
     # ════════════════════════════════════════════════════════════
 
     @app.route("/robots.txt")
@@ -486,7 +573,7 @@ def create_app():
             "Disallow: /dashboard",
             "Disallow: /account",
             "Disallow: /history",
-            "Disallow: /result/",
+            "Disallow: /listing/",
             "Disallow: /checkout/",
             "Disallow: /api/",
             "Disallow: /login",
@@ -503,26 +590,81 @@ def create_app():
             ("", "1.0", "weekly"),
             ("pricing", "0.9", "weekly"),
             ("store", "0.8", "weekly"),
-            ("generator", "0.7", "monthly"),
-            ("about", "0.5", "monthly"),
+            ("about", "0.6", "monthly"),
             ("contact", "0.5", "monthly"),
             ("terms", "0.3", "yearly"),
             ("privacy", "0.3", "yearly"),
         ]
+        # Add SEO landing pages
+        for slug in SEO_PAGES:
+            pages.append((f"tools/{slug}", "0.8", "monthly"))
+
         xml = [
             '<?xml version="1.0" encoding="UTF-8"?>',
-            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+            '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
         ]
-        for path, priority, freq in pages:
+        for entry in pages:
+            path, priority, freq = entry[0], entry[1], entry[2]
             xml.append(f"  <url>")
             xml.append(f"    <loc>{base}/{path}</loc>")
             xml.append(f"    <priority>{priority}</priority>")
             xml.append(f"    <changefreq>{freq}</changefreq>")
+            # Add image for homepage
+            if path == "":
+                xml.append(f"    <image:image>")
+                xml.append(f"      <image:loc>{base}/static/img/og-cover.png</image:loc>")
+                xml.append(f"      <image:title>Properties Genie — AI Real Estate Listing Generator</image:title>")
+                xml.append(f"    </image:image>")
             xml.append(f"  </url>")
         xml.append("</urlset>")
         resp = make_response("\n".join(xml))
         resp.headers["Content-Type"] = "application/xml"
         return resp
+
+    # ── IndexNow — Auto-submit URLs to Bing/Yandex ─────────
+    INDEXNOW_KEY = "pg2026indexnow8f3a5b7c9d"
+
+    @app.route(f"/{INDEXNOW_KEY}.txt")
+    def indexnow_key_file():
+        return INDEXNOW_KEY, 200, {"Content-Type": "text/plain"}
+
+    def _pg_get_all_urls():
+        base = Config.SITE_URL
+        urls = [f"{base}/", f"{base}/pricing", f"{base}/store",
+                f"{base}/about", f"{base}/contact"]
+        for slug in SEO_PAGES:
+            urls.append(f"{base}/tools/{slug}")
+        return urls
+
+    def _pg_ping_indexnow():
+        import requests as req
+        urls = _pg_get_all_urls()
+        base = Config.SITE_URL
+        host = base.replace("https://", "").replace("http://", "")
+        payload = {
+            "host": host, "key": INDEXNOW_KEY,
+            "keyLocation": f"{base}/{INDEXNOW_KEY}.txt",
+            "urlList": urls[:10000],
+        }
+        for engine in ["api.indexnow.org", "www.bing.com", "yandex.com"]:
+            try:
+                req.post(f"https://{engine}/indexnow", json=payload,
+                         headers={"Content-Type": "application/json; charset=utf-8"}, timeout=15)
+            except Exception:
+                pass
+
+    import threading
+    def _pg_startup_ping():
+        import time
+        time.sleep(10)
+        with app.app_context():
+            try:
+                _pg_ping_indexnow()
+                app.logger.info("[IndexNow] Startup ping sent")
+            except Exception as e:
+                app.logger.warning(f"[IndexNow] Startup ping failed: {e}")
+    threading.Thread(target=_pg_startup_ping, daemon=True).start()
 
     # ═══════════════════════════════════════════════════════════
     #  HIDDEN TEST PURCHASE — Google Ads Conversion Verification

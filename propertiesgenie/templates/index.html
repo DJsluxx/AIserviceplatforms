@@ -5,6 +5,51 @@
 {% block og_title %}Properties Genie — AI Real Estate Listing Generator{% endblock %}
 {% block og_description %}Stop spending hours writing listings. Our AI generates professional, compelling real estate copy in 4 seconds — plus social media captions, SEO metadata & email marketing. Free to start.{% endblock %}
 
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "What is Properties Genie?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Properties Genie is an AI-powered real estate listing description generator. Enter your property details and get a professional, compelling listing in under 4 seconds. Available in 20+ languages."}
+        },
+        {
+            "@type": "Question",
+            "name": "Is Properties Genie free to use?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Yes! The free plan includes 1 listing per month. Paid plans start at $19.50/month for 30 listings, with credit packs available for one-time purchases."}
+        },
+        {
+            "@type": "Question",
+            "name": "What languages does Properties Genie support?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Properties Genie supports 20+ languages including English, Spanish, French, Mandarin Chinese, Arabic, Portuguese, German, Japanese, Korean, Italian, and more."}
+        },
+        {
+            "@type": "Question",
+            "name": "How long does it take to generate a listing?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Most listings are generated in under 4 seconds. The AI processes your property details instantly and delivers a complete listing with title, description, highlights, and optional social media captions."}
+        },
+        {
+            "@type": "Question",
+            "name": "Can I use Properties Genie for commercial properties?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Absolutely! Properties Genie supports all property types including houses, apartments, condos, townhouses, commercial buildings, and vacant land."}
+        }
+    ]
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://propertiesgenie.com"}
+    ]
+}
+</script>
+{% endblock %}
+
 {% block launch_banner %}
 {% if launch_discount and launch_discount.enabled %}
 <div style="margin-top:68px;background:linear-gradient(135deg,#10b981 0%,#3b82f6 50%,#8b5cf6 100%);text-align:center;padding:10px 16px;position:relative;z-index:99;">

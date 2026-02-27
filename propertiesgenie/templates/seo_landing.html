@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }}{% endblock %}
+{% block meta_description %}{{ page.description }}{% endblock %}
+{% block og_title %}{{ page.title }}{% endblock %}
+{% block og_description %}{{ page.description }}{% endblock %}
+{% block canonical %}{{ config.SITE_URL }}/tools/{{ slug }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ config.SITE_URL }}"},
+        {"@type": "ListItem", "position": 2, "name": "Tools", "item": "{{ config.SITE_URL }}/pricing"},
+        {"@type": "ListItem", "position": 3, "name": "{{ page.h1 }}", "item": "{{ config.SITE_URL }}/tools/{{ slug }}"}
+    ]
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "How does the {{ page.h1 }} work?",
+            "acceptedAnswer": {"@type": "Answer", "text": "{{ page.content[:200] | e }}... Simply enter your property details and our AI generates a professional listing in under 4 seconds."}
+        },
+        {
+            "@type": "Question",
+            "name": "Is this tool free to use?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Yes! Properties Genie offers a free plan with 1 listing per month. Paid plans start at $19.50/month for 30 listings."}
+        },
+        {
+            "@type": "Question",
+            "name": "What property types are supported?",
+            "acceptedAnswer": {"@type": "Answer", "text": "All property types — houses, apartments, condos, townhouses, commercial buildings, and vacant land."}
+        }
+    ]
+}
+</script>
+{% endblock %}
+
+{% block launch_banner %}
+{% if launch_discount and launch_discount.enabled %}
+<div style="margin-top:68px;background:linear-gradient(135deg,#10b981 0%,#3b82f6 50%,#8b5cf6 100%);text-align:center;padding:10px 16px;position:relative;z-index:99;">
+    <div style="max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:1.1rem;">🌸</span>
+        <span style="color:white;font-weight:800;font-size:.88rem;letter-spacing:0.3px;">{{ launch_discount.banner }}</span>
+        <span style="background:rgba(0,0,0,0.25);color:white;padding:3px 12px;border-radius:20px;font-weight:800;font-size:.82rem;">{{ launch_discount.percent }}% OFF EVERYTHING</span>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<section style="padding:6rem 0 3rem;max-width:860px;margin:0 auto;padding-left:2rem;padding-right:2rem;">
+    <!-- Breadcrumb -->
+    <nav style="margin-bottom:2rem;font-size:0.85rem;color:rgba(255,255,255,.5);">
+        <a href="/" style="color:rgba(255,255,255,.6);text-decoration:none;">Home</a>
+        <span style="margin:0 .5rem;">›</span>
+        <a href="/pricing" style="color:rgba(255,255,255,.6);text-decoration:none;">Tools</a>
+        <span style="margin:0 .5rem;">›</span>
+        <span style="color:rgba(255,255,255,.8);">{{ page.h1 }}</span>
+    </nav>
+
+    <h1 style="font-size:2.5rem;font-weight:800;line-height:1.2;margin-bottom:1.5rem;background:linear-gradient(135deg,#10b981,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+        {{ page.h1 }}
+    </h1>
+
+    <p style="font-size:1.15rem;line-height:1.8;color:rgba(255,255,255,.7);margin-bottom:2rem;">
+        {{ page.content }}
+    </p>
+
+    <!-- CTA -->
+    <div style="margin:2.5rem 0;padding:2rem;background:var(--card-bg,#1a1a2e);border-radius:16px;border:1px solid var(--border-color,#2a2a4a);text-align:center;">
+        <h2 style="font-size:1.5rem;margin-bottom:1rem;">Try It Free — No Credit Card Required</h2>
+        <p style="color:rgba(255,255,255,.6);margin-bottom:1.5rem;">Get your first listing in under 4 seconds. 1 free listing per month, forever.</p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg btn-glow" style="display:inline-flex;align-items:center;gap:.5rem;">
+            <i class="fas fa-key"></i> Start Free Now
+        </a>
+    </div>
+
+    <!-- How It Works -->
+    <h2 style="font-size:1.5rem;margin:2.5rem 0 1.5rem;font-weight:700;">How It Works</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1.5rem;margin-bottom:2.5rem;">
+        <div style="padding:1.5rem;background:var(--card-bg,#1a1a2e);border-radius:12px;border:1px solid var(--border-color,#2a2a4a);">
+            <div style="font-size:1.5rem;margin-bottom:.75rem;">1️⃣</div>
+            <h3 style="font-size:1rem;margin-bottom:.5rem;">Enter Property Details</h3>
+            <p style="font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.6;">Fill in bedrooms, bathrooms, square footage, features, and location.</p>
+        </div>
+        <div style="padding:1.5rem;background:var(--card-bg,#1a1a2e);border-radius:12px;border:1px solid var(--border-color,#2a2a4a);">
+            <div style="font-size:1.5rem;margin-bottom:.75rem;">2️⃣</div>
+            <h3 style="font-size:1rem;margin-bottom:.5rem;">AI Generates Your Listing</h3>
+            <p style="font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.6;">Our AI crafts a compelling, unique listing in under 4 seconds.</p>
+        </div>
+        <div style="padding:1.5rem;background:var(--card-bg,#1a1a2e);border-radius:12px;border:1px solid var(--border-color,#2a2a4a);">
+            <div style="font-size:1.5rem;margin-bottom:.75rem;">3️⃣</div>
+            <h3 style="font-size:1rem;margin-bottom:.5rem;">Copy & Publish</h3>
+            <p style="font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.6;">Copy to Zillow, Realtor.com, MLS, or any listing platform.</p>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <h2 style="font-size:1.5rem;margin:2.5rem 0 1.5rem;font-weight:700;">Why Choose Properties Genie</h2>
+    <ul style="list-style:none;padding:0;display:grid;gap:.75rem;margin-bottom:2.5rem;">
+        <li style="padding:1rem 1.25rem;background:var(--card-bg,#1a1a2e);border-radius:10px;border:1px solid var(--border-color,#2a2a4a);display:flex;align-items:center;gap:.75rem;font-size:.92rem;">
+            <span style="color:#10b981;font-weight:700;">✓</span> Save 30+ minutes per listing
+        </li>
+        <li style="padding:1rem 1.25rem;background:var(--card-bg,#1a1a2e);border-radius:10px;border:1px solid var(--border-color,#2a2a4a);display:flex;align-items:center;gap:.75rem;font-size:.92rem;">
+            <span style="color:#10b981;font-weight:700;">✓</span> Professional quality, MLS-ready copy
+        </li>
+        <li style="padding:1rem 1.25rem;background:var(--card-bg,#1a1a2e);border-radius:10px;border:1px solid var(--border-color,#2a2a4a);display:flex;align-items:center;gap:.75rem;font-size:.92rem;">
+            <span style="color:#10b981;font-weight:700;">✓</span> 20+ languages supported
+        </li>
+        <li style="padding:1rem 1.25rem;background:var(--card-bg,#1a1a2e);border-radius:10px;border:1px solid var(--border-color,#2a2a4a);display:flex;align-items:center;gap:.75rem;font-size:.92rem;">
+            <span style="color:#10b981;font-weight:700;">✓</span> Includes social media captions & SEO metadata
+        </li>
+        <li style="padding:1rem 1.25rem;background:var(--card-bg,#1a1a2e);border-radius:10px;border:1px solid var(--border-color,#2a2a4a);display:flex;align-items:center;gap:.75rem;font-size:.92rem;">
+            <span style="color:#10b981;font-weight:700;">✓</span> Works for all property types (residential, commercial, rental)
+        </li>
+        <li style="padding:1rem 1.25rem;background:var(--card-bg,#1a1a2e);border-radius:10px;border:1px solid var(--border-color,#2a2a4a);display:flex;align-items:center;gap:.75rem;font-size:.92rem;">
+            <span style="color:#10b981;font-weight:700;">✓</span> 4 writing tones — professional, luxury, friendly, minimal
+        </li>
+    </ul>
+
+    <!-- FAQ -->
+    <h2 style="font-size:1.5rem;margin:2.5rem 0 1.5rem;font-weight:700;">Frequently Asked Questions</h2>
+    <div style="display:grid;gap:1rem;margin-bottom:3rem;">
+        <details style="padding:1.25rem;background:var(--card-bg,#1a1a2e);border-radius:12px;border:1px solid var(--border-color,#2a2a4a);">
+            <summary style="cursor:pointer;font-weight:600;font-size:.95rem;">How does the AI listing generator work?</summary>
+            <p style="margin-top:.75rem;font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.7;">Enter your property details — bedrooms, bathrooms, square footage, features, and location — and our AI generates a professional listing description, title, highlights, and optional social media captions in under 4 seconds.</p>
+        </details>
+        <details style="padding:1.25rem;background:var(--card-bg,#1a1a2e);border-radius:12px;border:1px solid var(--border-color,#2a2a4a);">
+            <summary style="cursor:pointer;font-weight:600;font-size:.95rem;">Is Properties Genie really free?</summary>
+            <p style="margin-top:.75rem;font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.7;">Yes! The free plan includes 1 listing per month, forever. No credit card required. If you need more, paid plans start at $19.50/month for 30 listings, or buy one-time credit packs starting at $7.50 for 5 listings.</p>
+        </details>
+        <details style="padding:1.25rem;background:var(--card-bg,#1a1a2e);border-radius:12px;border:1px solid var(--border-color,#2a2a4a);">
+            <summary style="cursor:pointer;font-weight:600;font-size:.95rem;">Can I use the listings on Zillow, Realtor.com, and MLS?</summary>
+            <p style="margin-top:.75rem;font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.7;">Absolutely! Every listing generated is yours to use anywhere — Zillow, Realtor.com, Redfin, your MLS, your website, social media, or anywhere else. Just copy and paste.</p>
+        </details>
+        <details style="padding:1.25rem;background:var(--card-bg,#1a1a2e);border-radius:12px;border:1px solid var(--border-color,#2a2a4a);">
+            <summary style="cursor:pointer;font-weight:600;font-size:.95rem;">What property types are supported?</summary>
+            <p style="margin-top:.75rem;font-size:.88rem;color:rgba(255,255,255,.6);line-height:1.7;">All property types! Houses, apartments, condos, townhouses, commercial buildings (office, retail, warehouse), vacant land, and more. Each listing is tailored to the specific property type.</p>
+        </details>
+    </div>
+
+    <!-- Bottom CTA -->
+    <div style="text-align:center;padding:3rem 0;">
+        <h2 style="font-size:1.75rem;margin-bottom:1rem;">Ready to Try It?</h2>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg btn-glow" style="display:inline-flex;align-items:center;gap:.5rem;">
+            <i class="fas fa-key"></i> Get Started Free
+        </a>
+        <p style="margin-top:1rem;color:rgba(255,255,255,.5);font-size:.85rem;">No credit card required. 1 free listing per month, forever.</p>
+    </div>
+</section>
+{% endblock %}

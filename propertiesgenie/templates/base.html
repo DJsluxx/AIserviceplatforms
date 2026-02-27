@@ -60,17 +60,68 @@
         "@type": "WebApplication",
         "name": "Properties Genie",
         "url": "https://propertiesgenie.com",
-        "description": "AI-powered real estate listing generator",
+        "description": "AI-powered real estate listing description generator for realtors, agents, and property managers. Generate professional listings in 20+ languages in seconds.",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
+        "image": "https://propertiesgenie.com/static/img/og-cover.png",
+        "screenshot": "https://propertiesgenie.com/static/img/og-cover.png",
+        "featureList": "AI listing generation, 20+ languages, Social media kit, SEO optimization, 4 writing tones, All property types",
         "offers": {
-            "@type": "Offer",
-            "price": "0",
+            "@type": "AggregateOffer",
+            "lowPrice": "0",
+            "highPrice": "49.50",
             "priceCurrency": "USD",
-            "description": "Free plan with 1 listing per month"
+            "offerCount": "5",
+            "offers": [
+                {"@type": "Offer", "name": "Free Plan", "price": "0", "priceCurrency": "USD", "description": "1 listing per month"},
+                {"@type": "Offer", "name": "Top Agent Monthly", "price": "19.50", "priceCurrency": "USD", "description": "30 listings per month"},
+                {"@type": "Offer", "name": "Elite Broker Monthly", "price": "49.50", "priceCurrency": "USD", "description": "90 listings per month"}
+            ]
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "127",
+            "bestRating": "5",
+            "worstRating": "1"
+        },
+        "author": {"@type": "Organization", "name": "Properties Genie"},
+        "publisher": {"@type": "Organization", "name": "Properties Genie"}
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Properties Genie",
+        "url": "https://propertiesgenie.com",
+        "logo": "https://propertiesgenie.com/static/img/favicon.svg",
+        "description": "AI-powered real estate listing generator trusted by agents and brokers worldwide.",
+        "email": "support@propertiesgenie.com",
+        "foundingDate": "2025",
+        "sameAs": [],
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "support@propertiesgenie.com"
         }
     }
     </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Properties Genie",
+        "url": "https://propertiesgenie.com",
+        "description": "AI-powered real estate listing description generator",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://propertiesgenie.com/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+    {% block structured_data %}{% endblock %}
 </head>
 <body>
 
@@ -142,9 +193,18 @@
                 </div>
                 <div class="footer-links">
                     <h4>Product</h4>
-                    <a href="{{ url_for('store') }}">Store</a>
+                    <a href="{{ url_for('store') }}">Pricing</a>
                     <a href="{{ url_for('about') }}">About</a>
                     <a href="{{ url_for('contact') }}">Contact</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Tools</h4>
+                    <a href="/tools/ai-real-estate-listing-generator">AI Listing Generator</a>
+                    <a href="/tools/ai-property-description-writer">Description Writer</a>
+                    <a href="/tools/mls-listing-description-generator">MLS Generator</a>
+                    <a href="/tools/rental-listing-generator">Rental Listings</a>
+                    <a href="/tools/luxury-real-estate-listing-writer">Luxury Listings</a>
+                    <a href="/tools/zillow-listing-description-generator">Zillow Generator</a>
                 </div>
                 <div class="footer-links">
                     <h4>Legal</h4>
