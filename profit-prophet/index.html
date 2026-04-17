@@ -3,128 +3,254 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no"/>
-<meta name="theme-color" content="#05060f"/>
+<meta name="theme-color" content="#05050a"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="mobile-web-app-capable" content="yes"/>
-<meta name="description" content="AI-powered business idea oracle — swipe through money-making opportunities, save the winners, and build your portfolio."/>
-<title>Profit Prophet — AI Idea Oracle</title>
+<meta name="description" content="SCRY — your daily oracle. Pull mystical cards, reveal hidden truths, build your deck."/>
+<title>SCRY</title>
 <link rel="manifest" href="./manifest.json"/>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ffd166'/%3E%3Cstop offset='.5' stop-color='%23f472b6'/%3E%3Cstop offset='1' stop-color='%23a78bfa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ccircle cx='50' cy='50' r='18' fill='white' opacity='.85'/%3E%3C/svg%3E"/>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ffd166'/%3E%3Cstop offset='.5' stop-color='%23f472b6'/%3E%3Cstop offset='1' stop-color='%23a78bfa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ccircle cx='50' cy='50' r='18' fill='white' opacity='.85'/%3E%3C/svg%3E"/>
+<link rel="icon" href="./icon-192.svg"/>
+<link rel="apple-touch-icon" href="./icon-192.svg"/>
 <link rel="stylesheet" href="./styles.css"/>
 </head>
 <body>
 
-<div class="bg-mesh"></div>
-<div class="bg-grain"></div>
-<canvas id="particles"></canvas>
+<canvas id="stars"></canvas>
+<div id="aurora"></div>
 
 <!-- Onboarding -->
-<div class="onboard" id="onboard">
-  <div class="big-logo"></div>
-  <h1>Profit Prophet</h1>
-  <p>An AI idea oracle that hands you money-making opportunities, one swipe at a time. Save the winners, build your portfolio, ship something real.</p>
-  <button class="cta" id="onboard-cta">Start swiping →</button>
-  <p class="tip">← pass &nbsp;·&nbsp; → like &nbsp;·&nbsp; ↑ save to vault</p>
-</div>
-
-<div id="app">
-  <!-- Top bar -->
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>Profit Prophet<br><small>idea oracle</small></div>
+<section class="onb" id="onb">
+  <div class="sigil"></div>
+  <h1 class="wordmark">SCRY</h1>
+  <p class="lead">The oracle has been waiting for you.</p>
+  <div class="onb-steps">
+    <div class="step active" data-step="0">
+      <label>What do we call you?</label>
+      <input id="onb-name" type="text" placeholder="your name" maxlength="24" autocomplete="off"/>
     </div>
-    <div class="chips">
-      <div class="chip glow"><span class="dot"></span>live</div>
+    <div class="step" data-step="1">
+      <label>When were you born?</label>
+      <input id="onb-dob" type="date" max="2020-01-01"/>
+      <p class="hint">(used to tune your readings — stays on device)</p>
+    </div>
+    <div class="step" data-step="2">
+      <label>Pick your intention</label>
+      <div class="intent-grid">
+        <div class="intent" data-intent="clarity">🔮<span>Clarity</span></div>
+        <div class="intent" data-intent="love">💗<span>Love</span></div>
+        <div class="intent" data-intent="fortune">💰<span>Fortune</span></div>
+        <div class="intent" data-intent="power">⚡<span>Power</span></div>
+        <div class="intent" data-intent="peace">🕊️<span>Peace</span></div>
+        <div class="intent" data-intent="change">🔥<span>Change</span></div>
+      </div>
+    </div>
+  </div>
+  <button class="cta" id="onb-cta">Begin the ritual →</button>
+  <p class="tiny">Everything stays on your device. No account. No data sent.</p>
+</section>
+
+<!-- Main app -->
+<main id="app" hidden>
+
+  <header class="top">
+    <div class="hello">
+      <div class="tag">welcome back,</div>
+      <div class="name" id="hi-name">seeker</div>
+    </div>
+    <div class="streak" id="streak">
+      <span class="fire">🔥</span><span class="num" id="streak-num">0</span>
     </div>
   </header>
 
-  <!-- Main views -->
-  <main>
-    <!-- Discover -->
-    <section class="view active" id="discover">
-      <div class="deck"></div>
-      <div class="actions">
-        <button class="act reroll" title="Reroll deck">🔀</button>
-        <button class="act pass" title="Pass">✕</button>
-        <button class="act save" title="Save to vault">★</button>
-        <button class="act like" title="Interesting">♥</button>
-        <button class="act detail" title="Details">ⓘ</button>
-      </div>
-    </section>
+  <!-- HOME VIEW -->
+  <section class="view active" id="v-home">
+    <div class="scroll">
 
-    <!-- Vault -->
-    <section class="view" id="vault">
-      <div class="vault-head">
-        <div>
-          <h1>Your Vault</h1>
-          <p>Ideas you've saved for later. Tap any for the full playbook.</p>
+      <!-- Today's fate card -->
+      <div class="today-wrap">
+        <div class="today-label">
+          <span class="sparkle">✦</span> today's fate
+          <span class="date" id="today-date"></span>
         </div>
-      </div>
-      <div class="vault-scroll">
-        <div class="vault-grid" id="vault-list"></div>
-        <div class="vault-empty" id="vault-empty" style="display:none">
-          <div class="big">⭐</div>
-          <h3>Vault is empty</h3>
-          <p>Swipe up on an idea or tap the ★ button to save it here.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Stats -->
-    <section class="view" id="stats">
-      <div class="stats-scroll">
-        <h1>Your Oracle Stats</h1>
-        <p class="sub">What you've explored so far.</p>
-        <div class="kpi-grid">
-          <div class="kpi"><div class="k">Swipes</div><div class="v" id="kpi-swipes">0</div><div class="d">ideas reviewed</div></div>
-          <div class="kpi"><div class="k">Saved</div><div class="v" id="kpi-saves">0</div><div class="d">in your vault</div></div>
-          <div class="kpi"><div class="k">Save rate</div><div class="v" id="kpi-rate">0%</div><div class="d">your taste filter</div></div>
-          <div class="kpi"><div class="k">Portfolio Y1</div><div class="v" id="kpi-portfolio">$0</div><div class="d">combined potential</div></div>
-        </div>
-        <div class="panel">
-          <h3>Top niches you're drawn to</h3>
-          <div id="niche-breakdown"></div>
-        </div>
-        <div class="panel">
-          <h3>Your highest-score saved idea</h3>
-          <div id="best-idea"></div>
-        </div>
-        <div class="panel">
-          <h3>Pro moves</h3>
-          <div style="font-size:13px;line-height:1.6;color:var(--ink-dim)">
-            · Shortlist 3 saved ideas this week.<br>
-            · Interview 5 target customers for each.<br>
-            · Kill 2, build a landing page for 1.<br>
-            · Pre-sell before you build. Always.
+        <div class="today-card" id="today-card">
+          <div class="tc-inner">
+            <div class="tc-sigil" id="tc-sigil">✦</div>
+            <div class="tc-title" id="tc-title">Tap to reveal today</div>
+            <div class="tc-sub" id="tc-sub">one card per day · new at midnight</div>
           </div>
+          <div class="tc-glow"></div>
         </div>
       </div>
-    </section>
-  </main>
 
-  <!-- Bottom tab bar -->
-  <nav class="tabbar">
-    <div class="tab active" data-tab="discover" id="tab-discover">
-      <div class="icn">🔮</div><span>Discover</span>
+      <!-- Decks -->
+      <div class="decks-label">choose a deck</div>
+      <div class="decks">
+        <div class="deck" data-deck="love" style="--a:#f472b6;--b:#a78bfa">
+          <div class="d-sigil">♡</div>
+          <div class="d-name">Love</div>
+          <div class="d-meta" id="m-love">0 pulled</div>
+        </div>
+        <div class="deck" data-deck="fortune" style="--a:#ffd166;--b:#fb923c">
+          <div class="d-sigil">◈</div>
+          <div class="d-name">Fortune</div>
+          <div class="d-meta" id="m-fortune">0 pulled</div>
+        </div>
+        <div class="deck" data-deck="dare" style="--a:#ef4444;--b:#f472b6">
+          <div class="d-sigil">⚡</div>
+          <div class="d-name">Dare</div>
+          <div class="d-meta" id="m-dare">0 pulled</div>
+        </div>
+        <div class="deck" data-deck="mirror" style="--a:#34d399;--b:#60a5fa">
+          <div class="d-sigil">◉</div>
+          <div class="d-name">Mirror</div>
+          <div class="d-meta" id="m-mirror">0 pulled</div>
+        </div>
+        <div class="deck" data-deck="pastlife" style="--a:#d97706;--b:#b45309">
+          <div class="d-sigil">♆</div>
+          <div class="d-name">Past Life</div>
+          <div class="d-meta" id="m-pastlife">0 pulled</div>
+        </div>
+        <div class="deck" data-deck="shadow" style="--a:#8b5cf6;--b:#1e1b4b">
+          <div class="d-sigil">☽</div>
+          <div class="d-name">Shadow</div>
+          <div class="d-meta" id="m-shadow">0 pulled</div>
+        </div>
+      </div>
+
+      <!-- Compatibility CTA -->
+      <div class="compat-cta" id="open-compat">
+        <div class="cc-icon">⚯</div>
+        <div class="cc-text">
+          <strong>Compatibility reading</strong>
+          <span>Enter another name to scry your bond.</span>
+        </div>
+        <div class="cc-arrow">→</div>
+      </div>
+
+      <div class="whispers" id="whispers"></div>
     </div>
-    <div class="tab" data-tab="vault" id="tab-vault">
-      <div class="icn">⭐</div><span>Vault</span>
-      <div class="badge" style="display:none">0</div>
+  </section>
+
+  <!-- COLLECTION VIEW -->
+  <section class="view" id="v-collection">
+    <div class="scroll">
+      <h1>Your Deck</h1>
+      <p class="sub">Cards you've revealed.</p>
+
+      <div class="coll-stats">
+        <div class="cs"><div class="cs-v" id="cs-total">0</div><div class="cs-k">revealed</div></div>
+        <div class="cs"><div class="cs-v" id="cs-rare">0</div><div class="cs-k">rare</div></div>
+        <div class="cs"><div class="cs-v" id="cs-myth">0</div><div class="cs-k">mythic</div></div>
+        <div class="cs"><div class="cs-v" id="cs-best">-</div><div class="cs-k">best streak</div></div>
+      </div>
+
+      <div class="coll-grid" id="coll-grid"></div>
+      <div class="coll-empty" id="coll-empty" hidden>
+        <div class="big">✦</div>
+        <p>Pull your first card to begin your deck.</p>
+      </div>
     </div>
-    <div class="tab" data-tab="stats" id="tab-stats">
-      <div class="icn">📊</div><span>Stats</span>
+  </section>
+
+  <!-- PROFILE VIEW -->
+  <section class="view" id="v-me">
+    <div class="scroll">
+      <h1>You</h1>
+      <div class="me-card">
+        <div class="me-sigil" id="me-sigil">✦</div>
+        <div>
+          <div class="me-name" id="me-name">seeker</div>
+          <div class="me-sub" id="me-sub">—</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>your signature</h3>
+        <div id="me-signature" class="signature"></div>
+      </div>
+
+      <div class="panel">
+        <h3>ritual calendar</h3>
+        <div class="cal" id="cal"></div>
+      </div>
+
+      <div class="panel">
+        <h3>settings</h3>
+        <label class="toggle"><input type="checkbox" id="t-sound" checked/> <span>sound</span></label>
+        <label class="toggle"><input type="checkbox" id="t-haptics" checked/> <span>haptics</span></label>
+        <button class="btn ghost" id="reset-btn">reset everything</button>
+      </div>
+
+      <p class="footer-note">SCRY · what the stars forgot to say</p>
     </div>
+  </section>
+
+  <!-- Bottom nav -->
+  <nav class="tabs">
+    <button class="tab active" data-view="home"><span class="ti">✦</span><span>Scry</span></button>
+    <button class="tab" data-view="collection"><span class="ti">◈</span><span>Deck</span><span class="tb" id="tab-badge" hidden>0</span></button>
+    <button class="tab" data-view="me"><span class="ti">◉</span><span>You</span></button>
   </nav>
+</main>
+
+<!-- Reveal overlay -->
+<div id="reveal" class="reveal" hidden>
+  <div class="rev-bg"></div>
+  <div class="rev-stage">
+    <!-- shuffle phase -->
+    <div class="shuffle" id="rev-shuffle">
+      <div class="shuf-card" style="--i:0"></div>
+      <div class="shuf-card" style="--i:1"></div>
+      <div class="shuf-card" style="--i:2"></div>
+      <div class="shuf-card" style="--i:3"></div>
+      <div class="shuf-card" style="--i:4"></div>
+      <div class="shuf-label">shuffling the veil…</div>
+    </div>
+
+    <!-- breath phase -->
+    <div class="breath" id="rev-breath" hidden>
+      <div class="breath-circle"></div>
+      <div class="breath-label" id="breath-label">breathe in…</div>
+      <div class="breath-hint">tap to continue</div>
+    </div>
+
+    <!-- reveal phase -->
+    <div class="card-big" id="rev-card" hidden>
+      <div class="cb-face front">
+        <div class="cb-sigil"></div>
+        <div class="cb-pattern"></div>
+      </div>
+      <div class="cb-face back">
+        <div class="cb-tier"></div>
+        <div class="cb-sym"></div>
+        <div class="cb-title"></div>
+        <div class="cb-body"></div>
+        <div class="cb-foot"></div>
+      </div>
+    </div>
+
+    <div class="rev-actions" id="rev-actions" hidden>
+      <button class="btn" id="btn-share">share</button>
+      <button class="btn primary" id="btn-close">continue</button>
+    </div>
+  </div>
 </div>
 
-<!-- Detail modal -->
-<div class="modal-backdrop" id="backdrop"></div>
-<div class="modal" id="modal">
-  <div class="grab"></div>
-  <div class="scroll"></div>
+<!-- Compatibility modal -->
+<div id="compat" class="sheet" hidden>
+  <div class="sh-grab"></div>
+  <div class="sh-scroll">
+    <h2>Compatibility</h2>
+    <p class="sub">Scry the bond between you and another.</p>
+    <label>Their name</label>
+    <input id="c-name" type="text" placeholder="their name"/>
+    <label>Their birthday</label>
+    <input id="c-dob" type="date"/>
+    <button class="btn primary wide" id="c-go">Reveal the bond</button>
+    <div id="c-result" class="c-result" hidden></div>
+    <button class="btn ghost wide" id="c-close">close</button>
+  </div>
 </div>
 
 <!-- Toast -->
