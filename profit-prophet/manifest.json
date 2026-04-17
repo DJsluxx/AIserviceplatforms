@@ -1,0 +1,25 @@
+{
+  "name": "Profit Prophet — AI Idea Oracle",
+  "short_name": "Profit Prophet",
+  "description": "Swipe through AI-generated business ideas. Save winners. Build your portfolio.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#05060f",
+  "background_color": "#05060f",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

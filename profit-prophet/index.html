@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no"/>
+<meta name="theme-color" content="#05060f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="description" content="AI-powered business idea oracle — swipe through money-making opportunities, save the winners, and build your portfolio."/>
+<title>Profit Prophet — AI Idea Oracle</title>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ffd166'/%3E%3Cstop offset='.5' stop-color='%23f472b6'/%3E%3Cstop offset='1' stop-color='%23a78bfa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ccircle cx='50' cy='50' r='18' fill='white' opacity='.85'/%3E%3C/svg%3E"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ffd166'/%3E%3Cstop offset='.5' stop-color='%23f472b6'/%3E%3Cstop offset='1' stop-color='%23a78bfa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ccircle cx='50' cy='50' r='18' fill='white' opacity='.85'/%3E%3C/svg%3E"/>
+<link rel="stylesheet" href="./styles.css"/>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+<div class="bg-grain"></div>
+<canvas id="particles"></canvas>
+
+<!-- Onboarding -->
+<div class="onboard" id="onboard">
+  <div class="big-logo"></div>
+  <h1>Profit Prophet</h1>
+  <p>An AI idea oracle that hands you money-making opportunities, one swipe at a time. Save the winners, build your portfolio, ship something real.</p>
+  <button class="cta" id="onboard-cta">Start swiping →</button>
+  <p class="tip">← pass &nbsp;·&nbsp; → like &nbsp;·&nbsp; ↑ save to vault</p>
+</div>
+
+<div id="app">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>Profit Prophet<br><small>idea oracle</small></div>
+    </div>
+    <div class="chips">
+      <div class="chip glow"><span class="dot"></span>live</div>
+    </div>
+  </header>
+
+  <!-- Main views -->
+  <main>
+    <!-- Discover -->
+    <section class="view active" id="discover">
+      <div class="deck"></div>
+      <div class="actions">
+        <button class="act reroll" title="Reroll deck">🔀</button>
+        <button class="act pass" title="Pass">✕</button>
+        <button class="act save" title="Save to vault">★</button>
+        <button class="act like" title="Interesting">♥</button>
+        <button class="act detail" title="Details">ⓘ</button>
+      </div>
+    </section>
+
+    <!-- Vault -->
+    <section class="view" id="vault">
+      <div class="vault-head">
+        <div>
+          <h1>Your Vault</h1>
+          <p>Ideas you've saved for later. Tap any for the full playbook.</p>
+        </div>
+      </div>
+      <div class="vault-scroll">
+        <div class="vault-grid" id="vault-list"></div>
+        <div class="vault-empty" id="vault-empty" style="display:none">
+          <div class="big">⭐</div>
+          <h3>Vault is empty</h3>
+          <p>Swipe up on an idea or tap the ★ button to save it here.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="view" id="stats">
+      <div class="stats-scroll">
+        <h1>Your Oracle Stats</h1>
+        <p class="sub">What you've explored so far.</p>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="k">Swipes</div><div class="v" id="kpi-swipes">0</div><div class="d">ideas reviewed</div></div>
+          <div class="kpi"><div class="k">Saved</div><div class="v" id="kpi-saves">0</div><div class="d">in your vault</div></div>
+          <div class="kpi"><div class="k">Save rate</div><div class="v" id="kpi-rate">0%</div><div class="d">your taste filter</div></div>
+          <div class="kpi"><div class="k">Portfolio Y1</div><div class="v" id="kpi-portfolio">$0</div><div class="d">combined potential</div></div>
+        </div>
+        <div class="panel">
+          <h3>Top niches you're drawn to</h3>
+          <div id="niche-breakdown"></div>
+        </div>
+        <div class="panel">
+          <h3>Your highest-score saved idea</h3>
+          <div id="best-idea"></div>
+        </div>
+        <div class="panel">
+          <h3>Pro moves</h3>
+          <div style="font-size:13px;line-height:1.6;color:var(--ink-dim)">
+            · Shortlist 3 saved ideas this week.<br>
+            · Interview 5 target customers for each.<br>
+            · Kill 2, build a landing page for 1.<br>
+            · Pre-sell before you build. Always.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom tab bar -->
+  <nav class="tabbar">
+    <div class="tab active" data-tab="discover" id="tab-discover">
+      <div class="icn">🔮</div><span>Discover</span>
+    </div>
+    <div class="tab" data-tab="vault" id="tab-vault">
+      <div class="icn">⭐</div><span>Vault</span>
+      <div class="badge" style="display:none">0</div>
+    </div>
+    <div class="tab" data-tab="stats" id="tab-stats">
+      <div class="icn">📊</div><span>Stats</span>
+    </div>
+  </nav>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-backdrop" id="backdrop"></div>
+<div class="modal" id="modal">
+  <div class="grab"></div>
+  <div class="scroll"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="./data.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
