@@ -50,14 +50,14 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk dist/ProfitProphet.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/SCRY.apk
           ls -la dist/
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ProfitProphet-APK
-          path: dist/ProfitProphet.apk
+          name: SCRY-APK
+          path: dist/SCRY.apk
           retention-days: 30
 
       - name: Publish to latest release (main branch only)
@@ -67,9 +67,9 @@ jobs:
           tag_name: apk-latest
           name: Latest APK
           body: |
-            Latest Profit Prophet Android build.
-            Download `ProfitProphet.apk` below, open it on your phone, allow "install from unknown sources", done.
-          files: dist/ProfitProphet.apk
+            Latest SCRY Android build.
+            Download `SCRY.apk` below, open it on your phone, allow "install from unknown sources", done.
+          files: dist/SCRY.apk
           make_latest: true
           prerelease: false
         env:

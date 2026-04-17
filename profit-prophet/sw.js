@@ -1,4 +1,4 @@
-const CACHE = "profit-prophet-v1";
+const CACHE = "scry-v1";
 const ASSETS = [
   "./","./index.html","./styles.css","./app.js","./data.js","./manifest.json",
   "./icon-192.svg","./icon-512.svg"
