@@ -1,0 +1,112 @@
+# ===== Secrets =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.keystore
+*-service-account*.json
+credentials.json
+
+# ===== Python / server =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg
+*.egg-info/
+.eggs/
+dist/
+build/
+wheels/
+pip-wheel-metadata/
+
+# Test + type tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# ===== Flutter / Dart =====
+# Build outputs
+app/build/
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/.pub-cache/
+app/.pub/
+app/pubspec.lock
+app/**/generated_plugin_registrant.dart
+
+# Platform-specific build artefacts
+app/android/.gradle/
+app/android/local.properties
+app/android/key.properties
+app/android/**/GeneratedPluginRegistrant.java
+app/android/app/release/
+app/android/app/debug/
+app/ios/Pods/
+app/ios/Podfile.lock
+app/ios/.symlinks/
+app/ios/Flutter/Flutter.framework
+app/ios/Flutter/Flutter.podspec
+app/ios/Flutter/App.framework
+app/ios/Flutter/flutter_assets/
+app/ios/Flutter/flutter_export_environment.sh
+app/ios/ServiceDefinitions.json
+app/ios/Runner/GeneratedPluginRegistrant.*
+app/macos/Flutter/ephemeral/
+app/linux/flutter/ephemeral/
+app/windows/flutter/ephemeral/
+app/web/flutter_service_worker.js
+
+# Generated code (freezed, json_serializable, etc.)
+app/**/*.g.dart
+app/**/*.freezed.dart
+app/**/*.gen.dart
+app/**/*.mocks.dart
+app/coverage/
+
+# ===== Node / tooling =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ===== IDE / editor =====
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ===== Docker / infra =====
+infra/pgdata/
+infra/redisdata/
+*.pid
+*.seed
+*.pid.lock
+
+# ===== Logs =====
+*.log
+logs/

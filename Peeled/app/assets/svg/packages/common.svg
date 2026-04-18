@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Common PEELED package">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E9D3B8"/>
+      <stop offset="0.55" stop-color="#C8B493"/>
+      <stop offset="1" stop-color="#A08A63"/>
+    </linearGradient>
+    <linearGradient id="ribbon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D7C9A7"/>
+      <stop offset="1" stop-color="#A08A63"/>
+    </linearGradient>
+    <linearGradient id="ribbonSheen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="60%">
+      <stop offset="0" stop-color="#F2E7CA" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#F2E7CA" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="fibers" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M0 10 Q10 5 20 10 T40 10" stroke="#8B5E3C" stroke-opacity="0.12" stroke-width="0.8" fill="none"/>
+      <path d="M0 30 Q10 25 20 30 T40 30" stroke="#8B5E3C" stroke-opacity="0.08" stroke-width="0.8" fill="none"/>
+    </pattern>
+    <filter id="soft"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+
+  <circle cx="200" cy="200" r="180" fill="url(#glow)"/>
+  <ellipse cx="200" cy="320" rx="120" ry="12" fill="#1A1B2E" opacity="0.22" filter="url(#soft)"/>
+
+  <g id="body">
+    <rect x="90" y="110" width="220" height="180" rx="18" fill="url(#paper)"/>
+    <rect x="90" y="110" width="220" height="180" rx="18" fill="url(#fibers)"/>
+    <path d="M90 120 Q200 108 310 120" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1.2" fill="none"/>
+    <path d="M90 280 Q200 292 310 280" stroke="#1A1B2E" stroke-opacity="0.08" stroke-width="1.2" fill="none"/>
+  </g>
+
+  <g id="ribbon">
+    <rect x="186" y="100" width="28" height="200" rx="4" fill="url(#ribbon)"/>
+    <rect x="186" y="100" width="28" height="200" rx="4" fill="url(#ribbonSheen)"/>
+    <rect x="80" y="186" width="240" height="28" rx="4" fill="url(#ribbon)"/>
+    <rect x="80" y="186" width="240" height="28" rx="4" fill="url(#ribbonSheen)"/>
+  </g>
+
+  <g id="bow" transform="translate(200 200)">
+    <ellipse cx="-26" cy="-12" rx="28" ry="16" fill="url(#ribbon)"/>
+    <ellipse cx="-26" cy="-12" rx="10" ry="6" fill="#FFF5E8"/>
+    <ellipse cx="26" cy="-12" rx="28" ry="16" fill="url(#ribbon)"/>
+    <ellipse cx="26" cy="-12" rx="10" ry="6" fill="#FFF5E8"/>
+    <rect x="-8" y="-16" width="16" height="24" rx="3" fill="#8B7752"/>
+  </g>
+
+  <g id="seal" transform="translate(256 252)">
+    <circle r="14" fill="#A08A63"/>
+    <circle r="11" fill="none" stroke="#FFF5E8" stroke-opacity="0.4"/>
+    <text x="0" y="5" text-anchor="middle" font-family="Fraunces, serif" font-size="16" font-weight="800" fill="#FFF5E8">P</text>
+  </g>
+</svg>

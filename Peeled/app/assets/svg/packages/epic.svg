@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Epic PEELED package">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#EDD8FF"/>
+      <stop offset="0.55" stop-color="#D7A7FF"/>
+      <stop offset="1" stop-color="#8748C4"/>
+    </linearGradient>
+    <linearGradient id="ribbon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D7A7FF"/>
+      <stop offset="1" stop-color="#7738C7"/>
+    </linearGradient>
+    <linearGradient id="ribbonSheen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="64%">
+      <stop offset="0" stop-color="#EED5FF" stop-opacity="1"/>
+      <stop offset="1" stop-color="#EED5FF" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="fibers" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M0 10 Q10 5 20 10 T40 10" stroke="#7738C7" stroke-opacity="0.1" stroke-width="0.8" fill="none"/>
+      <path d="M0 30 Q10 25 20 30 T40 30" stroke="#7738C7" stroke-opacity="0.06" stroke-width="0.8" fill="none"/>
+    </pattern>
+    <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+    <radialGradient id="gem" cx="35%" cy="35%" r="65%">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.3" stop-color="#EED5FF"/>
+      <stop offset="1" stop-color="#7738C7"/>
+    </radialGradient>
+  </defs>
+
+  <circle cx="200" cy="200" r="200" fill="url(#glow)"/>
+  <ellipse cx="200" cy="320" rx="124" ry="14" fill="#1A1B2E" opacity="0.26" filter="url(#soft)"/>
+
+  <g id="body">
+    <rect x="90" y="110" width="220" height="180" rx="18" fill="url(#paper)"/>
+    <rect x="90" y="110" width="220" height="180" rx="18" fill="url(#fibers)"/>
+    <path d="M90 120 Q200 108 310 120" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.2" fill="none"/>
+    <path d="M90 280 Q200 292 310 280" stroke="#1A1B2E" stroke-opacity="0.09" stroke-width="1.2" fill="none"/>
+  </g>
+
+  <g id="ribbon">
+    <rect x="182" y="100" width="36" height="200" rx="5" fill="url(#ribbon)"/>
+    <rect x="182" y="100" width="36" height="200" rx="5" fill="url(#ribbonSheen)"/>
+    <rect x="80" y="182" width="240" height="36" rx="5" fill="url(#ribbon)"/>
+    <rect x="80" y="182" width="240" height="36" rx="5" fill="url(#ribbonSheen)"/>
+  </g>
+
+  <!-- Epic flourish: double bow -->
+  <g id="bow" transform="translate(200 200)">
+    <ellipse cx="-36" cy="-20" rx="34" ry="20" fill="url(#ribbon)"/>
+    <ellipse cx="-36" cy="-20" rx="12" ry="8" fill="#FFF5E8"/>
+    <ellipse cx="36" cy="-20" rx="34" ry="20" fill="url(#ribbon)"/>
+    <ellipse cx="36" cy="-20" rx="12" ry="8" fill="#FFF5E8"/>
+    <ellipse cx="-26" cy="-4" rx="22" ry="12" fill="url(#ribbon)" opacity="0.85"/>
+    <ellipse cx="26" cy="-4" rx="22" ry="12" fill="url(#ribbon)" opacity="0.85"/>
+    <rect x="-10" y="-24" width="20" height="32" rx="4" fill="#5A2AA1"/>
+  </g>
+
+  <!-- Four corner gems -->
+  <g id="flourish">
+    <g transform="translate(96 116)"><circle r="6" fill="url(#gem)"/><circle r="6" fill="none" stroke="#FFFFFF" stroke-opacity="0.6"/></g>
+    <g transform="translate(304 116)"><circle r="6" fill="url(#gem)"/><circle r="6" fill="none" stroke="#FFFFFF" stroke-opacity="0.6"/></g>
+    <g transform="translate(96 284)"><circle r="6" fill="url(#gem)"/><circle r="6" fill="none" stroke="#FFFFFF" stroke-opacity="0.6"/></g>
+    <g transform="translate(304 284)"><circle r="6" fill="url(#gem)"/><circle r="6" fill="none" stroke="#FFFFFF" stroke-opacity="0.6"/></g>
+  </g>
+
+  <g id="seal" transform="translate(256 252)">
+    <circle r="18" fill="#7738C7"/>
+    <circle r="14" fill="none" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.2"/>
+    <text x="0" y="7" text-anchor="middle" font-family="Fraunces, serif" font-size="20" font-weight="800" fill="#FFF5E8">P</text>
+  </g>
+</svg>
