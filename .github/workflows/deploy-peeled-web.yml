@@ -1,5 +1,7 @@
 name: Deploy PEELED Web to GitHub Pages
 
+# Deploys Peeled/app as a Flutter web build to GitHub Pages.
+
 on:
   push:
     branches: [main]
