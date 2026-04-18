@@ -41,7 +41,7 @@ dependencies:
   mapbox_maps_flutter: ^2.2.0
 
   # Utilities
-  intl: ^0.19.0
+  intl: ^0.20.2
   collection: ^1.18.0
   logger: ^2.4.0
   uuid: ^4.4.2
@@ -73,16 +73,6 @@ flutter:
     - assets/images/
     - assets/animations/
     - assets/sounds/
-  fonts:
-    - family: Fraunces
-      fonts:
-        - asset: assets/fonts/Fraunces-Regular.ttf
-        - asset: assets/fonts/Fraunces-Bold.ttf
-          weight: 700
-    - family: Inter
-      fonts:
-        - asset: assets/fonts/Inter-Regular.ttf
-        - asset: assets/fonts/Inter-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Inter-Bold.ttf
-          weight: 700
+  # Fonts are served via google_fonts at runtime (no local ttf files checked in).
+  # To ship offline-first fonts, download Fraunces/Inter ttf files into
+  # assets/fonts/ and restore a fonts: block here.
