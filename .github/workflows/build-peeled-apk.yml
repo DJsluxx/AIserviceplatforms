@@ -1,0 +1,121 @@
+name: Build PEELED APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Peeled/app/**'
+      - '.github/workflows/build-peeled-apk.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: build-peeled-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('Peeled/app/android/**/*.gradle*', 'Peeled/app/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Cache Flutter pub
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('Peeled/app/pubspec.yaml') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter doctor
+        working-directory: Peeled/app
+        run: flutter doctor -v
+
+      - name: Flutter pub get
+        working-directory: Peeled/app
+        run: flutter pub get
+
+      - name: Build release APK
+        working-directory: Peeled/app
+        run: flutter build apk --release --split-per-abi
+
+      - name: Also build universal APK
+        working-directory: Peeled/app
+        run: flutter build apk --release
+
+      - name: Collect APKs
+        run: |
+          mkdir -p dist
+          cp Peeled/app/build/app/outputs/flutter-apk/app-release.apk dist/peeled-universal.apk
+          cp Peeled/app/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/peeled-arm64-v8a.apk 2>/dev/null || true
+          cp Peeled/app/build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/peeled-armeabi-v7a.apk 2>/dev/null || true
+          cp Peeled/app/build/app/outputs/flutter-apk/app-x86_64-release.apk dist/peeled-x86_64.apk 2>/dev/null || true
+          ls -lh dist/
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: peeled-apk-${{ github.sha }}
+          path: dist/
+          retention-days: 30
+
+      - name: Publish to latest release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: peeled-apk-latest
+          name: PEELED — Latest Android build
+          body: |
+            **PEELED — latest Android build**
+
+            Commit: `${{ github.sha }}`
+            Branch: `${{ github.ref_name }}`
+
+            ### Install on your phone
+            1. Download `peeled-universal.apk` below (works on any Android phone)
+            2. Open it from your phone's Downloads
+            3. Allow "install from unknown sources" if prompted
+            4. Launch PEELED
+
+            Architecture-specific APKs are also available (smaller):
+            - `peeled-arm64-v8a.apk` — modern phones (recommended)
+            - `peeled-armeabi-v7a.apk` — older 32-bit phones
+            - `peeled-x86_64.apk` — emulators / Chromebooks
+          files: |
+            dist/peeled-universal.apk
+            dist/peeled-arm64-v8a.apk
+            dist/peeled-armeabi-v7a.apk
+            dist/peeled-x86_64.apk
+          make_latest: false
+          prerelease: false
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
