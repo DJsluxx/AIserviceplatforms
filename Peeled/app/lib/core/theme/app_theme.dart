@@ -38,7 +38,7 @@ class AppTheme {
         useMaterial3: true,
         colorScheme: scheme,
         splashFactory: InkSparkle.splashFactory,
-        cardTheme: CardThemeData(
+        cardTheme: CardTheme(
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg),
