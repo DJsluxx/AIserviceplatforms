@@ -1,91 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Legendary PEELED package">
   <defs>
-    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FFEEB5"/>
-      <stop offset="0.5" stop-color="#FFD466"/>
-      <stop offset="1" stop-color="#BA7900"/>
+    <linearGradient id="l_paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE9B6"/>
+      <stop offset="0.5" stop-color="#F2B84B"/>
+      <stop offset="1" stop-color="#7A4D0A"/>
     </linearGradient>
-    <linearGradient id="ribbon" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFD466"/>
-      <stop offset="0.5" stop-color="#E8A800"/>
-      <stop offset="1" stop-color="#8A5D00"/>
+    <linearGradient id="l_ribbon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD074"/>
+      <stop offset="1" stop-color="#B2791A"/>
     </linearGradient>
-    <linearGradient id="ribbonSheen" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="l_sheen" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
-      <stop offset="0.35" stop-color="#FFFFFF" stop-opacity="0.75"/>
-      <stop offset="0.65" stop-color="#FFFFFF" stop-opacity="0.75"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.8"/>
       <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="50%" r="68%">
-      <stop offset="0" stop-color="#FFE9A0" stop-opacity="1"/>
-      <stop offset="0.6" stop-color="#FFD466" stop-opacity="0.35"/>
-      <stop offset="1" stop-color="#FFD466" stop-opacity="0"/>
+    <radialGradient id="l_glow" cx="50%" cy="50%" r="66%">
+      <stop offset="0" stop-color="#FFE29A" stop-opacity="1"/>
+      <stop offset="1" stop-color="#FFE29A" stop-opacity="0"/>
     </radialGradient>
-    <filter id="soft"><feGaussianBlur stdDeviation="7"/></filter>
-    <radialGradient id="particle" cx="50%" cy="50%" r="50%">
+    <radialGradient id="l_gem" cx="35%" cy="35%" r="70%">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="0.4" stop-color="#FFE9A0"/>
-      <stop offset="1" stop-color="#F2B84B" stop-opacity="0"/>
+      <stop offset="0.35" stop-color="#FFE9B6"/>
+      <stop offset="1" stop-color="#B2791A"/>
     </radialGradient>
   </defs>
 
-  <!-- Double halo -->
-  <circle cx="200" cy="200" r="200" fill="url(#glow)"/>
-  <circle cx="200" cy="200" r="150" fill="url(#glow)" opacity="0.7"/>
+  <circle cx="200" cy="210" r="200" fill="url(#l_glow)"/>
+  <ellipse cx="200" cy="330" rx="124" ry="14" fill="#1A1B2E" opacity="0.32"/>
 
-  <ellipse cx="200" cy="322" rx="128" ry="14" fill="#1A1B2E" opacity="0.3" filter="url(#soft)"/>
+  <rect x="84" y="108" width="232" height="188" rx="24" fill="url(#l_paper)"/>
+  <rect x="84" y="108" width="232" height="24" rx="24" fill="#FFFFFF" opacity="0.32"/>
 
-  <g id="body">
-    <rect x="86" y="106" width="228" height="188" rx="22" fill="url(#paper)"/>
-    <!-- crosshatch ornamental weave -->
-    <g stroke="#8A5D00" stroke-opacity="0.15" stroke-width="1">
-      <path d="M86 140 L314 140"/>
-      <path d="M86 170 L314 170"/>
-      <path d="M86 220 L314 220"/>
-      <path d="M86 260 L314 260"/>
-    </g>
-    <path d="M86 120 Q200 106 314 120" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.4" fill="none"/>
-    <path d="M86 280 Q200 296 314 280" stroke="#1A1B2E" stroke-opacity="0.1" stroke-width="1.4" fill="none"/>
-  </g>
+  <rect x="178" y="96" width="44" height="212" rx="6" fill="url(#l_ribbon)"/>
+  <rect x="178" y="96" width="44" height="212" rx="6" fill="url(#l_sheen)" opacity="0.8"/>
+  <rect x="72" y="178" width="256" height="44" rx="6" fill="url(#l_ribbon)"/>
+  <rect x="72" y="178" width="256" height="44" rx="6" fill="url(#l_sheen)" opacity="0.8"/>
 
-  <g id="ribbon">
-    <rect x="180" y="96" width="40" height="208" rx="6" fill="url(#ribbon)"/>
-    <rect x="180" y="96" width="40" height="208" rx="6" fill="url(#ribbonSheen)"/>
-    <rect x="76" y="180" width="248" height="40" rx="6" fill="url(#ribbon)"/>
-    <rect x="76" y="180" width="248" height="40" rx="6" fill="url(#ribbonSheen)"/>
-    <!-- subtle edge piping -->
-    <rect x="180" y="96" width="40" height="208" rx="6" fill="none" stroke="#8A5D00" stroke-opacity="0.35" stroke-width="1"/>
-    <rect x="76" y="180" width="248" height="40" rx="6" fill="none" stroke="#8A5D00" stroke-opacity="0.35" stroke-width="1"/>
-  </g>
+  <ellipse cx="160" cy="180" rx="38" ry="25" fill="url(#l_ribbon)"/>
+  <ellipse cx="240" cy="180" rx="38" ry="25" fill="url(#l_ribbon)"/>
+  <ellipse cx="160" cy="180" rx="14" ry="8" fill="#FFF5E8" opacity="0.9"/>
+  <ellipse cx="240" cy="180" rx="14" ry="8" fill="#FFF5E8" opacity="0.9"/>
+  <ellipse cx="170" cy="200" rx="24" ry="14" fill="url(#l_ribbon)" opacity="0.85"/>
+  <ellipse cx="230" cy="200" rx="24" ry="14" fill="url(#l_ribbon)" opacity="0.85"/>
+  <rect x="186" y="168" width="28" height="36" rx="6" fill="#7A4D0A"/>
+  <rect x="188" y="170" width="24" height="6" rx="3" fill="#FFE29A" opacity="0.8"/>
 
-  <g id="bow" transform="translate(200 200)">
-    <ellipse cx="-40" cy="-22" rx="40" ry="24" fill="url(#ribbon)"/>
-    <ellipse cx="-40" cy="-22" rx="14" ry="9" fill="#FFF5E8"/>
-    <ellipse cx="40" cy="-22" rx="40" ry="24" fill="url(#ribbon)"/>
-    <ellipse cx="40" cy="-22" rx="14" ry="9" fill="#FFF5E8"/>
-    <rect x="-12" y="-28" width="24" height="36" rx="5" fill="#8A5D00"/>
-    <!-- tails -->
-    <path d="M-12 8 Q-32 60 -10 100 Q4 108 12 100 Q30 60 12 8 Z" fill="url(#ribbon)"/>
-  </g>
+  <path d="M200 74 L206 88 L220 90 L210 100 L213 114 L200 107 L187 114 L190 100 L180 90 L194 88 Z" fill="url(#l_ribbon)" stroke="#7A4D0A" stroke-width="1.2"/>
 
-  <!-- Legendary flourish: orbiting particles -->
-  <g id="flourish" fill="url(#particle)">
-    <circle cx="60"  cy="120" r="7"/>
-    <circle cx="340" cy="140" r="9"/>
-    <circle cx="48"  cy="240" r="6"/>
-    <circle cx="352" cy="260" r="7"/>
-    <circle cx="180" cy="52"  r="5"/>
-    <circle cx="220" cy="360" r="6"/>
-    <circle cx="120" cy="72"  r="4"/>
-    <circle cx="280" cy="72"  r="4"/>
-    <circle cx="96"  cy="330" r="4"/>
-    <circle cx="304" cy="330" r="4"/>
-  </g>
+  <circle cx="106" cy="126" r="8" fill="url(#l_gem)"/>
+  <circle cx="294" cy="126" r="8" fill="url(#l_gem)"/>
+  <circle cx="106" cy="278" r="8" fill="url(#l_gem)"/>
+  <circle cx="294" cy="278" r="8" fill="url(#l_gem)"/>
 
-  <g id="seal" transform="translate(256 252)">
-    <circle r="20" fill="#C78A00"/>
-    <circle r="15" fill="none" stroke="#FFFFFF" stroke-opacity="0.65" stroke-width="1.5"/>
-    <text x="0" y="7" text-anchor="middle" font-family="Fraunces, serif" font-size="22" font-weight="800" fill="#FFF5E8">P</text>
-  </g>
+  <circle cx="56" cy="90" r="3.5" fill="#FFFFFF" opacity="0.95"/>
+  <circle cx="344" cy="102" r="3" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="50" cy="318" r="3" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="350" cy="308" r="3.5" fill="#FFFFFF" opacity="0.95"/>
 </svg>

@@ -1,102 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Mythic PEELED package">
   <defs>
-    <!-- Holographic paper: multi-stop rainbow with low saturation, offset for 3D -->
-    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="my_paper" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#FFD4E5"/>
-      <stop offset="0.2" stop-color="#FF7DB0"/>
-      <stop offset="0.4" stop-color="#8B5CF6"/>
-      <stop offset="0.65" stop-color="#3B82F6"/>
-      <stop offset="0.85" stop-color="#00D4FF"/>
-      <stop offset="1" stop-color="#7EFFD4"/>
+      <stop offset="0.25" stop-color="#FF7DB0"/>
+      <stop offset="0.55" stop-color="#8B5CF6"/>
+      <stop offset="0.8" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#00D4FF"/>
     </linearGradient>
-    <linearGradient id="ribbon" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="my_ribbon" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#FF7DB0"/>
       <stop offset="0.5" stop-color="#8B5CF6"/>
       <stop offset="1" stop-color="#00D4FF"/>
     </linearGradient>
-    <linearGradient id="ribbonSheen" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="my_sheen" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
-      <stop offset="0.3" stop-color="#FFFFFF" stop-opacity="0.9"/>
-      <stop offset="0.7" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.9"/>
       <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="50%" r="72%">
-      <stop offset="0" stop-color="#FF7DB0" stop-opacity="0.55"/>
-      <stop offset="0.4" stop-color="#8B5CF6" stop-opacity="0.3"/>
-      <stop offset="0.8" stop-color="#00D4FF" stop-opacity="0.15"/>
+    <radialGradient id="my_glow" cx="50%" cy="50%" r="70%">
+      <stop offset="0" stop-color="#FF7DB0" stop-opacity="0.6"/>
+      <stop offset="0.5" stop-color="#8B5CF6" stop-opacity="0.3"/>
       <stop offset="1" stop-color="#00D4FF" stop-opacity="0"/>
     </radialGradient>
-    <filter id="chrom" x="-10%" y="-10%" width="120%" height="120%">
-      <feColorMatrix in="SourceGraphic" type="matrix"
-        values="1 0 0 0 0
-                0 1 0 0 0
-                0 0 1 0 0
-                0 0 0 1 0"/>
-    </filter>
-    <filter id="soft"><feGaussianBlur stdDeviation="8"/></filter>
-    <pattern id="holo" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-      <rect width="24" height="24" fill="transparent"/>
-      <line x1="0" y1="12" x2="24" y2="12" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="0.6"/>
-      <line x1="12" y1="0" x2="12" y2="24" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="0.6"/>
-    </pattern>
+    <radialGradient id="my_gem" cx="35%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.4" stop-color="#FFD4E5"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </radialGradient>
+    <radialGradient id="my_crown" cx="50%" cy="50%" r="60%">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.5" stop-color="#FFD4E5"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </radialGradient>
   </defs>
 
-  <!-- layered glow: three passes -->
-  <circle cx="200" cy="200" r="210" fill="url(#glow)"/>
-  <circle cx="205" cy="195" r="150" fill="#FF7DB0" opacity="0.12"/>
-  <circle cx="195" cy="205" r="150" fill="#00D4FF" opacity="0.12"/>
+  <circle cx="200" cy="200" r="210" fill="url(#my_glow)"/>
+  <circle cx="205" cy="195" r="150" fill="#FF7DB0" opacity="0.14"/>
+  <circle cx="195" cy="205" r="150" fill="#00D4FF" opacity="0.14"/>
 
-  <ellipse cx="200" cy="326" rx="130" ry="15" fill="#1A1B2E" opacity="0.32" filter="url(#soft)"/>
+  <ellipse cx="200" cy="332" rx="130" ry="15" fill="#1A1B2E" opacity="0.34"/>
 
-  <!-- Chromatic-aberration triple-body (red-shift + blue-shift) -->
-  <g id="body">
-    <rect x="88" y="108" width="224" height="184" rx="22" fill="#FF7DB0" opacity="0.55" transform="translate(-2 -1)"/>
-    <rect x="88" y="108" width="224" height="184" rx="22" fill="#00D4FF" opacity="0.55" transform="translate(2 1)"/>
-    <rect x="88" y="108" width="224" height="184" rx="22" fill="url(#paper)"/>
-    <rect x="88" y="108" width="224" height="184" rx="22" fill="url(#holo)"/>
-    <path d="M88 120 Q200 104 312 120" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="1.4" fill="none"/>
-    <path d="M88 280 Q200 296 312 280" stroke="#1A1B2E" stroke-opacity="0.1" stroke-width="1.4" fill="none"/>
-  </g>
+  <rect x="82" y="106" width="236" height="192" rx="26" fill="url(#my_paper)"/>
+  <rect x="82" y="106" width="236" height="26" rx="26" fill="#FFFFFF" opacity="0.38"/>
 
-  <g id="ribbon">
-    <rect x="178" y="98" width="44" height="204" rx="6" fill="url(#ribbon)"/>
-    <rect x="178" y="98" width="44" height="204" rx="6" fill="url(#ribbonSheen)"/>
-    <rect x="76" y="178" width="248" height="44" rx="6" fill="url(#ribbon)"/>
-    <rect x="76" y="178" width="248" height="44" rx="6" fill="url(#ribbonSheen)"/>
-  </g>
+  <rect x="176" y="94" width="48" height="216" rx="7" fill="url(#my_ribbon)"/>
+  <rect x="176" y="94" width="48" height="216" rx="7" fill="url(#my_sheen)" opacity="0.85"/>
+  <rect x="70" y="176" width="260" height="48" rx="7" fill="url(#my_ribbon)"/>
+  <rect x="70" y="176" width="260" height="48" rx="7" fill="url(#my_sheen)" opacity="0.85"/>
 
-  <g id="bow" transform="translate(200 200)">
-    <ellipse cx="-44" cy="-24" rx="44" ry="26" fill="url(#ribbon)"/>
-    <ellipse cx="-44" cy="-24" rx="16" ry="10" fill="#FFFFFF" opacity="0.8"/>
-    <ellipse cx="44" cy="-24" rx="44" ry="26" fill="url(#ribbon)"/>
-    <ellipse cx="44" cy="-24" rx="16" ry="10" fill="#FFFFFF" opacity="0.8"/>
-    <rect x="-14" y="-30" width="28" height="40" rx="6" fill="#8B5CF6"/>
-    <rect x="-14" y="-30" width="28" height="40" rx="6" fill="url(#ribbonSheen)"/>
-  </g>
+  <ellipse cx="150" cy="176" rx="44" ry="28" fill="url(#my_ribbon)"/>
+  <ellipse cx="250" cy="176" rx="44" ry="28" fill="url(#my_ribbon)"/>
+  <ellipse cx="150" cy="176" rx="16" ry="9" fill="#FFFFFF" opacity="0.9"/>
+  <ellipse cx="250" cy="176" rx="16" ry="9" fill="#FFFFFF" opacity="0.9"/>
+  <ellipse cx="166" cy="198" rx="30" ry="17" fill="url(#my_ribbon)" opacity="0.9"/>
+  <ellipse cx="234" cy="198" rx="30" ry="17" fill="url(#my_ribbon)" opacity="0.9"/>
+  <ellipse cx="180" cy="214" rx="18" ry="10" fill="url(#my_ribbon)" opacity="0.8"/>
+  <ellipse cx="220" cy="214" rx="18" ry="10" fill="url(#my_ribbon)" opacity="0.8"/>
+  <rect x="184" y="166" width="32" height="40" rx="7" fill="#8B5CF6"/>
+  <rect x="186" y="168" width="28" height="6" rx="3" fill="#FFFFFF" opacity="0.85"/>
 
-  <!-- Jagged wax seal (irregular octagon) -->
-  <g id="seal" transform="translate(256 252)">
-    <path d="M -14 -20 L 8 -22 L 18 -14 L 22 6 L 14 18 L -6 22 L -18 14 L -22 -6 Z" fill="url(#paper)"/>
-    <path d="M -14 -20 L 8 -22 L 18 -14 L 22 6 L 14 18 L -6 22 L -18 14 L -22 -6 Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="1.5"/>
-    <text x="0" y="7" text-anchor="middle" font-family="Fraunces, serif" font-size="22" font-weight="800" fill="#1A1B2E">P</text>
-  </g>
+  <path d="M200 42 L210 68 L236 60 L226 86 L252 90 L226 104 L236 130 L210 122 L200 148 L190 122 L164 130 L174 104 L148 90 L174 86 L164 60 L190 68 Z" fill="url(#my_crown)" stroke="#8B5CF6" stroke-width="1.4"/>
+  <circle cx="200" cy="92" r="11" fill="url(#my_gem)" stroke="#8B5CF6" stroke-width="1"/>
 
-  <!-- Prismatic flares -->
-  <g id="flourish">
-    <g fill="#FFFFFF" opacity="0.9">
-      <circle cx="58" cy="130" r="3"/>
-      <circle cx="342" cy="110" r="4"/>
-      <circle cx="50" cy="270" r="3"/>
-      <circle cx="350" cy="280" r="3"/>
-      <circle cx="200" cy="44" r="4"/>
-      <circle cx="200" cy="360" r="3"/>
-    </g>
-    <g stroke-width="1.5" fill="none" opacity="0.8">
-      <path d="M54 130 L66 130" stroke="#FFFFFF"/>
-      <path d="M60 124 L60 136" stroke="#FFFFFF"/>
-      <path d="M342 104 L342 118" stroke="#FFFFFF"/>
-      <path d="M336 110 L348 110" stroke="#FFFFFF"/>
-    </g>
-  </g>
+  <circle cx="104" cy="124" r="9" fill="url(#my_gem)"/>
+  <circle cx="296" cy="124" r="9" fill="url(#my_gem)"/>
+  <circle cx="104" cy="280" r="9" fill="url(#my_gem)"/>
+  <circle cx="296" cy="280" r="9" fill="url(#my_gem)"/>
+
+  <circle cx="44" cy="84" r="4" fill="#FFFFFF" opacity="0.95"/>
+  <circle cx="356" cy="96" r="3.5" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="38" cy="324" r="3.5" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="362" cy="314" r="4" fill="#FFFFFF" opacity="0.95"/>
+  <circle cx="24" cy="200" r="2.5" fill="#FFFFFF" opacity="0.85"/>
+  <circle cx="376" cy="200" r="2.5" fill="#FFFFFF" opacity="0.85"/>
+  <circle cx="76" cy="50" r="2.5" fill="#FFFFFF" opacity="0.85"/>
+  <circle cx="324" cy="50" r="2.5" fill="#FFFFFF" opacity="0.85"/>
+  <circle cx="64" cy="356" r="2" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="336" cy="356" r="2" fill="#FFFFFF" opacity="0.8"/>
 </svg>

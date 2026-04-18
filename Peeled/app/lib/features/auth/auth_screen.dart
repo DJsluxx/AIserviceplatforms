@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../shared/widgets/juicy_button.dart';
+import '../../shared/widgets/peel_wordmark.dart';
 
 class AuthScreen extends ConsumerWidget {
   const AuthScreen({super.key});
@@ -20,7 +20,7 @@ class AuthScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
-              SvgPicture.asset('assets/svg/logo/wordmark.svg', height: 56),
+              const PeelWordmark(height: 64),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 "Sign in to start peeling",

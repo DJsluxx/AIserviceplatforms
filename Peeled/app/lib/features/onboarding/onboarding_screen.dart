@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../shared/widgets/juicy_button.dart';
 import '../../shared/widgets/package_sprite.dart';
+import '../../shared/widgets/peel_wordmark.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -41,12 +41,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            SizedBox(
-              height: 60,
-              child: SvgPicture.asset(
-                'assets/svg/logo/wordmark.svg',
-                height: 40,
-              ),
+            const Padding(
+              padding: EdgeInsets.only(top: AppSpacing.lg),
+              child: PeelWordmark(height: 44),
             ),
             Expanded(
               child: PageView.builder(

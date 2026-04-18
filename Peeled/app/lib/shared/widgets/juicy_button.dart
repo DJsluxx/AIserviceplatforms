@@ -23,6 +23,7 @@ class JuicyButton extends StatefulWidget {
     required this.onPressed,
     this.primary = AppColors.coral,
     this.shadow,
+    this.foreground,
     this.icon,
     this.wide = true,
     this.size = JuicyButtonSize.medium,
@@ -32,6 +33,7 @@ class JuicyButton extends StatefulWidget {
   final VoidCallback? onPressed;
   final Color primary;
   final Color? shadow;
+  final Color? foreground;
   final IconData? icon;
   final bool wide;
   final JuicyButtonSize size;
@@ -69,6 +71,10 @@ class _JuicyButtonState extends State<JuicyButton> with SingleTickerProviderStat
     final primary = enabled ? widget.primary : widget.primary.withOpacity(0.45);
     final shadow = (widget.shadow ?? Color.lerp(widget.primary, Colors.black, 0.35)!)
         .withOpacity(enabled ? 1.0 : 0.4);
+    // Pick a foreground color that contrasts with the primary. Lets light
+    // primaries (e.g. white "Continue with Apple") use dark text.
+    final foreground = widget.foreground ??
+        (widget.primary.computeLuminance() > 0.6 ? AppColors.ink : Colors.white);
 
     return Semantics(
       button: true,
@@ -124,14 +130,14 @@ class _JuicyButtonState extends State<JuicyButton> with SingleTickerProviderStat
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (widget.icon != null) ...[
-                        Icon(widget.icon, color: Colors.white, size: 20),
+                        Icon(widget.icon, color: foreground, size: 20),
                         const SizedBox(width: 8),
                       ],
                       Flexible(
                         child: Text(
                           widget.label,
                           textAlign: TextAlign.center,
-                          style: _textStyle.copyWith(color: Colors.white),
+                          style: _textStyle.copyWith(color: foreground),
                         ),
                       ),
                     ],

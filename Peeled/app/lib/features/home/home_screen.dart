@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -8,6 +7,7 @@ import '../../core/theme/app_tokens.dart';
 import '../../data/models/package_model.dart';
 import '../../shared/widgets/juicy_button.dart';
 import '../../shared/widgets/package_card.dart';
+import '../../shared/widgets/peel_wordmark.dart';
 import 'home_controller.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -43,7 +43,7 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         child: Row(
           children: [
-            SvgPicture.asset('assets/svg/logo/wordmark.svg', height: 28),
+            const PeelWordmark(height: 32, showAccent: false),
             const Spacer(),
             IconButton(
               icon: const Icon(Icons.bolt_rounded, color: AppColors.gold),
@@ -81,15 +81,10 @@ class _InboxList extends StatelessWidget {
         final item = model.items[i];
         return PackageCard(
           item: item,
-          onTap: () => _goToPeel(item.package.id),
+          onTap: () => context.push('/peel/${item.package.id}'),
         );
       },
     );
-  }
-
-  void _goToPeel(String id) {
-    // using go_router from an imperative context:
-    WidgetsBinding.instance.addPostFrameCallback((_) {});
   }
 }
 
@@ -131,31 +126,45 @@ class _EmptyInbox extends StatelessWidget {
   }
 }
 
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message});
-  final String message;
+class _ErrorState extends ConsumerWidget {
+  const _ErrorState({this.message});
+  final String? message;
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.wifi_off, size: 48, color: AppColors.textMuted),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              "Couldn't reach the server",
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium),
-          ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      children: [
+        const SizedBox(height: AppSpacing.xxl),
+        const Icon(Icons.cloud_off_rounded, size: 56, color: AppColors.textMuted),
+        const SizedBox(height: AppSpacing.md),
+        Center(
+          child: Text(
+            "Can't reach the package depot",
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
         ),
-      ),
+        const SizedBox(height: AppSpacing.sm),
+        Center(
+          child: Text(
+            "Pull down to retry, or check your connection.",
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(color: AppColors.textMuted),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        JuicyButton(
+          label: "Retry",
+          icon: Icons.refresh_rounded,
+          primary: AppColors.coral,
+          onPressed: () => ref.invalidate(homeInboxProvider),
+        ),
+      ],
     );
   }
 }
@@ -172,7 +181,7 @@ class _BottomNav extends StatelessWidget {
       destinations: const [
         NavigationDestination(icon: Icon(Icons.inbox_outlined), label: 'Inbox'),
         NavigationDestination(icon: Icon(Icons.public), label: 'Globe'),
-        NavigationDestination(icon: Icon(Icons.group_outlined), label: 'Friends'),
+        NavigationDestination(icon: Icon(Icons.person_outline), label: 'Me'),
       ],
       onDestinationSelected: (i) {
         switch (i) {

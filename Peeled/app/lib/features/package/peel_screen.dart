@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,7 +65,10 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
       if (!mounted) return;
       setState(() => _phase = PeelPhase.idle);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.danger),
+        const SnackBar(
+          content: Text("Couldn't peel — try again in a moment"),
+          backgroundColor: AppColors.danger,
+        ),
       );
     }
   }
@@ -89,10 +90,10 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
             child: state.when(
               loading: () =>
                   const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text(e.toString())),
+              error: (e, _) => _PeelErrorState(onBack: () => Navigator.of(context).maybePop()),
               data: (pkg) {
                 if (pkg == null) {
-                  return const Center(child: Text('Package not found'));
+                  return _PeelErrorState(onBack: () => Navigator.of(context).maybePop());
                 }
                 return _buildBody(pkg);
               },
@@ -164,7 +165,7 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        const SnackBar(content: Text("Couldn't pass the package right now")),
       );
     }
   }
@@ -326,5 +327,43 @@ class _RevealCard extends StatelessWidget {
 
 enum PeelPhase { idle, tug, tear, reveal, settle, opened }
 
-// silencing unused import warning
-final _unused = math.pi;
+class _PeelErrorState extends StatelessWidget {
+  const _PeelErrorState({required this.onBack});
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.inventory_2_outlined, size: 64, color: AppColors.textMuted),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            "This package is on the move",
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            "We couldn't pull its details just now. It may have shipped onward.",
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(color: AppColors.textMuted),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          JuicyButton(
+            label: "Back to inbox",
+            icon: Icons.arrow_back_rounded,
+            primary: AppColors.coral,
+            onPressed: onBack,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
