@@ -19,10 +19,8 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Force all Kotlin subprojects to use language/API version 1.8.
-// Many Flutter plugins still declare languageVersion = "1.6", which recent
-// Kotlin compilers (2.x) reject at compile time. Overriding globally keeps
-// third-party plugins building without editing each one.
+// Force language/API version for any Flutter plugin that still declares
+// languageVersion = "1.6" (Kotlin 2.1 accepts 1.8 but not 1.6).
 subprojects {
     afterEvaluate {
         tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
