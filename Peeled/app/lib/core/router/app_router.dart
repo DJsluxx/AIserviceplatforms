@@ -7,6 +7,7 @@ import '../../features/leaderboard/leaderboard_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/package/peel_screen.dart';
 import '../../features/profile/profile_screen.dart';
+import '../../features/settings/settings_screen.dart';
 import '../../features/shop/shop_screen.dart';
 import '../../features/worldmap/worldmap_screen.dart';
 
@@ -20,12 +21,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
       GoRoute(
         path: '/peel/:id',
-        builder: (_, state) => PeelScreen(packageId: state.pathParameters['id']!),
+        builder: (_, state) =>
+            PeelScreen(packageId: state.pathParameters['id']!),
       ),
       GoRoute(path: '/map', builder: (_, __) => const WorldmapScreen()),
       GoRoute(path: '/leaderboard', builder: (_, __) => const LeaderboardScreen()),
       GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
       GoRoute(path: '/shop', builder: (_, __) => const ShopScreen()),
+      GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
     ],
   );
 });

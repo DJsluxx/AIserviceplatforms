@@ -1,102 +1,77 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
+import '../../data/providers.dart';
+import '../../shared/widgets/coin_balance.dart';
 import '../../shared/widgets/juicy_button.dart';
 
-class ShopScreen extends StatelessWidget {
+/// Shop is intentionally a "coming soon" stub while we focus on the core
+/// peel loop. Cosmetics (avatar frames, package skins) will be the first
+/// category once we monetise.
+class ShopScreen extends ConsumerWidget {
   const ShopScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final coins = ref.watch(gameStateProvider).state.user.coins;
     return Scaffold(
-      appBar: AppBar(title: const Text('Shop')),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          _Tile(
-            icon: Icons.star,
-            title: 'PEELED Plus',
-            body: 'Unlimited peels · 2× XP · exclusive cosmetics',
-            priceLabel: '\$4.99/mo',
-            primary: AppColors.gold,
-            onTap: () {},
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _Tile(
-            icon: Icons.savings,
-            title: 'Pocket Coins',
-            body: '120 coins',
-            priceLabel: '\$0.99',
-            primary: AppColors.coral,
-            onTap: () {},
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _Tile(
-            icon: Icons.confirmation_number,
-            title: 'Prize Tokens x5',
-            body: 'Guaranteed legendary token spins',
-            priceLabel: '\$2.99',
-            primary: AppColors.violet,
-            onTap: () {},
+      backgroundColor: AppColors.surfaceDark,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded,
+              color: AppColors.textOnDark),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/home'),
+        ),
+        title: const Text(
+          'Shop',
+          style:
+              TextStyle(fontFamily: 'Fraunces', fontWeight: FontWeight.w700),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12, top: 10, bottom: 10),
+            child: CoinBalance(coins: coins),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _Tile extends StatelessWidget {
-  const _Tile({
-    required this.icon,
-    required this.title,
-    required this.body,
-    required this.priceLabel,
-    required this.primary,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String title;
-  final String body;
-  final String priceLabel;
-  final Color primary;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceDarkElevated,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: primary.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: primary, size: 32),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(title,
-                    style: Theme.of(context).textTheme.headlineMedium),
+      body: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('🛍️', style: TextStyle(fontSize: 80)),
+            const SizedBox(height: AppSpacing.md),
+            const Text(
+              'Cosmetics coming soon',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textOnDark,
+                fontFamily: 'Fraunces',
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(body,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: AppColors.textMuted)),
-          const SizedBox(height: AppSpacing.md),
-          JuicyButton(
-            label: priceLabel,
-            primary: primary,
-            onPressed: onTap,
-          ),
-        ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            const Text(
+              'Spend coins on avatar frames, package skins and emoji packs. '
+              'Keep peeling — a new season drops every month.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            JuicyButton(
+              label: 'Back to live feed',
+              primary: AppColors.coral,
+              onPressed: () => context.go('/home'),
+            ),
+          ],
+        ),
       ),
     );
   }
