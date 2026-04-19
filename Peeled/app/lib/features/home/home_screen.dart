@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -13,14 +15,13 @@ import '../../data/services/game_simulator.dart';
 import '../../shared/widgets/coin_balance.dart';
 import '../../shared/widgets/juicy_button.dart';
 import '../../shared/widgets/live_countdown.dart';
+import '../../shared/widgets/package_sprite.dart';
 import '../../shared/widgets/peel_wordmark.dart';
 import '../../shared/widgets/player_avatar.dart';
 
-/// The Home screen is the Live Package Tracker. It always shows where the
-/// package is *right now* — with a countdown, a peel-progress ring, and a
-/// live feed below. When the package lands in your hands, the card flips
-/// into a huge "PEEL" CTA with a haptic + banner. That arrival moment is
-/// the whole hook of the game.
+/// Home is the hero screen. The package is the star — enormous,
+/// rarity-glowing, centered. Details around it. When it's your turn
+/// there's one single giant PEEL button.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -36,48 +37,67 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final sim = ref.watch(gameStateProvider);
     final s = sim.state;
 
-    // Fire the arrival banner exactly once per arrival.
+    // Fire arrival banner + heavy haptic exactly once when the package
+    // lands in the user's hands.
     final arrival = s.lastArrivedToUserAt;
-    if (arrival != null && arrival != _lastSeenArrival) {
+    if (arrival != null &&
+        arrival != _lastSeenArrival &&
+        s.userHoldsPackage) {
       _lastSeenArrival = arrival;
-      if (s.userHoldsPackage) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          if (s.hapticsEnabled) HapticFeedback.heavyImpact();
-          _showArrivalBanner(context);
-        });
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (s.hapticsEnabled) HapticFeedback.heavyImpact();
+        _showArrivalBanner(context);
+      });
     }
 
     return Scaffold(
       backgroundColor: AppColors.surfaceDark,
-      appBar: const _HomeAppBar(),
+      appBar: const _TopBar(),
       bottomNavigationBar: const _BottomNav(current: 0),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md, 0, AppSpacing.md, AppSpacing.xl),
-        children: [
-          _TrackerCard(state: s, simulator: sim),
-          const SizedBox(height: AppSpacing.lg),
-          _PackageProgressStrip(state: s),
-          const SizedBox(height: AppSpacing.lg),
-          _SectionHeader(
-            title: 'Live feed',
-            trailing: Text(
-              '${s.feed.length} events',
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, 0, AppSpacing.md, AppSpacing.xl),
+          children: [
+            _HeroPackage(state: s),
+            const SizedBox(height: AppSpacing.md),
+            _DetailsCard(state: s),
+            const SizedBox(height: AppSpacing.md),
+            if (s.userHoldsPackage && !s.package.currentHop.peelAttempted)
+              _PeelCta(sim: sim, state: s)
+            else
+              _OutcomeBanner(state: s),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                const Text(
+                  'Live feed',
+                  style: TextStyle(
+                    color: AppColors.textOnDark,
+                    fontFamily: 'Fraunces',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => context.push('/map'),
+                  child: const Text(
+                    'See globe',
+                    style: TextStyle(color: AppColors.coral),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          if (s.feed.isEmpty)
-            const _FeedEmpty()
-          else
-            ...s.feed.take(12).map((e) => _FeedRow(entry: e, state: s)),
-        ],
+            const SizedBox(height: AppSpacing.xs),
+            if (s.feed.isEmpty)
+              const _FeedEmpty()
+            else
+              ...s.feed.take(8).map((e) => _FeedRow(entry: e, state: s)),
+          ],
+        ),
       ),
     );
   }
@@ -90,7 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         backgroundColor: AppColors.coral,
         leading: const Text('🎁', style: TextStyle(fontSize: 28)),
         content: const Text(
-          'The package is in your hands — peel before the clock runs out!',
+          'The package just landed in your hands. Tap to peel!',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w700,
@@ -101,10 +121,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           TextButton(
             onPressed: () {
               messenger.hideCurrentMaterialBanner();
-              context.push('/peel/now');
             },
             child: const Text(
-              'PEEL NOW',
+              'GOT IT',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w900,
@@ -112,28 +131,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
           ),
-          TextButton(
-            onPressed: messenger.hideCurrentMaterialBanner,
-            child: const Text(
-              'Later',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
         ],
       ),
     );
+    Future<void>.delayed(const Duration(seconds: 4), () {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+    });
   }
 }
 
-class _HomeAppBar extends ConsumerWidget implements PreferredSizeWidget {
-  const _HomeAppBar();
+// ---------------------------------------------------------------------------
+// Top bar
+// ---------------------------------------------------------------------------
+
+class _TopBar extends ConsumerWidget implements PreferredSizeWidget {
+  const _TopBar();
 
   @override
   Size get preferredSize => const Size.fromHeight(76);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sim = ref.watch(gameStateProvider);
+    final coins = ref.watch(gameStateProvider).state.user.coins;
     return SafeArea(
       bottom: false,
       child: Padding(
@@ -143,7 +163,7 @@ class _HomeAppBar extends ConsumerWidget implements PreferredSizeWidget {
           children: [
             const PeelWordmark(height: 30, showAccent: true),
             const Spacer(),
-            CoinBalance(coins: sim.state.user.coins),
+            CoinBalance(coins: coins),
             const SizedBox(width: 8),
             IconButton(
               icon: const Icon(Icons.settings_outlined,
@@ -157,87 +177,236 @@ class _HomeAppBar extends ConsumerWidget implements PreferredSizeWidget {
   }
 }
 
-/// The hero card. When an AI holds it, it shows name/city/timer/progress.
-/// When the user holds it, it morphs into a giant "TAP TO PEEL" button.
-class _TrackerCard extends StatelessWidget {
-  const _TrackerCard({required this.state, required this.simulator});
+// ---------------------------------------------------------------------------
+// Hero package visual
+// ---------------------------------------------------------------------------
 
+class _HeroPackage extends StatelessWidget {
+  const _HeroPackage({required this.state});
   final GameState state;
-  final GameSimulator simulator;
+
+  @override
+  Widget build(BuildContext context) {
+    final rarity = state.package.rarity;
+    final palette = AppColors.forRarity(rarity.token);
+    return SizedBox(
+      height: 320,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Background glow pulse — rarity-coloured.
+          Container(
+            width: 320,
+            height: 320,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [palette.glow, Colors.transparent],
+              ),
+            ),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(
+                begin: const Offset(0.9, 0.9),
+                end: const Offset(1.1, 1.1),
+                duration: 1800.ms,
+                curve: Curves.easeInOut,
+              ),
+          // Rotating rarity ring.
+          _RarityRing(color: palette.stroke),
+          // Floating package sprite. Wrapped in SizedBox because
+          // PackageSprite itself has an `animate` field that would
+          // otherwise shadow flutter_animate's extension.
+          SizedBox(
+            width: 220,
+            height: 220,
+            child: PackageSprite(rarity: rarity.token, size: 220),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .moveY(begin: -6, end: 6, duration: 2200.ms, curve: Curves.easeInOut),
+          // Rarity chip pinned bottom.
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: _RarityChip(rarity: rarity),
+          ),
+          // Layer pips pinned top.
+          Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: _LayerPips(
+                revealed: state.package.layersRevealed,
+                total: state.package.layersTotal,
+                accent: palette.fill,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RarityRing extends StatelessWidget {
+  const _RarityRing({required this.color});
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 270,
+      height: 270,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: color.withOpacity(0.3), width: 2),
+      ),
+      child: CustomPaint(
+        painter: _DashedRingPainter(color: color.withOpacity(0.6)),
+      ),
+    )
+        .animate(onPlay: (c) => c.repeat())
+        .rotate(duration: 24.seconds, curve: Curves.linear);
+  }
+}
+
+class _DashedRingPainter extends CustomPainter {
+  _DashedRingPainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = color;
+    final r = size.width / 2 - 1;
+    final center = size.center(Offset.zero);
+    const segments = 48;
+    for (int i = 0; i < segments; i++) {
+      if (i.isOdd) continue;
+      final a0 = (2 * pi) * i / segments;
+      final a1 = (2 * pi) * (i + 1) / segments;
+      final p0 = center + Offset(cos(a0), sin(a0)) * r;
+      final p1 = center + Offset(cos(a1), sin(a1)) * r;
+      canvas.drawLine(p0, p1, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedRingPainter old) => old.color != color;
+}
+
+class _RarityChip extends StatelessWidget {
+  const _RarityChip({required this.rarity});
+  final PackageRarity rarity;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppColors.forRarity(rarity.token);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.ink.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: palette.stroke, width: 2),
+      ),
+      child: Text(
+        '${rarity.label.toUpperCase()} PACKAGE',
+        style: TextStyle(
+          color: palette.fill,
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 2,
+        ),
+      ),
+    );
+  }
+}
+
+class _LayerPips extends StatelessWidget {
+  const _LayerPips({
+    required this.revealed,
+    required this.total,
+    required this.accent,
+  });
+  final int revealed;
+  final int total;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    // We show actual layersTotal pips so the player gets a sense of
+    // depth, but it's still partially mysterious because the dots
+    // don't tell them what's inside each layer.
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(total, (i) {
+        final on = i < revealed;
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: on ? accent : Colors.white.withOpacity(0.12),
+            border: Border.all(
+              color: on ? accent : Colors.white.withOpacity(0.2),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Details card — who has it, where, time left
+// ---------------------------------------------------------------------------
+
+class _DetailsCard extends StatelessWidget {
+  const _DetailsCard({required this.state});
+  final GameState state;
 
   @override
   Widget build(BuildContext context) {
     final hop = state.package.currentHop;
     final holder = state.currentHolder;
-    final remaining = hop.remaining(state.now);
-    final rarity = state.package.rarity;
-    final palette = AppColors.forRarity(rarity.token);
-
-    if (state.userHoldsPackage) {
-      return _YourTurnCard(state: state);
-    }
+    final previous = state.previousHolder;
+    final isYou = state.userHoldsPackage;
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surfaceDarkElevated,
-            AppColors.surfaceDarkElevated.withOpacity(0.7),
-          ],
-        ),
-        border: Border.all(color: palette.glow),
-        boxShadow: [
-          BoxShadow(color: palette.glow, blurRadius: 24, spreadRadius: -4),
-        ],
+        color: AppColors.surfaceDarkElevated,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              _RarityChip(rarity: rarity),
-              const Spacer(),
-              Text(
-                '${state.package.layersRevealed}/? layers',
-                style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              PlayerAvatar(emoji: holder.avatar, size: 68, tint: palette.fill),
-              const SizedBox(width: AppSpacing.md),
+              PlayerAvatar(emoji: holder.avatar, size: 52, ring: isYou),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Currently with',
+                      'IN THE HANDS OF',
                       style: TextStyle(
                         color: AppColors.textMuted,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.4,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.6,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
-                      holder.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      isYou ? 'You' : holder.name,
                       style: const TextStyle(
                         color: AppColors.textOnDark,
                         fontFamily: 'Fraunces',
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -253,59 +422,82 @@ class _TrackerCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              const Icon(Icons.timer_outlined,
-                  color: AppColors.textMuted, size: 18),
-              const SizedBox(width: 6),
-              LiveCountdown(
-                remaining: remaining,
-                style: const TextStyle(
-                  fontFamily: 'Fraunces',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${_compact(hop.peelsDone)} / ${_compact(hop.peelsRequired)} peels',
-                style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'WINDOW',
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  LiveCountdown(
+                    remaining: hop.remaining(state.now),
+                    style: const TextStyle(
+                      fontFamily: 'Fraunces',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-            child: LinearProgressIndicator(
-              value: hop.peelProgress,
-              minHeight: 10,
-              backgroundColor: Colors.white.withOpacity(0.06),
-              valueColor: AlwaysStoppedAnimation(palette.fill),
+          if (previous != null) ...[
+            const Divider(color: Colors.white12, height: AppSpacing.lg),
+            Row(
+              children: [
+                const Icon(Icons.south_east_rounded,
+                    size: 14, color: AppColors.textMuted),
+                const SizedBox(width: 4),
+                Text(
+                  'Came from ${previous.city} ${previous.flag}',
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                if (state.package.hints.isNotEmpty)
+                  Flexible(
+                    child: Text(
+                      '“${state.package.hints.last}”',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textOnDark,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+              ],
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _YourTurnCard extends StatelessWidget {
-  const _YourTurnCard({required this.state});
+// ---------------------------------------------------------------------------
+// Peel CTA (only shown when user holds + hasn't attempted)
+// ---------------------------------------------------------------------------
+
+class _PeelCta extends StatelessWidget {
+  const _PeelCta({required this.sim, required this.state});
+  final GameSimulator sim;
   final GameState state;
 
   @override
   Widget build(BuildContext context) {
-    final hop = state.package.currentHop;
-    final remaining = hop.remaining(state.now);
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.xl),
         gradient: const LinearGradient(
@@ -326,39 +518,24 @@ class _YourTurnCard extends StatelessWidget {
               color: Colors.white,
               fontWeight: FontWeight.w900,
               fontSize: 12,
-              letterSpacing: 2,
+              letterSpacing: 2.4,
             ),
-          ).animate(onPlay: (c) => c.repeat()).fadeIn(duration: 400.ms).then(delay: 1200.ms).fadeOut(duration: 300.ms).then().fadeIn(duration: 400.ms),
-          const SizedBox(height: AppSpacing.md),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .fadeIn(duration: 600.ms),
+          const SizedBox(height: AppSpacing.xs),
           const Text(
-            'The package is in your hands',
+            'You get one peel.\nFeeling lucky?',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,
               fontFamily: 'Fraunces',
-              fontSize: 26,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
-              height: 1.1,
+              height: 1.15,
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.timer_outlined, color: Colors.white, size: 18),
-              const SizedBox(width: 6),
-              LiveCountdown(
-                remaining: remaining,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'Fraunces',
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           JuicyButton(
             label: 'PEEL NOW',
             icon: Icons.touch_app_rounded,
@@ -372,46 +549,86 @@ class _YourTurnCard extends StatelessWidget {
   }
 }
 
-class _PackageProgressStrip extends StatelessWidget {
-  const _PackageProgressStrip({required this.state});
+// ---------------------------------------------------------------------------
+// Outcome banner (after any attempt this hop)
+// ---------------------------------------------------------------------------
+
+class _OutcomeBanner extends StatelessWidget {
+  const _OutcomeBanner({required this.state});
   final GameState state;
 
   @override
   Widget build(BuildContext context) {
-    final pkg = state.package;
+    final hop = state.package.currentHop;
+    final isYou = state.userHoldsPackage;
+
+    if (!hop.peelAttempted) {
+      // AI holder, still thinking.
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceDarkElevated.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: Colors.white.withOpacity(0.04)),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.hourglass_bottom_rounded,
+                size: 18, color: AppColors.textMuted),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Waiting for a peel attempt…',
+                style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final hit = hop.outcome == PeelOutcome.hit;
+    final bg = hit
+        ? AppColors.mint.withOpacity(0.15)
+        : AppColors.textMuted.withOpacity(0.12);
+    final border = hit ? AppColors.mint : AppColors.textMuted;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        color: AppColors.surfaceDarkElevated.withOpacity(0.6),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        color: bg,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: border),
       ),
       child: Row(
         children: [
-          const Icon(Icons.layers_outlined, color: AppColors.coral),
+          Text(
+            hit ? '✨' : '🍃',
+            style: const TextStyle(fontSize: 26),
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  pkg.hints.isEmpty
-                      ? 'No layers peeled yet. The package is untouched.'
-                      : pkg.hints.last,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  hit
+                      ? (isYou ? 'You peeled a layer!' : 'A layer was revealed')
+                      : (isYou ? 'No layer this time.' : 'Peel missed'),
                   style: const TextStyle(
                     color: AppColors.textOnDark,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
-                  'Hints so far: ${pkg.hints.length}',
+                  hit
+                      ? 'Package is hopping away…'
+                      : 'The package will pass along soon.',
                   style: const TextStyle(
                     color: AppColors.textMuted,
-                    fontSize: 11,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -423,61 +640,12 @@ class _PackageProgressStrip extends StatelessWidget {
   }
 }
 
-class _RarityChip extends StatelessWidget {
-  const _RarityChip({required this.rarity});
-  final PackageRarity rarity;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = AppColors.forRarity(rarity.token);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: palette.fill.withOpacity(0.18),
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        border: Border.all(color: palette.stroke),
-      ),
-      child: Text(
-        rarity.label.toUpperCase(),
-        style: TextStyle(
-          color: palette.fill,
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.5,
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, this.trailing});
-  final String title;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: AppColors.textOnDark,
-            fontFamily: 'Fraunces',
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const Spacer(),
-        if (trailing != null) trailing!,
-      ],
-    );
-  }
-}
+// ---------------------------------------------------------------------------
+// Live feed
+// ---------------------------------------------------------------------------
 
 class _FeedEmpty extends StatelessWidget {
   const _FeedEmpty();
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -487,7 +655,7 @@ class _FeedEmpty extends StatelessWidget {
         border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: const Text(
-        'Waiting for the first hop… the package is just about to move.',
+        'Waiting for the first peel attempt…',
         style: TextStyle(color: AppColors.textMuted),
       ),
     );
@@ -527,76 +695,57 @@ class _FeedRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = _lookup();
-    final revealed = entry.layerRevealed;
+    final hit = entry.layerRevealed;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          PlayerAvatar(emoji: p.avatar, size: 38),
+          PlayerAvatar(emoji: p.avatar, size: 34),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text.rich(
+            child: Text.rich(
+              TextSpan(
+                style: const TextStyle(
+                  color: AppColors.textOnDark,
+                  fontSize: 13,
+                ),
+                children: [
                   TextSpan(
-                    style: const TextStyle(
-                      color: AppColors.textOnDark,
-                      fontSize: 13,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: '${p.name} ',
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                      TextSpan(
-                        text: revealed
-                            ? 'peeled a layer in '
-                            : 'passed the package in ',
-                        style: const TextStyle(color: AppColors.textMuted),
-                      ),
-                      TextSpan(
-                        text: '${p.city} ${p.flag}',
-                      ),
-                    ],
+                    text: '${p.name} ',
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  '${_compact(entry.peelsDone)} peels • ${_relative(state.now, entry.at)}',
-                  style: const TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
+                  TextSpan(
+                    text: hit
+                        ? 'peeled a layer in '
+                        : 'missed a peel in ',
+                    style: const TextStyle(color: AppColors.textMuted),
                   ),
-                ),
-              ],
+                  TextSpan(text: '${p.city} ${p.flag}'),
+                ],
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          if (revealed)
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-                color: AppColors.mint.withOpacity(0.15),
-                border: Border.all(color: AppColors.mint.withOpacity(0.5)),
-              ),
-              child: const Text(
-                'LAYER',
-                style: TextStyle(
-                  color: AppColors.mint,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
+          const SizedBox(width: 8),
+          if (hit)
+            const Text('✨', style: TextStyle(fontSize: 14))
+          else
+            const Text('🍃', style: TextStyle(fontSize: 14)),
+          const SizedBox(width: 6),
+          Text(
+            _relative(state.now, entry.at),
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+          ),
         ],
       ),
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Bottom nav
+// ---------------------------------------------------------------------------
 
 class _BottomNav extends StatelessWidget {
   const _BottomNav({required this.current});
@@ -632,10 +781,4 @@ class _BottomNav extends StatelessWidget {
       },
     );
   }
-}
-
-String _compact(int n) {
-  if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
-  if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}k';
-  return n.toString();
 }

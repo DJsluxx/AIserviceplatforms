@@ -38,9 +38,15 @@ extension PackageRarityX on PackageRarity {
   }
 }
 
-/// A single hand-off of the package. `peelsRequired` and the hop duration
-/// are both randomized at creation time — the user asked for variable
-/// windows (30s..2h) and variable peel-counts (10k..100k).
+/// Outcome of a holder's single peel attempt. Every holder gets exactly
+/// one attempt per hop — it either reveals a layer (hit) or doesn't
+/// (miss). [none] means the holder hasn't tried yet.
+enum PeelOutcome { none, miss, hit }
+
+/// A single hand-off of the package. The duration is randomized
+/// (30s..2h). The holder gets exactly one peel attempt in that window;
+/// the outcome is recorded on the hop. Once they attempt, expiry shrinks
+/// to ~3s so the package moves on quickly.
 @immutable
 class PackageHop {
   const PackageHop({
@@ -48,18 +54,19 @@ class PackageHop {
     required this.holderId,
     required this.startedAt,
     required this.expiresAt,
-    required this.peelsRequired,
-    required this.peelsDone,
-    required this.layerRevealed,
+    required this.outcome,
+    required this.attemptedAt,
   });
 
   final String id;
   final String holderId;
   final DateTime startedAt;
   final DateTime expiresAt;
-  final int peelsRequired;
-  final int peelsDone;
-  final bool layerRevealed;
+  final PeelOutcome outcome;
+  final DateTime? attemptedAt;
+
+  bool get peelAttempted => outcome != PeelOutcome.none;
+  bool get layerRevealed => outcome == PeelOutcome.hit;
 
   Duration get duration => expiresAt.difference(startedAt);
   bool isExpired(DateTime now) => !now.isBefore(expiresAt);
@@ -68,17 +75,18 @@ class PackageHop {
     return r.isNegative ? Duration.zero : r;
   }
 
-  double get peelProgress =>
-      peelsRequired == 0 ? 0 : (peelsDone / peelsRequired).clamp(0.0, 1.0);
-
-  PackageHop copyWith({int? peelsDone, bool? layerRevealed}) => PackageHop(
+  PackageHop copyWith({
+    DateTime? expiresAt,
+    PeelOutcome? outcome,
+    DateTime? attemptedAt,
+  }) =>
+      PackageHop(
         id: id,
         holderId: holderId,
         startedAt: startedAt,
-        expiresAt: expiresAt,
-        peelsRequired: peelsRequired,
-        peelsDone: peelsDone ?? this.peelsDone,
-        layerRevealed: layerRevealed ?? this.layerRevealed,
+        expiresAt: expiresAt ?? this.expiresAt,
+        outcome: outcome ?? this.outcome,
+        attemptedAt: attemptedAt ?? this.attemptedAt,
       );
 }
 
@@ -107,6 +115,7 @@ class Package {
   final bool opened;
 
   PackageHop get currentHop => hops.last;
+  PackageHop? get previousHop => hops.length >= 2 ? hops[hops.length - 2] : null;
 
   Package copyWith({
     int? layersRevealed,
@@ -133,15 +142,15 @@ class FeedEntry {
     required this.id,
     required this.playerId,
     required this.packageId,
-    required this.peelsDone,
-    required this.layerRevealed,
+    required this.outcome,
     required this.at,
   });
 
   final String id;
   final String playerId;
   final String packageId;
-  final int peelsDone;
-  final bool layerRevealed;
+  final PeelOutcome outcome;
   final DateTime at;
+
+  bool get layerRevealed => outcome == PeelOutcome.hit;
 }

@@ -8,16 +8,19 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
+import '../../data/models/game_state.dart';
 import '../../data/providers.dart';
 import '../../shared/widgets/coin_balance.dart';
 import '../../shared/widgets/juicy_button.dart';
 import '../../shared/widgets/live_countdown.dart';
+import '../../shared/widgets/package_sprite.dart';
 
+/// The Peel screen is a single-attempt luck check. Tap once. Either a
+/// layer reveals (+coins), or nothing happens. Either way the package
+/// passes on within a few seconds.
 class PeelScreen extends ConsumerStatefulWidget {
   const PeelScreen({super.key, required this.packageId});
 
-  /// Path param kept for API parity, not strictly needed — there is
-  /// exactly one live package at a time.
   final String packageId;
 
   @override
@@ -26,17 +29,14 @@ class PeelScreen extends ConsumerStatefulWidget {
 
 class _PeelScreenState extends ConsumerState<PeelScreen>
     with TickerProviderStateMixin {
-  int _revealKey = 0;
-  int _lastSeenLayers = 0;
-  int _lastSeenCoins = 0;
-  bool _celebrated = false;
+  bool _resultShown = false;
+  bool _openedShown = false;
+  int _coinsAtArrival = 0;
 
   @override
   void initState() {
     super.initState();
-    final s = ref.read(gameStateProvider).state;
-    _lastSeenLayers = s.package.layersRevealed;
-    _lastSeenCoins = s.user.coins;
+    _coinsAtArrival = ref.read(gameStateProvider).state.user.coins;
   }
 
   @override
@@ -45,29 +45,38 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
     final s = sim.state;
     final hop = s.package.currentHop;
 
-    // Detect a layer reveal transition so we can show the hint sheet.
-    if (s.package.layersRevealed > _lastSeenLayers) {
-      final coinsGained = s.user.coins - _lastSeenCoins;
-      _lastSeenLayers = s.package.layersRevealed;
-      _revealKey++;
-      final lastHint = s.package.hints.isNotEmpty ? s.package.hints.last : '';
+    final isMine = hop.holderId == s.user.id && !s.package.opened;
+    final attempted = hop.peelAttempted;
+
+    // Show result sheet once, when the user's attempt resolves.
+    if (attempted && isMine && !_resultShown) {
+      _resultShown = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _showLayerRevealed(context, lastHint, coinsGained: coinsGained);
-        _lastSeenCoins = s.user.coins;
+        if (s.hapticsEnabled) {
+          if (hop.outcome == PeelOutcome.hit) {
+            HapticFeedback.heavyImpact();
+          } else {
+            HapticFeedback.lightImpact();
+          }
+        }
+        _showResult(
+          context,
+          hit: hop.outcome == PeelOutcome.hit,
+          hint: s.package.hints.isNotEmpty ? s.package.hints.last : '',
+          coinsGained: s.user.coins - _coinsAtArrival,
+        );
       });
     }
 
-    // Opened!
-    if (s.package.opened && !_celebrated) {
-      _celebrated = true;
+    // Full-open celebration if this was the final layer.
+    if (s.package.opened && !_openedShown && _resultShown) {
+      _openedShown = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _showOpenedSheet(context, sim.newRewardHeadline());
       });
     }
-
-    final isMine = hop.holderId == s.user.id && !s.package.opened;
 
     return Scaffold(
       backgroundColor: AppColors.surfaceDark,
@@ -113,8 +122,10 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
               const SizedBox(height: AppSpacing.xs),
               Text(
                 isMine
-                    ? 'Tap the package to peel'
-                    : 'Watching: ${s.currentHolder.name}',
+                    ? (attempted
+                        ? 'Package is leaving your hands…'
+                        : 'Tap the package — one shot')
+                    : 'Watching ${s.currentHolder.name}',
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontWeight: FontWeight.w600,
@@ -123,20 +134,27 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
               const SizedBox(height: AppSpacing.lg),
               Expanded(
                 child: _PeelTarget(
-                  enabled: isMine,
-                  progress: hop.peelProgress,
-                  peelsDone: hop.peelsDone,
-                  peelsRequired: hop.peelsRequired,
-                  revealKey: _revealKey,
+                  rarityToken: s.package.rarity.token,
+                  enabled: isMine && !attempted,
+                  outcome: hop.outcome,
                   onTap: () {
-                    if (!isMine) return;
-                    sim.peelTap();
-                    if (s.hapticsEnabled) HapticFeedback.lightImpact();
+                    if (!isMine || attempted) return;
+                    final result = sim.userPeel();
+                    if (s.hapticsEnabled) {
+                      if (result == PeelOutcome.hit) {
+                        HapticFeedback.heavyImpact();
+                      } else {
+                        HapticFeedback.mediumImpact();
+                      }
+                    }
                   },
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              _LayersIndicator(revealed: s.package.layersRevealed),
+              _LayersIndicator(
+                revealed: s.package.layersRevealed,
+                total: s.package.layersTotal,
+              ),
               const SizedBox(height: AppSpacing.md),
               if (!isMine)
                 Padding(
@@ -155,24 +173,29 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
     );
   }
 
-  void _showLayerRevealed(BuildContext context, String hint,
-      {required int coinsGained}) {
+  void _showResult(
+    BuildContext context, {
+    required bool hit,
+    required String hint,
+    required int coinsGained,
+  }) {
     showModalBottomSheet(
       context: context,
       isDismissible: true,
       backgroundColor: AppColors.surfaceDarkElevated,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '✨ LAYER REVEALED',
+            Text(
+              hit ? '✨ LAYER REVEALED' : '🍃 NO LUCK THIS TIME',
               style: TextStyle(
-                color: AppColors.mint,
+                color: hit ? AppColors.mint : AppColors.textMuted,
                 fontSize: 12,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2,
@@ -180,7 +203,7 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              hint,
+              hit ? hint : 'The package slips away untouched.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: AppColors.textOnDark,
@@ -190,7 +213,7 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
                 height: 1.2,
               ),
             ),
-            if (coinsGained > 0) ...[
+            if (hit && coinsGained > 0) ...[
               const SizedBox(height: AppSpacing.md),
               Text(
                 '+$coinsGained 🪙',
@@ -203,9 +226,12 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
             ],
             const SizedBox(height: AppSpacing.lg),
             JuicyButton(
-              label: 'Keep peeling',
-              primary: AppColors.coral,
-              onPressed: () => Navigator.of(ctx).pop(),
+              label: 'Back to live feed',
+              primary: hit ? AppColors.coral : AppColors.kraft,
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                context.go('/home');
+              },
             ),
           ],
         ),
@@ -220,7 +246,8 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
       enableDrag: false,
       backgroundColor: AppColors.surfaceDarkElevated,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.fromLTRB(
@@ -264,19 +291,15 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
 
 class _PeelTarget extends StatefulWidget {
   const _PeelTarget({
+    required this.rarityToken,
     required this.enabled,
-    required this.progress,
-    required this.peelsDone,
-    required this.peelsRequired,
-    required this.revealKey,
+    required this.outcome,
     required this.onTap,
   });
 
+  final String rarityToken;
   final bool enabled;
-  final double progress;
-  final int peelsDone;
-  final int peelsRequired;
-  final int revealKey;
+  final PeelOutcome outcome;
   final VoidCallback onTap;
 
   @override
@@ -286,12 +309,9 @@ class _PeelTarget extends StatefulWidget {
 class _PeelTargetState extends State<_PeelTarget>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pop = AnimationController(
-    duration: const Duration(milliseconds: 180),
+    duration: const Duration(milliseconds: 260),
     vsync: this,
   );
-  int _floatingId = 0;
-  final List<_Float> _floats = [];
-  final _rng = Random();
 
   @override
   void dispose() {
@@ -303,211 +323,66 @@ class _PeelTargetState extends State<_PeelTarget>
     _pop
       ..reset()
       ..forward();
-    final id = _floatingId++;
-    setState(() {
-      _floats.add(_Float(id: id, dx: (_rng.nextDouble() - 0.5) * 120));
-    });
-    Future<void>.delayed(const Duration(milliseconds: 700), () {
-      if (!mounted) return;
-      setState(() => _floats.removeWhere((f) => f.id == id));
-    });
     widget.onTap();
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, c) {
-        final side = c.maxWidth < c.maxHeight ? c.maxWidth : c.maxHeight;
-        final size = side * 0.82;
-        return Center(
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: side,
-                height: side,
-                child: CustomPaint(
-                  painter: _ProgressRingPainter(
-                    progress: widget.progress,
-                    color: AppColors.coral,
-                    backgroundColor: Colors.white.withOpacity(0.06),
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: widget.enabled ? _tap : null,
-                child: AnimatedBuilder(
-                  animation: _pop,
-                  builder: (_, __) {
-                    final scale = 1 - 0.06 * _pop.value;
-                    return Transform.scale(
-                      scale: scale,
-                      child: Container(
-                        width: size,
-                        height: size,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: widget.enabled
-                                ? const [AppColors.kraft, AppColors.kraftDeep]
-                                : [
-                                    AppColors.kraft.withOpacity(0.55),
-                                    AppColors.kraftDeep.withOpacity(0.55)
-                                  ],
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                                color: Color(0x88000000),
-                                blurRadius: 24,
-                                offset: Offset(0, 12)),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            '📦',
-                            style: TextStyle(fontSize: size * 0.42),
-                          )
-                              .animate(key: ValueKey(widget.revealKey))
-                              .shake(hz: 8, duration: 400.ms),
-                        ),
+    final palette = AppColors.forRarity(widget.rarityToken);
+    return Center(
+      child: GestureDetector(
+        onTap: widget.enabled ? _tap : null,
+        child: AnimatedBuilder(
+          animation: _pop,
+          builder: (_, __) {
+            final scale = 1 - 0.08 * _pop.value;
+            return Transform.scale(
+              scale: scale,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [palette.glow, Colors.transparent],
                       ),
-                    );
-                  },
-                ),
-              ),
-              for (final f in _floats)
-                _FloatingPeel(key: ValueKey(f.id), dx: f.dx),
-              Positioned(
-                bottom: 12,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.ink.withOpacity(0.75),
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                  ),
-                  child: Text(
-                    '${_compact(widget.peelsDone)} / ${_compact(widget.peelsRequired)}',
-                    style: const TextStyle(
-                      color: AppColors.textOnDark,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: [FontFeature.tabularFigures()],
                     ),
-                  ),
-                ),
+                  )
+                      .animate(onPlay: (c) => c.repeat(reverse: true))
+                      .scale(
+                        begin: const Offset(0.92, 0.92),
+                        end: const Offset(1.1, 1.1),
+                        duration: 1800.ms,
+                        curve: Curves.easeInOut,
+                      ),
+                  PackageSprite(rarity: widget.rarityToken, size: 240),
+                  if (widget.outcome == PeelOutcome.hit)
+                    const _Confetti()
+                  else if (widget.outcome == PeelOutcome.miss)
+                    const _MissLeaves(),
+                ],
               ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _ProgressRingPainter extends CustomPainter {
-  _ProgressRingPainter({
-    required this.progress,
-    required this.color,
-    required this.backgroundColor,
-  });
-  final double progress;
-  final Color color;
-  final Color backgroundColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const stroke = 10.0;
-    final rect = Offset.zero & size;
-    final center = rect.center;
-    final radius = (size.shortestSide - stroke) / 2;
-    final bgPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..color = backgroundColor;
-    canvas.drawCircle(center, radius, bgPaint);
-    final fg = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round
-      ..color = color;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      2 * pi * progress,
-      false,
-      fg,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _ProgressRingPainter old) =>
-      old.progress != progress || old.color != color;
-}
-
-class _Float {
-  _Float({required this.id, required this.dx});
-  final int id;
-  final double dx;
-}
-
-class _FloatingPeel extends StatefulWidget {
-  const _FloatingPeel({super.key, required this.dx});
-  final double dx;
-
-  @override
-  State<_FloatingPeel> createState() => _FloatingPeelState();
-}
-
-class _FloatingPeelState extends State<_FloatingPeel>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    duration: const Duration(milliseconds: 700),
-    vsync: this,
-  )..forward();
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (_, __) {
-        final t = _c.value;
-        return Transform.translate(
-          offset: Offset(widget.dx * t, -120 * t),
-          child: Opacity(
-            opacity: 1 - t,
-            child: const Text(
-              '+1',
-              style: TextStyle(
-                color: AppColors.gold,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                shadows: [Shadow(color: Colors.black54, blurRadius: 6)],
-              ),
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 }
 
 class _LayersIndicator extends StatelessWidget {
-  const _LayersIndicator({required this.revealed});
+  const _LayersIndicator({required this.revealed, required this.total});
   final int revealed;
+  final int total;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(8, (i) {
+      children: List.generate(total, (i) {
         final on = i < revealed;
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 3),
@@ -528,8 +403,120 @@ class _LayersIndicator extends StatelessWidget {
   }
 }
 
-String _compact(int n) {
-  if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
-  if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}k';
-  return n.toString();
+/// Simple confetti burst on hit.
+class _Confetti extends StatefulWidget {
+  const _Confetti();
+
+  @override
+  State<_Confetti> createState() => _ConfettiState();
+}
+
+class _ConfettiState extends State<_Confetti>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    duration: const Duration(milliseconds: 1000),
+    vsync: this,
+  )..forward();
+  final _rng = Random(42);
+  late final List<Offset> _dirs =
+      List.generate(20, (_) => _rng.randomDir() * (120 + _rng.nextDouble() * 80));
+  late final List<Color> _colors = List.generate(
+      20,
+      (i) => [
+            AppColors.coral,
+            AppColors.gold,
+            AppColors.mint,
+            AppColors.violet,
+          ][i % 4]);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, __) {
+        final t = _c.value;
+        return Stack(
+          children: List.generate(_dirs.length, (i) {
+            return Transform.translate(
+              offset: _dirs[i] * t,
+              child: Opacity(
+                opacity: 1 - t,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: _colors[i],
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
+/// Little falling leaves on miss.
+class _MissLeaves extends StatefulWidget {
+  const _MissLeaves();
+
+  @override
+  State<_MissLeaves> createState() => _MissLeavesState();
+}
+
+class _MissLeavesState extends State<_MissLeaves>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    duration: const Duration(milliseconds: 1400),
+    vsync: this,
+  )..forward();
+  final _rng = Random(7);
+  late final List<Offset> _drops =
+      List.generate(8, (_) => Offset((_rng.nextDouble() - 0.5) * 160, 140));
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, __) {
+        final t = _c.value;
+        return Stack(
+          alignment: Alignment.center,
+          children: List.generate(_drops.length, (i) {
+            return Transform.translate(
+              offset: _drops[i] * t,
+              child: Transform.rotate(
+                angle: (i.isEven ? 1 : -1) * t * pi,
+                child: Opacity(
+                  opacity: 1 - t * 0.8,
+                  child: const Text('🍃', style: TextStyle(fontSize: 18)),
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
+extension on Random {
+  Offset randomDir() {
+    final a = nextDouble() * 2 * pi;
+    return Offset(cos(a), sin(a));
+  }
 }

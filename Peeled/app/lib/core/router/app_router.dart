@@ -13,7 +13,10 @@ import '../../features/worldmap/worldmap_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/onboarding',
+    // Skip onboarding/login on every launch — user wants the hero package
+    // visible the moment they open the app. Those routes remain available
+    // from Settings / deep links for first-time flows later.
+    initialLocation: '/home',
     debugLogDiagnostics: false,
     routes: [
       GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
