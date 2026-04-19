@@ -14,9 +14,13 @@ import 'sound_service.dart';
 class GameConfig {
   GameConfig._();
 
-  static const Duration minHold = Duration(seconds: 30);
-  static const Duration maxHold = Duration(hours: 2);
+  /// Every holder gets exactly this much time to take their one peel
+  /// shot. Spec calls for a fixed 5-minute window so the whole game has
+  /// a single, predictable cadence.
+  static const Duration holdWindow = Duration(minutes: 5);
 
+  /// After a holder peels, the package leaves their hands within this
+  /// short grace so the player sees the result then it hops on.
   static const Duration postAttemptGrace = Duration(seconds: 3);
 
   /// Probability a single peel attempt reveals a layer.
@@ -556,14 +560,11 @@ class GameSimulator extends ChangeNotifier {
   }
 
   PackageHop _newHop({required String holderId, required DateTime now}) {
-    final holdSeconds = GameConfig.minHold.inSeconds +
-        _rng.nextInt(
-            GameConfig.maxHold.inSeconds - GameConfig.minHold.inSeconds + 1);
     return PackageHop(
       id: _newId('hop'),
       holderId: holderId,
       startedAt: now,
-      expiresAt: now.add(Duration(seconds: holdSeconds)),
+      expiresAt: now.add(GameConfig.holdWindow),
       outcome: PeelOutcome.none,
       attemptedAt: null,
     );

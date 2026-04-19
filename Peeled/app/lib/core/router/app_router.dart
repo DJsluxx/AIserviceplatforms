@@ -8,6 +8,7 @@ import '../../features/intro/intro_screen.dart';
 import '../../features/leaderboard/leaderboard_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/package/peel_screen.dart';
+import '../../features/package_detail/package_detail_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/shop/shop_screen.dart';
@@ -16,8 +17,6 @@ import '../../features/worldmap/worldmap_screen.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   final hasSeenIntro = ref.watch(hasSeenIntroProvider);
   return GoRouter(
-    // First launch on this device → 6-s "package opens" intro.
-    // Subsequent launches → straight to Home (the hero package screen).
     initialLocation: hasSeenIntro ? '/home' : '/intro',
     debugLogDiagnostics: false,
     routes: [
@@ -27,11 +26,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, __) => const AuthScreen()),
       GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
       GoRoute(
+        path: '/package/:id',
+        builder: (_, state) =>
+            PackageDetailScreen(packageId: state.pathParameters['id']!),
+      ),
+      GoRoute(
         path: '/peel/:id',
         builder: (_, state) =>
             PeelScreen(packageId: state.pathParameters['id']!),
       ),
-      GoRoute(path: '/map', builder: (_, __) => const WorldmapScreen()),
+      GoRoute(
+        path: '/map',
+        // Optional `?focus=<packageId>` query — when present, the
+        // Globe pre-focuses that package on first build.
+        builder: (_, state) =>
+            WorldmapScreen(focusPackageId: state.uri.queryParameters['focus']),
+      ),
       GoRoute(
           path: '/leaderboard', builder: (_, __) => const LeaderboardScreen()),
       GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),

@@ -61,37 +61,47 @@ class PackageCard extends StatelessWidget {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _HeaderRow(package: package),
-            const SizedBox(height: AppSpacing.sm),
-            _Hero(package: package, palette: palette),
-            const SizedBox(height: AppSpacing.sm),
-            _PeelsCounter(count: package.peelsAccumulated, color: palette.fill),
-            const SizedBox(height: AppSpacing.sm),
-            _LayersPips(
-              revealed: package.layersRevealed,
-              total: package.layersTotal,
-              color: palette.fill,
+      // Tap anywhere on the card to open the detail/metadata view —
+      // the PEEL CTA below sits in its own tap zone and bypasses this.
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          onTap: () => context.push('/package/${package.id}'),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _HeaderRow(package: package),
+                const SizedBox(height: AppSpacing.sm),
+                _Hero(package: package, palette: palette),
+                const SizedBox(height: AppSpacing.sm),
+                _PeelsCounter(
+                    count: package.peelsAccumulated, color: palette.fill),
+                const SizedBox(height: AppSpacing.sm),
+                _LayersPips(
+                  revealed: package.layersRevealed,
+                  total: package.layersTotal,
+                  color: palette.fill,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                MiniGlobe(package: package, holders: recentHolders),
+                const SizedBox(height: AppSpacing.sm),
+                _HolderRow(
+                  holder: holder,
+                  previous: previousHolder,
+                  remaining: hop.remaining(now),
+                  isYours: isYours,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                if (isYours && !hop.peelAttempted)
+                  _PeelCta(packageId: package.id, color: palette.fill)
+                else
+                  _OutcomeStrip(hop: hop, isYours: isYours),
+              ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            MiniGlobe(package: package, holders: recentHolders),
-            const SizedBox(height: AppSpacing.sm),
-            _HolderRow(
-              holder: holder,
-              previous: previousHolder,
-              remaining: hop.remaining(now),
-              isYours: isYours,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            if (isYours && !hop.peelAttempted)
-              _PeelCta(packageId: package.id, color: palette.fill)
-            else
-              _OutcomeStrip(hop: hop, isYours: isYours),
-          ],
+          ),
         ),
       ),
     );
