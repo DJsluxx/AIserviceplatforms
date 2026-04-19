@@ -1,6 +1,9 @@
 name: Deploy PEELED Web to GitHub Pages
 
-# Deploys Peeled/app as a Flutter web build to GitHub Pages.
+# Deploys Peeled/app as a Flutter web build to GitHub Pages by publishing
+# build/web/ onto the `gh-pages` branch. Works with Pages Source =
+# "Deploy from a branch" → gh-pages → / (root), which is the default
+# on GitHub's mobile UI.
 
 on:
   push:
@@ -15,13 +18,11 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 jobs:
-  build:
-    name: Build Flutter Web
+  build-and-deploy:
+    name: Build & deploy
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -40,24 +41,18 @@ jobs:
 
       - name: Build web
         working-directory: Peeled/app
-        run: flutter build web --release --base-href /aiserviceplatforms/
+        run: flutter build web --release --base-href /AIserviceplatforms/
 
       - name: Add SPA 404 fallback
         run: cp Peeled/app/build/web/index.html Peeled/app/build/web/404.html
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: Peeled/app/build/web
-
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: Peeled/app/build/web
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: "deploy: ${{ github.sha }}"
