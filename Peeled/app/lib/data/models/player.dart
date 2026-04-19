@@ -1,14 +1,20 @@
 import 'package:flutter/foundation.dart';
 
-/// A player in the PEELED universe. The real user has [isUser] = true,
-/// everyone else is an AI placeholder so the live-feed/globe feel alive
-/// while the real player base is still small.
+/// A player in the PEELED universe. Real user has [isUser]=true; the
+/// 10 AI placeholders are baked-in constants below.
+///
+/// [avatarUrl] points to a stable real-portrait photo (we use
+/// pravatar.cc which serves CC-licensed real-people photos by integer
+/// id). [avatarEmoji] is the offline-safe fallback used when the
+/// photo hasn't loaded yet, when we're offline, or in places where a
+/// network image would be too heavy (small chips, list rows).
 @immutable
 class Player {
   const Player({
     required this.id,
     required this.name,
-    required this.avatar,
+    required this.avatarEmoji,
+    required this.avatarUrl,
     required this.city,
     required this.country,
     required this.flag,
@@ -19,20 +25,30 @@ class Player {
 
   final String id;
   final String name;
-  final String avatar; // emoji used as an avatar glyph
+  final String avatarEmoji;
+  final String avatarUrl;
   final String city;
   final String country;
-  final String flag; // country flag emoji
+  final String flag;
   final double lat;
   final double lon;
   final bool isUser;
 
   String get cityFlag => '$city $flag';
 
-  Player copyWith({String? name, String? avatar}) => Player(
+  /// Compatibility shim — old call sites used `.avatar` for the emoji.
+  String get avatar => avatarEmoji;
+
+  Player copyWith({
+    String? name,
+    String? avatarEmoji,
+    String? avatarUrl,
+  }) =>
+      Player(
         id: id,
         name: name ?? this.name,
-        avatar: avatar ?? this.avatar,
+        avatarEmoji: avatarEmoji ?? this.avatarEmoji,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
         city: city,
         country: country,
         flag: flag,
@@ -42,15 +58,22 @@ class Player {
       );
 }
 
-/// The 10 AI placeholders we ship with. Names/cities are fictional.
+/// pravatar.cc image ids hand-picked to feel like a believable
+/// international cast. Each AI player is bound to one id so the
+/// portrait stays stable across launches.
+String _pravatar(int id) => 'https://i.pravatar.cc/200?img=$id';
+
+/// The 10 AI placeholders we ship with. Names/cities are fictional;
+/// portraits come from pravatar (CC-licensed real photos).
 class AiPlayers {
   AiPlayers._();
 
-  static const List<Player> all = [
+  static final List<Player> all = [
     Player(
       id: 'ai_sophie',
       name: 'Sophie Lune',
-      avatar: '🌙',
+      avatarEmoji: '🌙',
+      avatarUrl: _pravatar(47),
       city: 'Paris',
       country: 'France',
       flag: '🇫🇷',
@@ -60,7 +83,8 @@ class AiPlayers {
     Player(
       id: 'ai_yuki',
       name: 'Yuki Aoki',
-      avatar: '🍣',
+      avatarEmoji: '🍣',
+      avatarUrl: _pravatar(26),
       city: 'Tokyo',
       country: 'Japan',
       flag: '🇯🇵',
@@ -70,7 +94,8 @@ class AiPlayers {
     Player(
       id: 'ai_diego',
       name: 'Diego Vega',
-      avatar: '🔥',
+      avatarEmoji: '🔥',
+      avatarUrl: _pravatar(13),
       city: 'São Paulo',
       country: 'Brazil',
       flag: '🇧🇷',
@@ -80,7 +105,8 @@ class AiPlayers {
     Player(
       id: 'ai_amara',
       name: 'Amara Okafor',
-      avatar: '🦁',
+      avatarEmoji: '🦁',
+      avatarUrl: _pravatar(49),
       city: 'Lagos',
       country: 'Nigeria',
       flag: '🇳🇬',
@@ -90,7 +116,8 @@ class AiPlayers {
     Player(
       id: 'ai_noa',
       name: 'Noa Bar',
-      avatar: '🌊',
+      avatarEmoji: '🌊',
+      avatarUrl: _pravatar(32),
       city: 'Tel Aviv',
       country: 'Israel',
       flag: '🇮🇱',
@@ -100,7 +127,8 @@ class AiPlayers {
     Player(
       id: 'ai_liam',
       name: 'Liam Walsh',
-      avatar: '🍀',
+      avatarEmoji: '🍀',
+      avatarUrl: _pravatar(12),
       city: 'Dublin',
       country: 'Ireland',
       flag: '🇮🇪',
@@ -110,7 +138,8 @@ class AiPlayers {
     Player(
       id: 'ai_aria',
       name: 'Aria Patel',
-      avatar: '💎',
+      avatarEmoji: '💎',
+      avatarUrl: _pravatar(45),
       city: 'Mumbai',
       country: 'India',
       flag: '🇮🇳',
@@ -120,7 +149,8 @@ class AiPlayers {
     Player(
       id: 'ai_mateo',
       name: 'Mateo Ruiz',
-      avatar: '⚡',
+      avatarEmoji: '⚡',
+      avatarUrl: _pravatar(33),
       city: 'Mexico City',
       country: 'Mexico',
       flag: '🇲🇽',
@@ -130,7 +160,8 @@ class AiPlayers {
     Player(
       id: 'ai_kaia',
       name: 'Kaia Smith',
-      avatar: '🏄‍♀️',
+      avatarEmoji: '🏄‍♀️',
+      avatarUrl: _pravatar(20),
       city: 'Sydney',
       country: 'Australia',
       flag: '🇦🇺',
@@ -140,7 +171,8 @@ class AiPlayers {
     Player(
       id: 'ai_olu',
       name: 'Olu Johansson',
-      avatar: '❄️',
+      avatarEmoji: '❄️',
+      avatarUrl: _pravatar(15),
       city: 'Stockholm',
       country: 'Sweden',
       flag: '🇸🇪',
@@ -152,3 +184,9 @@ class AiPlayers {
   static Player byId(String id) =>
       all.firstWhere((p) => p.id == id, orElse: () => all.first);
 }
+
+/// pravatar ids the player can pick from on first launch.
+List<String> kUserAvatarChoices = List.unmodifiable([
+  for (final i in [1, 5, 8, 14, 16, 25, 31, 36, 44, 51, 60, 65])
+    'https://i.pravatar.cc/200?img=$i',
+]);

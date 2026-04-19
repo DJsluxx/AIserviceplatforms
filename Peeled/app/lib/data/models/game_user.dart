@@ -5,7 +5,8 @@ class GameUser {
   const GameUser({
     required this.id,
     required this.handle,
-    required this.avatar,
+    required this.avatarEmoji,
+    required this.avatarUrl,
     required this.city,
     required this.flag,
     required this.coins,
@@ -17,7 +18,8 @@ class GameUser {
 
   final String id;
   final String handle;
-  final String avatar;
+  final String avatarEmoji;
+  final String avatarUrl;
   final String city;
   final String flag;
   final int coins;
@@ -26,10 +28,15 @@ class GameUser {
   final int layersPeeled;
   final int totalPeels;
 
+  /// Compatibility shim — old call sites used `.avatar` for the emoji.
+  String get avatar => avatarEmoji;
+
   static const GameUser guest = GameUser(
     id: 'me',
     handle: 'you',
-    avatar: '🎁',
+    avatarEmoji: '🎁',
+    // Default real-portrait — replaced when the user picks one in Auth.
+    avatarUrl: 'https://i.pravatar.cc/200?img=1',
     city: 'Earth',
     flag: '🌍',
     coins: 0,
@@ -41,7 +48,8 @@ class GameUser {
 
   GameUser copyWith({
     String? handle,
-    String? avatar,
+    String? avatarEmoji,
+    String? avatarUrl,
     String? city,
     String? flag,
     int? coins,
@@ -53,7 +61,8 @@ class GameUser {
       GameUser(
         id: id,
         handle: handle ?? this.handle,
-        avatar: avatar ?? this.avatar,
+        avatarEmoji: avatarEmoji ?? this.avatarEmoji,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
         city: city ?? this.city,
         flag: flag ?? this.flag,
         coins: coins ?? this.coins,

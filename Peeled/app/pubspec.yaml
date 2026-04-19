@@ -1,7 +1,7 @@
 name: peeled
 description: PEELED — a global viral game where mysterious packages travel the world.
 publish_to: "none"
-version: 0.1.0+1
+version: 0.4.0+4
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -17,15 +17,21 @@ dependencies:
   flutter_riverpod: ^2.5.1
   go_router: ^14.2.0
 
-  # Network
+  # Network (kept for future server work)
   dio: ^5.6.0
 
-  # Storage / auth
+  # Local storage
   flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.2
 
   # UI & animation
   flutter_svg: ^2.0.10+1
   flutter_animate: ^4.5.0
+
+  # Audio + local notifications. Both have to be wrapped on web — neither
+  # plugin supports Flutter Web at the moment.
+  audioplayers: ^6.1.0
+  flutter_local_notifications: ^17.2.4
 
 dev_dependencies:
   flutter_test:
@@ -41,6 +47,4 @@ flutter:
     - assets/svg/packages/
     - assets/svg/icons/
     - assets/images/generated/
-  # Fonts are served via google_fonts at runtime (no local ttf files checked in).
-  # To ship offline-first fonts, download Fraunces/Inter ttf files into
-  # assets/fonts/ and restore a fonts: block here.
+    - assets/audio/

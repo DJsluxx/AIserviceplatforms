@@ -385,7 +385,12 @@ class _DetailsCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              PlayerAvatar(emoji: holder.avatar, size: 52, ring: isYou),
+              PlayerAvatar(
+                emoji: holder.avatarEmoji,
+                imageUrl: holder.avatarUrl,
+                size: 52,
+                ring: isYou,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
@@ -672,7 +677,8 @@ class _FeedRow extends StatelessWidget {
       return Player(
         id: state.user.id,
         name: 'You',
-        avatar: state.user.avatar,
+        avatarEmoji: state.user.avatarEmoji,
+        avatarUrl: state.user.avatarUrl,
         city: state.user.city,
         country: '',
         flag: state.user.flag,
@@ -700,7 +706,7 @@ class _FeedRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          PlayerAvatar(emoji: p.avatar, size: 34),
+          PlayerAvatar(emoji: p.avatarEmoji, imageUrl: p.avatarUrl, size: 34),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text.rich(

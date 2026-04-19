@@ -9,9 +9,10 @@ import '../../data/providers.dart';
 import '../../shared/widgets/coin_balance.dart';
 import '../../shared/widgets/player_avatar.dart';
 
-/// Leaderboard. Right now there's no backend, so we synthesize stable
-/// per-player coin totals from player id hashes — gives a convincing
-/// global ranking to play against while we build a real backend.
+/// Global ranks. Sorted by total peel count (number of peel attempts —
+/// successful or not). Real players first, AI placeholders alongside
+/// with stable pseudo-random totals so the board doesn't jitter on
+/// every rebuild.
 class LeaderboardScreen extends ConsumerWidget {
   const LeaderboardScreen({super.key});
 
@@ -24,20 +25,22 @@ class LeaderboardScreen extends ConsumerWidget {
       _Row(
         id: u.id,
         name: '@${u.handle} (you)',
-        avatar: u.avatar,
+        avatarEmoji: u.avatarEmoji,
+        avatarUrl: u.avatarUrl,
         subtitle: '${u.city} ${u.flag}',
-        coins: u.coins,
+        peels: u.totalPeels,
         isYou: true,
       ),
       for (final p in AiPlayers.all)
         _Row(
           id: p.id,
           name: p.name,
-          avatar: p.avatar,
+          avatarEmoji: p.avatarEmoji,
+          avatarUrl: p.avatarUrl,
           subtitle: '${p.city} ${p.flag}',
-          coins: _fakeCoinsFor(p.id),
+          peels: _fakePeelsFor(p.id),
         ),
-    ]..sort((a, b) => b.coins.compareTo(a.coins));
+    ]..sort((a, b) => b.peels.compareTo(a.peels));
 
     return Scaffold(
       backgroundColor: AppColors.surfaceDark,
@@ -52,8 +55,8 @@ class LeaderboardScreen extends ConsumerWidget {
         ),
         title: const Text(
           'Global Ranks',
-          style: TextStyle(
-              fontFamily: 'Fraunces', fontWeight: FontWeight.w700),
+          style:
+              TextStyle(fontFamily: 'Fraunces', fontWeight: FontWeight.w700),
         ),
         actions: [
           Padding(
@@ -62,11 +65,36 @@ class LeaderboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        itemCount: rows.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 6),
-        itemBuilder: (_, i) => _LeaderboardTile(row: rows[i], rank: i + 1),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(
+                AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+            child: Row(
+              children: [
+                Icon(Icons.touch_app_rounded,
+                    color: AppColors.textMuted, size: 14),
+                SizedBox(width: 6),
+                Text(
+                  'Ranked by total peel attempts',
+                  style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              itemCount: rows.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 6),
+              itemBuilder: (_, i) =>
+                  _LeaderboardTile(row: rows[i], rank: i + 1),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -76,16 +104,18 @@ class _Row {
   _Row({
     required this.id,
     required this.name,
-    required this.avatar,
+    required this.avatarEmoji,
+    required this.avatarUrl,
     required this.subtitle,
-    required this.coins,
+    required this.peels,
     this.isYou = false,
   });
   final String id;
   final String name;
-  final String avatar;
+  final String avatarEmoji;
+  final String avatarUrl;
   final String subtitle;
-  final int coins;
+  final int peels;
   final bool isYou;
 }
 
@@ -112,9 +142,7 @@ class _LeaderboardTile extends StatelessWidget {
             : AppColors.surfaceDarkElevated,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
-          color: row.isYou
-              ? AppColors.coral
-              : Colors.white.withOpacity(0.05),
+          color: row.isYou ? AppColors.coral : Colors.white.withOpacity(0.05),
         ),
       ),
       child: Row(
@@ -132,7 +160,11 @@ class _LeaderboardTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          PlayerAvatar(emoji: row.avatar, size: 42),
+          PlayerAvatar(
+            emoji: row.avatarEmoji,
+            imageUrl: row.avatarUrl,
+            size: 42,
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
@@ -156,14 +188,28 @@ class _LeaderboardTile extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            '${_formatInt(row.coins)} 🪙',
-            style: const TextStyle(
-              color: AppColors.gold,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                _formatInt(row.peels),
+                style: const TextStyle(
+                  color: AppColors.coral,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+              const Text(
+                'PEELS',
+                style: TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.4,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -171,13 +217,14 @@ class _LeaderboardTile extends StatelessWidget {
   }
 }
 
-int _fakeCoinsFor(String id) {
-  // Stable pseudo-random per id so the board doesn't jitter on rebuild.
+/// Stable pseudo-random per-AI peel total so the board doesn't jitter
+/// on rebuild.
+int _fakePeelsFor(String id) {
   var h = 0;
   for (final c in id.codeUnits) {
     h = (h * 31 + c) & 0x7fffffff;
   }
-  return 500 + (h % 4500);
+  return 50 + (h % 950);
 }
 
 String _formatInt(int n) {

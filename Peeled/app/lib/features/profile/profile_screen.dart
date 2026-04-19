@@ -42,7 +42,12 @@ class ProfileScreen extends ConsumerWidget {
             child: Column(
               children: [
                 PlayerAvatar(
-                    emoji: u.avatar, size: 96, tint: AppColors.coral, ring: true),
+                  emoji: u.avatarEmoji,
+                  imageUrl: u.avatarUrl,
+                  size: 96,
+                  tint: AppColors.coral,
+                  ring: true,
+                ),
                 const SizedBox(height: AppSpacing.md),
                 Text(
                   '@${u.handle}',

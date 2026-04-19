@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import '../models/game_state.dart';
 import '../models/game_user.dart';
 import '../models/player.dart';
+import 'notification_service.dart';
+import 'sound_service.dart';
 
 /// Tuning knobs the product owner cares about — centralised so they're
 /// easy to rebalance without hunting through screens.
@@ -115,13 +117,11 @@ class GameState {
 
   bool get userHoldsPackage => package.currentHop.holderId == user.id;
 
-  Player get currentHolder {
-    final id = package.currentHop.holderId;
-    if (id == user.id) {
-      return Player(
+  Player _userAsPlayer() => Player(
         id: user.id,
         name: 'You',
-        avatar: user.avatar,
+        avatarEmoji: user.avatarEmoji,
+        avatarUrl: user.avatarUrl,
         city: user.city,
         country: '',
         flag: user.flag,
@@ -129,28 +129,19 @@ class GameState {
         lon: 0,
         isUser: true,
       );
-    }
-    return AiPlayers.byId(id);
+
+  Player get currentHolder {
+    final id = package.currentHop.holderId;
+    return id == user.id ? _userAsPlayer() : AiPlayers.byId(id);
   }
 
   /// The previous holder, if any. Used by the map trail.
   Player? get previousHolder {
     final prev = package.previousHop;
     if (prev == null) return null;
-    if (prev.holderId == user.id) {
-      return Player(
-        id: user.id,
-        name: 'You',
-        avatar: user.avatar,
-        city: user.city,
-        country: '',
-        flag: user.flag,
-        lat: 0,
-        lon: 0,
-        isUser: true,
-      );
-    }
-    return AiPlayers.byId(prev.holderId);
+    return prev.holderId == user.id
+        ? _userAsPlayer()
+        : AiPlayers.byId(prev.holderId);
   }
 
   GameState copyWith({
@@ -185,21 +176,39 @@ class GameState {
 /// Drives the single live package on a 1-s timer. Each hop grants the
 /// holder exactly one peel attempt; whether they peel or not, the
 /// package advances when the window expires (or soon after an attempt).
+///
+/// The simulator owns the [SoundService] and [NotificationService] so
+/// game events (peel hit/miss, package open, package arriving to user)
+/// can fire SFX and local notifications without the UI having to plumb
+/// them by hand.
 class GameSimulator extends ChangeNotifier {
-  GameSimulator({Random? random}) : _rng = random ?? Random() {
+  GameSimulator({
+    Random? random,
+    SoundService? sounds,
+    NotificationService? notifications,
+  })  : _rng = random ?? Random(),
+        _sounds = sounds ?? SoundService(),
+        _notifications = notifications ?? NotificationService() {
     _state = _bootstrap();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
   }
 
   final Random _rng;
+  final SoundService _sounds;
+  final NotificationService _notifications;
   late GameState _state;
   Timer? _ticker;
+
+  SoundService get sounds => _sounds;
+  NotificationService get notifications => _notifications;
 
   GameState get state => _state;
 
   @override
   void dispose() {
     _ticker?.cancel();
+    _sounds.dispose();
+    _notifications.cancelAll();
     super.dispose();
   }
 
@@ -219,6 +228,7 @@ class GameSimulator extends ChangeNotifier {
   }
 
   void setSoundEnabled(bool v) {
+    _sounds.setEnabled(v);
     _state = _state.copyWith(soundEnabled: v);
     notifyListeners();
   }
@@ -229,16 +239,27 @@ class GameSimulator extends ChangeNotifier {
   }
 
   void setNotificationsEnabled(bool v) {
+    _notifications.setEnabled(v);
     _state = _state.copyWith(notificationsEnabled: v);
     notifyListeners();
   }
 
-  void setUserProfile({String? handle, String? avatar}) {
+  void setUserProfile({String? handle, String? avatarEmoji, String? avatarUrl}) {
     _state = _state.copyWith(
-      user: _state.user.copyWith(handle: handle, avatar: avatar),
+      user: _state.user.copyWith(
+        handle: handle,
+        avatarEmoji: avatarEmoji,
+        avatarUrl: avatarUrl,
+      ),
     );
     notifyListeners();
   }
+
+  /// Called by the lifecycle observer in main.dart when the app goes to
+  /// the background — schedule the arrival reminders. Cancelled on
+  /// resume.
+  Future<void> onAppPaused() => _notifications.scheduleBackgroundReminders();
+  Future<void> onAppResumed() => _notifications.cancelAll();
 
   /// Wipes progress. Destructive; confirm in UI.
   void resetProgress() {
@@ -300,6 +321,11 @@ class GameSimulator extends ChangeNotifier {
     final isUser = hop.holderId == user.id;
     if (isUser) {
       user = user.copyWith(totalPeels: user.totalPeels + 1);
+      // SFX for user attempts: peel pop, then either chime or whoosh.
+      _sounds.play(SoundEffect.peelPop);
+      Future<void>.delayed(const Duration(milliseconds: 120), () {
+        _sounds.play(hit ? SoundEffect.revealChime : SoundEffect.missWhoosh);
+      });
     }
 
     if (hit) {
@@ -359,6 +385,12 @@ class GameSimulator extends ChangeNotifier {
     if (pkg.opened) {
       final lastOpened = isUser ? attemptedAt : _state.lastOpenedAt;
       _state = _state.copyWith(lastOpenedAt: lastOpened);
+      if (isUser) {
+        // Big-win fanfare on a full open by the user.
+        Future<void>.delayed(const Duration(milliseconds: 350), () {
+          _sounds.play(SoundEffect.openFanfare);
+        });
+      }
     }
 
     notifyListeners();
@@ -412,7 +444,15 @@ class GameSimulator extends ChangeNotifier {
     final pkg = _state.package.copyWith(hops: [..._state.package.hops, hop]);
 
     DateTime? arrived = _state.lastArrivedToUserAt;
-    if (nextHolder == _state.user.id) arrived = now;
+    if (nextHolder == _state.user.id) {
+      arrived = now;
+      // Foreground arrival: play a chime + fire a local notification so
+      // the OS surface is consistent whether the app is open or backgrounded.
+      _sounds.play(SoundEffect.revealChime);
+      _notifications.showImmediate(
+        'Open PEELED — you have one peel attempt waiting.',
+      );
+    }
 
     _state = _state.copyWith(
       now: now,
@@ -436,7 +476,12 @@ class GameSimulator extends ChangeNotifier {
       createdAt: now,
     );
     DateTime? arrived = _state.lastArrivedToUserAt;
-    if (starter == _state.user.id) arrived = now;
+    if (starter == _state.user.id) {
+      arrived = now;
+      _sounds.play(SoundEffect.revealChime);
+      _notifications
+          .showImmediate('A new package landed in your hands. Tap to peel.');
+    }
     _state = _state.copyWith(
       now: now,
       package: pkg,

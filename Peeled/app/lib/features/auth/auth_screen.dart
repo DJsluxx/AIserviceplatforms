@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
+import '../../data/models/player.dart';
 import '../../data/providers.dart';
 import '../../shared/widgets/juicy_button.dart';
 import '../../shared/widgets/peel_wordmark.dart';
@@ -84,15 +85,19 @@ class AuthScreen extends ConsumerWidget {
   }
 
   void _enter(WidgetRef ref, BuildContext ctx) {
-    // Assign a friendly random handle and avatar so the player has something
-    // to show on Profile/Leaderboard right away.
+    // Assign a friendly random handle, an emoji fallback, and a real
+    // portrait avatar so the player has a believable identity from
+    // tap one.
     final r = Random();
     final handle = '${_handleWords[r.nextInt(_handleWords.length)]}'
         '${100 + r.nextInt(900)}';
-    final avatar = _avatarPool[r.nextInt(_avatarPool.length)];
+    final emoji = _avatarPool[r.nextInt(_avatarPool.length)];
+    final avatarUrl =
+        kUserAvatarChoices[r.nextInt(kUserAvatarChoices.length)];
     ref.read(gameSimulatorProvider).setUserProfile(
           handle: handle.toLowerCase(),
-          avatar: avatar,
+          avatarEmoji: emoji,
+          avatarUrl: avatarUrl,
         );
     ctx.go('/home');
   }
