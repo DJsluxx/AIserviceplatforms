@@ -13,14 +13,12 @@ import '../../data/providers.dart';
 import '../../shared/widgets/coin_balance.dart';
 import '../../shared/widgets/juicy_button.dart';
 import '../../shared/widgets/live_countdown.dart';
-import '../../shared/widgets/package_sprite.dart';
+import '../../shared/widgets/themed_package.dart';
 
-/// The Peel screen is a single-attempt luck check. Tap once. Either a
-/// layer reveals (+coins), or nothing happens. Either way the package
-/// passes on within a few seconds.
+/// Single-attempt luck screen for one specific package. The route
+/// passes a package id; we pull that package out of game state.
 class PeelScreen extends ConsumerStatefulWidget {
   const PeelScreen({super.key, required this.packageId});
-
   final String packageId;
 
   @override
@@ -43,12 +41,27 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
   Widget build(BuildContext context) {
     final sim = ref.watch(gameStateProvider);
     final s = sim.state;
-    final hop = s.package.currentHop;
+    final pkg = s.packageById(widget.packageId);
 
-    final isMine = hop.holderId == s.user.id && !s.package.opened;
+    // If the package no longer exists (opened + respawned into a new
+    // id), bounce back to Home so the user doesn't get stranded.
+    if (pkg == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.go('/home');
+      });
+      return const Scaffold(
+        backgroundColor: AppColors.surfaceDark,
+        body: SizedBox.shrink(),
+      );
+    }
+
+    final hop = pkg.currentHop;
+    final isMine = hop.holderId == s.user.id && !pkg.opened;
     final attempted = hop.peelAttempted;
 
-    // Show result sheet once, when the user's attempt resolves.
+    // Fire the outcome bottom sheet once when the user's attempt
+    // resolves on this screen.
     if (attempted && isMine && !_resultShown) {
       _resultShown = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -63,14 +76,14 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
         _showResult(
           context,
           hit: hop.outcome == PeelOutcome.hit,
-          hint: s.package.hints.isNotEmpty ? s.package.hints.last : '',
+          hint: pkg.hints.isNotEmpty ? pkg.hints.last : '',
           coinsGained: s.user.coins - _coinsAtArrival,
         );
       });
     }
 
-    // Full-open celebration if this was the final layer.
-    if (s.package.opened && !_openedShown && _resultShown) {
+    // Full open celebration if this attempt was the final layer.
+    if (pkg.opened && !_openedShown && _resultShown) {
       _openedShown = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -78,11 +91,28 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
       });
     }
 
+    final palette = paletteForPackage(pkg.theme, pkg.rarity);
+
     return Scaffold(
       backgroundColor: AppColors.surfaceDark,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(pkg.regionEmoji, style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 6),
+            Text(
+              pkg.name,
+              style: const TextStyle(
+                fontFamily: 'Fraunces',
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded,
               color: AppColors.textOnDark),
@@ -125,7 +155,7 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
                     ? (attempted
                         ? 'Package is leaving your hands…'
                         : 'Tap the package — one shot')
-                    : 'Watching ${s.currentHolder.name}',
+                    : 'Watching ${s.holderOf(pkg).name}',
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontWeight: FontWeight.w600,
@@ -134,12 +164,14 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
               const SizedBox(height: AppSpacing.lg),
               Expanded(
                 child: _PeelTarget(
-                  rarityToken: s.package.rarity.token,
+                  theme: pkg.theme,
+                  rarity: pkg.rarity,
+                  palette: palette,
                   enabled: isMine && !attempted,
                   outcome: hop.outcome,
                   onTap: () {
                     if (!isMine || attempted) return;
-                    final result = sim.userPeel();
+                    final result = sim.userPeel(pkg.id);
                     if (s.hapticsEnabled) {
                       if (result == PeelOutcome.hit) {
                         HapticFeedback.heavyImpact();
@@ -152,8 +184,9 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
               ),
               const SizedBox(height: AppSpacing.md),
               _LayersIndicator(
-                revealed: s.package.layersRevealed,
-                total: s.package.layersTotal,
+                revealed: pkg.layersRevealed,
+                total: pkg.layersTotal,
+                color: palette.fill,
               ),
               const SizedBox(height: AppSpacing.md),
               if (!isMine)
@@ -291,13 +324,17 @@ class _PeelScreenState extends ConsumerState<PeelScreen>
 
 class _PeelTarget extends StatefulWidget {
   const _PeelTarget({
-    required this.rarityToken,
+    required this.theme,
+    required this.rarity,
+    required this.palette,
     required this.enabled,
     required this.outcome,
     required this.onTap,
   });
 
-  final String rarityToken;
+  final PackageTheme theme;
+  final PackageRarity rarity;
+  final RarityPalette palette;
   final bool enabled;
   final PeelOutcome outcome;
   final VoidCallback onTap;
@@ -328,7 +365,6 @@ class _PeelTargetState extends State<_PeelTarget>
 
   @override
   Widget build(BuildContext context) {
-    final palette = AppColors.forRarity(widget.rarityToken);
     return Center(
       child: GestureDetector(
         onTap: widget.enabled ? _tap : null,
@@ -347,7 +383,7 @@ class _PeelTargetState extends State<_PeelTarget>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
-                        colors: [palette.glow, Colors.transparent],
+                        colors: [widget.palette.glow, Colors.transparent],
                       ),
                     ),
                   )
@@ -358,7 +394,15 @@ class _PeelTargetState extends State<_PeelTarget>
                         duration: 1800.ms,
                         curve: Curves.easeInOut,
                       ),
-                  PackageSprite(rarity: widget.rarityToken, size: 240),
+                  SizedBox(
+                    width: 240,
+                    height: 240,
+                    child: ThemedPackage(
+                      theme: widget.theme,
+                      rarity: widget.rarity,
+                      size: 240,
+                    ),
+                  ),
                   if (widget.outcome == PeelOutcome.hit)
                     const _Confetti()
                   else if (widget.outcome == PeelOutcome.miss)
@@ -374,12 +418,29 @@ class _PeelTargetState extends State<_PeelTarget>
 }
 
 class _LayersIndicator extends StatelessWidget {
-  const _LayersIndicator({required this.revealed, required this.total});
+  const _LayersIndicator(
+      {required this.revealed,
+      required this.total,
+      required this.color});
   final int revealed;
   final int total;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
+    if (total > 14) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.layers_outlined,
+              size: 14, color: AppColors.textMuted),
+          const SizedBox(width: 6),
+          Text('$revealed revealed',
+              style: const TextStyle(
+                  color: AppColors.textOnDark, fontWeight: FontWeight.w800)),
+        ],
+      );
+    }
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(total, (i) {
@@ -391,10 +452,9 @@ class _LayersIndicator extends StatelessWidget {
             height: 10,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: on ? AppColors.mint : Colors.white.withOpacity(0.1),
+              color: on ? color : Colors.white.withOpacity(0.1),
               border: Border.all(
-                color: on ? AppColors.mint : Colors.white.withOpacity(0.15),
-              ),
+                  color: on ? color : Colors.white.withOpacity(0.15)),
             ),
           ),
         );
@@ -403,10 +463,8 @@ class _LayersIndicator extends StatelessWidget {
   }
 }
 
-/// Simple confetti burst on hit.
 class _Confetti extends StatefulWidget {
   const _Confetti();
-
   @override
   State<_Confetti> createState() => _ConfettiState();
 }
@@ -464,10 +522,8 @@ class _ConfettiState extends State<_Confetti>
   }
 }
 
-/// Little falling leaves on miss.
 class _MissLeaves extends StatefulWidget {
   const _MissLeaves();
-
   @override
   State<_MissLeaves> createState() => _MissLeavesState();
 }

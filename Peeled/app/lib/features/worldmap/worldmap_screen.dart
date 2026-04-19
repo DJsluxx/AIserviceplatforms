@@ -13,21 +13,50 @@ import '../../data/providers.dart';
 import '../../data/services/game_simulator.dart';
 import '../../shared/widgets/coin_balance.dart';
 import '../../shared/widgets/live_countdown.dart';
+import '../../shared/widgets/themed_package.dart';
 
-/// Live Globe. The package is the star — a single big pulsing dot at
-/// the current holder's city with a curved trail back to where it came
-/// from. A chip strip below shows the last ~5 cities it passed through.
-/// No other players shown — this screen is about the package.
-class WorldmapScreen extends ConsumerWidget {
+/// Full-screen globe of one selected package. A chip row at the top
+/// lets you switch between the packages currently available in your
+/// region (global + any regional drops). The selected package's
+/// current city, the previous city, and a curved arrow between them
+/// are drawn big on an equirectangular canvas.
+class WorldmapScreen extends ConsumerStatefulWidget {
   const WorldmapScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WorldmapScreen> createState() => _WorldmapScreenState();
+}
+
+class _WorldmapScreenState extends ConsumerState<WorldmapScreen> {
+  String? _selectedId;
+
+  @override
+  Widget build(BuildContext context) {
     final sim = ref.watch(gameStateProvider);
     final s = sim.state;
-    final holder = s.currentHolder;
-    final previous = s.previousHolder;
-    final hop = s.package.currentHop;
+    final visible = s.visiblePackagesFor(s.user.regionCode);
+    if (visible.isEmpty) {
+      return const Scaffold(
+        backgroundColor: AppColors.surfaceDark,
+        body: Center(
+          child: Text('No live packages in your region',
+              style: TextStyle(color: AppColors.textMuted)),
+        ),
+      );
+    }
+
+    // Default to the first (global) one; stick to the user's choice
+    // across rebuilds.
+    _selectedId ??= visible.first.id;
+    final pkg = visible.firstWhere(
+      (p) => p.id == _selectedId,
+      orElse: () => visible.first,
+    );
+
+    final holder = s.holderOf(pkg);
+    final previous = s.previousHolderOf(pkg);
+    final hop = pkg.currentHop;
+    final palette = paletteForPackage(pkg.theme, pkg.rarity);
 
     return Scaffold(
       backgroundColor: AppColors.surfaceDark,
@@ -56,6 +85,13 @@ class WorldmapScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           children: [
+            if (visible.length > 1)
+              _PackageChips(
+                packages: visible,
+                selectedId: pkg.id,
+                onChanged: (id) => setState(() => _selectedId = id),
+              ),
+            if (visible.length > 1) const SizedBox(height: AppSpacing.sm),
             Expanded(
               child: Container(
                 clipBehavior: Clip.antiAlias,
@@ -71,12 +107,10 @@ class WorldmapScreen extends ConsumerWidget {
                 child: LayoutBuilder(builder: (context, c) {
                   return Stack(
                     children: [
-                      // Background grid + equator
                       CustomPaint(
                         painter: _GridPainter(),
                         size: Size(c.maxWidth, c.maxHeight),
                       ),
-                      // Trail from previous → current holder
                       if (previous != null)
                         CustomPaint(
                           painter: _TrailPainter(
@@ -84,10 +118,10 @@ class WorldmapScreen extends ConsumerWidget {
                                 previous.lat, previous.lon, c.maxWidth, c.maxHeight),
                             to: _project(
                                 holder.lat, holder.lon, c.maxWidth, c.maxHeight),
+                            color: palette.fill,
                           ),
                           size: Size(c.maxWidth, c.maxHeight),
                         ),
-                      // Previous-holder dot (faded)
                       if (previous != null)
                         _CityDot(
                           left: _project(previous.lat, previous.lon,
@@ -97,10 +131,9 @@ class WorldmapScreen extends ConsumerWidget {
                                   c.maxWidth, c.maxHeight)
                               .dy,
                           label: '${previous.city} ${previous.flag}',
-                          emoji: '•',
                           active: false,
+                          color: palette.fill,
                         ),
-                      // Current-holder dot (big, pulsing, with package emoji)
                       _CityDot(
                         left: _project(holder.lat, holder.lon, c.maxWidth,
                                 c.maxHeight)
@@ -109,8 +142,8 @@ class WorldmapScreen extends ConsumerWidget {
                                 c.maxHeight)
                             .dy,
                         label: '${holder.city} ${holder.flag}',
-                        emoji: '📦',
                         active: true,
+                        color: palette.fill,
                       ),
                     ],
                   );
@@ -119,12 +152,13 @@ class WorldmapScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             _HopCard(
+              package: pkg,
               holder: holder,
               previous: previous,
               remaining: hop.remaining(s.now),
             ),
             const SizedBox(height: AppSpacing.sm),
-            _RecentCities(state: s),
+            _RecentCities(package: pkg, state: s),
           ],
         ),
       ),
@@ -132,10 +166,71 @@ class WorldmapScreen extends ConsumerWidget {
   }
 
   Offset _project(double lat, double lon, double w, double h) {
-    // Equirectangular projection; clamp at poles.
     final x = (lon + 180.0) / 360.0 * w;
     final y = ((90.0 - lat) / 180.0).clamp(0.0, 1.0) * h;
     return Offset(x, y);
+  }
+}
+
+class _PackageChips extends StatelessWidget {
+  const _PackageChips({
+    required this.packages,
+    required this.selectedId,
+    required this.onChanged,
+  });
+  final List<Package> packages;
+  final String selectedId;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: packages.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final p = packages[i];
+          final selected = p.id == selectedId;
+          final palette = paletteForPackage(p.theme, p.rarity);
+          return GestureDetector(
+            onTap: () => onChanged(p.id),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: selected
+                    ? palette.fill.withOpacity(0.2)
+                    : AppColors.surfaceDarkElevated,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                border: Border.all(
+                    color: selected
+                        ? palette.fill
+                        : Colors.white.withOpacity(0.08)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(p.regionEmoji,
+                      style: const TextStyle(fontSize: 14)),
+                  const SizedBox(width: 6),
+                  Text(
+                    p.regionLabel,
+                    style: TextStyle(
+                      color: selected ? palette.fill : AppColors.textOnDark,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -144,14 +239,14 @@ class _CityDot extends StatelessWidget {
     required this.left,
     required this.top,
     required this.label,
-    required this.emoji,
     required this.active,
+    required this.color,
   });
   final double left;
   final double top;
   final String label;
-  final String emoji;
   final bool active;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -165,20 +260,18 @@ class _CityDot extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: active
-                ? AppColors.coral
-                : AppColors.textMuted.withOpacity(0.5),
+            color: active ? color : AppColors.textMuted.withOpacity(0.5),
             boxShadow: active
-                ? const [
+                ? [
                     BoxShadow(
-                        color: Color(0xAAFF6B57),
+                        color: color.withOpacity(0.6),
                         blurRadius: 28,
                         spreadRadius: 6)
                   ]
                 : null,
           ),
           child: active
-              ? Text(emoji, style: TextStyle(fontSize: size * 0.5))
+              ? Text('📦', style: TextStyle(fontSize: size * 0.5))
               : null,
         ),
         if (active) ...[
@@ -189,7 +282,7 @@ class _CityDot extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.ink.withOpacity(0.85),
               borderRadius: BorderRadius.circular(AppRadius.pill),
-              border: Border.all(color: AppColors.coral.withOpacity(0.5)),
+              border: Border.all(color: color.withOpacity(0.5)),
             ),
             child: Text(
               label,
@@ -220,49 +313,48 @@ class _CityDot extends StatelessWidget {
 }
 
 class _TrailPainter extends CustomPainter {
-  _TrailPainter({required this.from, required this.to});
+  _TrailPainter({required this.from, required this.to, required this.color});
   final Offset from;
   final Offset to;
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
     final mid = Offset(
       (from.dx + to.dx) / 2,
-      (from.dy + to.dy) / 2 - 60, // arc upward
+      (from.dy + to.dy) / 2 - 60,
     );
     final path = Path()
       ..moveTo(from.dx, from.dy)
       ..quadraticBezierTo(mid.dx, mid.dy, to.dx, to.dy);
 
-    // Shadow glow.
     final glow = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8
       ..strokeCap = StrokeCap.round
-      ..color = AppColors.coral.withOpacity(0.2)
+      ..color = color.withOpacity(0.2)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
     canvas.drawPath(path, glow);
 
-    // Dashed foreground line.
     final dash = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round
-      ..color = AppColors.coral;
+      ..color = color;
     const dashLen = 8.0;
     const gapLen = 6.0;
     final metric = path.computeMetrics().first;
     double t = 0;
     while (t < metric.length) {
-      final extract = metric.extractPath(t, (t + dashLen).clamp(0, metric.length));
+      final extract =
+          metric.extractPath(t, (t + dashLen).clamp(0, metric.length));
       canvas.drawPath(extract, dash);
       t += dashLen + gapLen;
     }
 
-    // Arrowhead at target.
     final tangent = metric.getTangentForOffset(metric.length)!;
     final arrowAngle = tangent.angle;
-    final arrowLen = 12.0;
+    const arrowLen = 12.0;
     final p0 = to;
     final p1 = p0 +
         Offset(-cos(arrowAngle + pi / 7), -sin(arrowAngle + pi / 7)) *
@@ -275,12 +367,12 @@ class _TrailPainter extends CustomPainter {
       ..lineTo(p1.dx, p1.dy)
       ..lineTo(p2.dx, p2.dy)
       ..close();
-    canvas.drawPath(tri, Paint()..color = AppColors.coral);
+    canvas.drawPath(tri, Paint()..color = color);
   }
 
   @override
   bool shouldRepaint(covariant _TrailPainter old) =>
-      old.from != from || old.to != to;
+      old.from != from || old.to != to || old.color != color;
 }
 
 class _GridPainter extends CustomPainter {
@@ -310,10 +402,12 @@ class _GridPainter extends CustomPainter {
 
 class _HopCard extends StatelessWidget {
   const _HopCard({
+    required this.package,
     required this.holder,
     required this.previous,
     required this.remaining,
   });
+  final Package package;
   final Player holder;
   final Player? previous;
   final Duration remaining;
@@ -329,14 +423,14 @@ class _HopCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text('📦', style: TextStyle(fontSize: 40)),
+          Text(package.regionEmoji, style: const TextStyle(fontSize: 40)),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'The package is in ${holder.city} ${holder.flag}',
+                  '${package.name} in ${holder.city} ${holder.flag}',
                   style: const TextStyle(
                     color: AppColors.textOnDark,
                     fontFamily: 'Fraunces',
@@ -385,20 +479,17 @@ class _HopCard extends StatelessWidget {
 }
 
 class _RecentCities extends StatelessWidget {
-  const _RecentCities({required this.state});
+  const _RecentCities({required this.package, required this.state});
+  final Package package;
   final GameState state;
 
   @override
   Widget build(BuildContext context) {
-    // Last ~5 hops back through time. Skip the current one (user sees
-    // it in the hero above).
-    final hops = state.package.hops;
+    final hops = package.hops;
     final previous = hops.length > 1
         ? hops.sublist(0, hops.length - 1).reversed.take(5).toList()
         : <PackageHop>[];
-    if (previous.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (previous.isEmpty) return const SizedBox.shrink();
     return SizedBox(
       height: 36,
       child: ListView.separated(
@@ -425,18 +516,13 @@ class _RecentCities extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadius.pill),
               border: Border.all(color: Colors.white.withOpacity(0.05)),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$city $flag',
-                  style: const TextStyle(
-                    color: AppColors.textOnDark,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+            child: Text(
+              '$city $flag',
+              style: const TextStyle(
+                color: AppColors.textOnDark,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           );
         },

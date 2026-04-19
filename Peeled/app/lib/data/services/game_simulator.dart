@@ -10,29 +10,25 @@ import 'notification_service.dart';
 import 'sound_service.dart';
 
 /// Tuning knobs the product owner cares about — centralised so they're
-/// easy to rebalance without hunting through screens.
+/// easy to rebalance.
 class GameConfig {
   GameConfig._();
 
   static const Duration minHold = Duration(seconds: 30);
   static const Duration maxHold = Duration(hours: 2);
 
-  /// After a holder attempts their peel, we shrink the expiry to this
-  /// so the package moves on quickly (player sees the result, then it
-  /// hops).
   static const Duration postAttemptGrace = Duration(seconds: 3);
 
-  /// Probability a single peel attempt reveals a layer. Tuned a little
-  /// generous so single-device playtesting still feels rewarding.
+  /// Probability a single peel attempt reveals a layer.
   static const double peelHitChance = 0.40;
 
-  /// Every 1-s tick while an AI holds the package, this is its chance
-  /// of deciding to attempt the peel. ~4 % = attempt in about 25 s on
-  /// average, well under the minimum 30 s window.
+  /// Per-tick chance an AI holder decides to peel. ~5 % = on average an
+  /// AI attempts ~20 s in, well under the min 30 s window.
   static const double aiAttemptChancePerTick = 0.05;
 
-  /// Bias toward the user being picked as the next holder. Start
-  /// generous (1/3) while the player base is small; drop later.
+  /// Per-package bias toward picking the user as next holder while
+  /// the real-player base is small. 0.33 means ~1 in 3 hops lands in
+  /// your hands — generous for single-device play-testing.
   static const double userHoldProbability = 0.33;
 
   static const int minLayers = 3;
@@ -40,11 +36,17 @@ class GameConfig {
 
   static const int minCoinsPerLayer = 50;
   static const int maxCoinsPerLayer = 500;
+
+  /// How many "ambient" peel attempts to add to a package's running
+  /// counter every tick to represent the (many thousands of) other
+  /// players peeling worldwide. Region-scoped packages tick slower
+  /// than the single global one.
+  static const int globalAmbientPerTickMin = 8;
+  static const int globalAmbientPerTickMax = 40;
+  static const int regionAmbientPerTickMin = 0;
+  static const int regionAmbientPerTickMax = 5;
 }
 
-/// A couple dozen curated hint lines. The concrete text doesn't matter
-/// much yet; what matters is that something teases the package after
-/// each layer so the player feels pulled to the next one.
 const List<String> _layerHints = [
   'Smells like salt and cedar.',
   'A warm glow seeps from the corner.',
@@ -76,14 +78,14 @@ const List<String> _rewardHeadlines = [
   'Revealed.',
 ];
 
-/// Snapshot of all the moving parts. Immutable; the notifier produces
-/// a new one every tick so widgets rebuild cheaply.
+/// Snapshot of all the moving parts. Immutable; the notifier produces a
+/// fresh one every tick so widgets rebuild cheaply.
 @immutable
 class GameState {
   const GameState({
     required this.players,
     required this.user,
-    required this.package,
+    required this.packages,
     required this.feed,
     required this.now,
     required this.lastArrivedToUserAt,
@@ -96,26 +98,54 @@ class GameState {
 
   final List<Player> players;
   final GameUser user;
-  final Package package;
+  final List<Package> packages;
   final List<FeedEntry> feed;
   final DateTime now;
 
-  /// Bumps whenever the package flips into the user's hands. UI reads
-  /// this to fire a "it's your turn" banner once per arrival.
   final DateTime? lastArrivedToUserAt;
-
-  /// Bumps when the user opens a package. Drives the reward overlay.
   final DateTime? lastOpenedAt;
-
-  /// Bumps when the current user-held hop resolves to an outcome.
-  /// Lets the UI show a "hit" or "miss" flash once.
   final DateTime? lastPeelOutcomeAt;
 
   final bool soundEnabled;
   final bool hapticsEnabled;
   final bool notificationsEnabled;
 
-  bool get userHoldsPackage => package.currentHop.holderId == user.id;
+  /// Packages visible to the user in their region. Global scope is
+  /// visible to everyone; region scope only to matching users.
+  List<Package> visiblePackagesFor(String userRegion) {
+    return packages.where((p) {
+      if (p.scope == PackageScope.global) return true;
+      return p.regionCode == userRegion;
+    }).toList();
+  }
+
+  /// The package (if any) whose current hop holder is the user.
+  Package? get userHeldPackage {
+    for (final p in packages) {
+      if (p.currentHop.holderId == user.id) return p;
+    }
+    return null;
+  }
+
+  Package? packageById(String id) {
+    for (final p in packages) {
+      if (p.id == id) return p;
+    }
+    return null;
+  }
+
+  Player holderOf(Package p) {
+    final id = p.currentHop.holderId;
+    if (id == user.id) return _userAsPlayer();
+    return AiPlayers.byId(id);
+  }
+
+  Player? previousHolderOf(Package p) {
+    final prev = p.previousHop;
+    if (prev == null) return null;
+    if (prev.holderId == user.id) return _userAsPlayer();
+    return AiPlayers.byId(prev.holderId);
+  }
 
   Player _userAsPlayer() => Player(
         id: user.id,
@@ -130,24 +160,10 @@ class GameState {
         isUser: true,
       );
 
-  Player get currentHolder {
-    final id = package.currentHop.holderId;
-    return id == user.id ? _userAsPlayer() : AiPlayers.byId(id);
-  }
-
-  /// The previous holder, if any. Used by the map trail.
-  Player? get previousHolder {
-    final prev = package.previousHop;
-    if (prev == null) return null;
-    return prev.holderId == user.id
-        ? _userAsPlayer()
-        : AiPlayers.byId(prev.holderId);
-  }
-
   GameState copyWith({
     List<Player>? players,
     GameUser? user,
-    Package? package,
+    List<Package>? packages,
     List<FeedEntry>? feed,
     DateTime? now,
     DateTime? lastArrivedToUserAt,
@@ -160,7 +176,7 @@ class GameState {
       GameState(
         players: players ?? this.players,
         user: user ?? this.user,
-        package: package ?? this.package,
+        packages: packages ?? this.packages,
         feed: feed ?? this.feed,
         now: now ?? this.now,
         lastArrivedToUserAt: lastArrivedToUserAt ?? this.lastArrivedToUserAt,
@@ -168,19 +184,13 @@ class GameState {
         lastPeelOutcomeAt: lastPeelOutcomeAt ?? this.lastPeelOutcomeAt,
         soundEnabled: soundEnabled ?? this.soundEnabled,
         hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
-        notificationsEnabled:
-            notificationsEnabled ?? this.notificationsEnabled,
+        notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       );
 }
 
-/// Drives the single live package on a 1-s timer. Each hop grants the
-/// holder exactly one peel attempt; whether they peel or not, the
-/// package advances when the window expires (or soon after an attempt).
-///
-/// The simulator owns the [SoundService] and [NotificationService] so
-/// game events (peel hit/miss, package open, package arriving to user)
-/// can fire SFX and local notifications without the UI having to plumb
-/// them by hand.
+/// Drives multiple live packages on a single 1-s timer. Each hop grants
+/// the holder exactly one peel attempt; the package advances when the
+/// window expires or shortly after an attempt.
 class GameSimulator extends ChangeNotifier {
   GameSimulator({
     Random? random,
@@ -199,10 +209,9 @@ class GameSimulator extends ChangeNotifier {
   late GameState _state;
   Timer? _ticker;
 
+  GameState get state => _state;
   SoundService get sounds => _sounds;
   NotificationService get notifications => _notifications;
-
-  GameState get state => _state;
 
   @override
   void dispose() {
@@ -213,18 +222,18 @@ class GameSimulator extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------------------
-  // Public API the UI calls
+  // Public API
   // ---------------------------------------------------------------------------
 
-  /// Player tapped the peel button. Exactly one attempt per hop.
-  /// Returns the outcome (or [PeelOutcome.none] if not allowed).
-  PeelOutcome userPeel() {
-    final hop = _state.package.currentHop;
-    if (hop.holderId != _state.user.id) return PeelOutcome.none;
-    if (hop.peelAttempted) return hop.outcome;
+  /// Player tapped peel on [packageId]. Exactly one attempt per hop.
+  PeelOutcome userPeel(String packageId) {
+    final pkg = _state.packageById(packageId);
+    if (pkg == null) return PeelOutcome.none;
+    if (pkg.currentHop.holderId != _state.user.id) return PeelOutcome.none;
+    if (pkg.currentHop.peelAttempted) return pkg.currentHop.outcome;
     final now = DateTime.now();
     final hit = _rng.nextDouble() < GameConfig.peelHitChance;
-    return _applyAttempt(hit: hit, attemptedAt: now);
+    return _applyAttempt(pkg: pkg, hit: hit, attemptedAt: now);
   }
 
   void setSoundEnabled(bool v) {
@@ -244,7 +253,8 @@ class GameSimulator extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setUserProfile({String? handle, String? avatarEmoji, String? avatarUrl}) {
+  void setUserProfile(
+      {String? handle, String? avatarEmoji, String? avatarUrl}) {
     _state = _state.copyWith(
       user: _state.user.copyWith(
         handle: handle,
@@ -255,13 +265,9 @@ class GameSimulator extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Called by the lifecycle observer in main.dart when the app goes to
-  /// the background — schedule the arrival reminders. Cancelled on
-  /// resume.
   Future<void> onAppPaused() => _notifications.scheduleBackgroundReminders();
   Future<void> onAppResumed() => _notifications.cancelAll();
 
-  /// Wipes progress. Destructive; confirm in UI.
   void resetProgress() {
     _state = _bootstrap();
     notifyListeners();
@@ -276,125 +282,194 @@ class GameSimulator extends ChangeNotifier {
 
   void _tick() {
     final now = DateTime.now();
-    final hop = _state.package.currentHop;
+    var packages = List<Package>.from(_state.packages);
+    var stateChanged = false;
 
-    // 1) Hop expired? Hand off.
-    if (hop.isExpired(now)) {
-      _advanceHop(now);
-      return;
-    }
+    // Per-package tick: ambient counter, expiry, AI attempt.
+    for (int i = 0; i < packages.length; i++) {
+      final original = packages[i];
+      var pkg = original;
 
-    // 2) AI holder that hasn't peeled yet: random chance to attempt.
-    if (hop.holderId != _state.user.id && !hop.peelAttempted) {
-      if (_rng.nextDouble() < GameConfig.aiAttemptChancePerTick) {
-        final hit = _rng.nextDouble() < GameConfig.peelHitChance;
-        _applyAttempt(hit: hit, attemptedAt: now, fromAi: true);
-        return;
+      // Ambient counter — simulates the "there are millions of users
+      // peeling this right now" feel. Drives the climbing peels number.
+      final ambient = pkg.scope == PackageScope.global
+          ? GameConfig.globalAmbientPerTickMin +
+              _rng.nextInt(GameConfig.globalAmbientPerTickMax -
+                      GameConfig.globalAmbientPerTickMin +
+                      1)
+          : GameConfig.regionAmbientPerTickMin +
+              _rng.nextInt(GameConfig.regionAmbientPerTickMax -
+                      GameConfig.regionAmbientPerTickMin +
+                      1);
+      if (ambient > 0) {
+        pkg = pkg.copyWith(peelsAccumulated: pkg.peelsAccumulated + ambient);
       }
+
+      // Expired hop? Advance.
+      if (pkg.currentHop.isExpired(now)) {
+        pkg = _advanceHopOn(pkg, now);
+      } else if (pkg.currentHop.holderId != _state.user.id &&
+          !pkg.currentHop.peelAttempted) {
+        // AI holder: maybe attempt.
+        if (_rng.nextDouble() < GameConfig.aiAttemptChancePerTick) {
+          final hit = _rng.nextDouble() < GameConfig.peelHitChance;
+          pkg = _applyAttemptOn(pkg, hit: hit, attemptedAt: now);
+        }
+      }
+
+      if (!identical(pkg, original)) {
+        stateChanged = true;
+      }
+      packages[i] = pkg;
     }
 
-    // 3) Just tick the clock so countdowns update.
-    _state = _state.copyWith(now: now);
-    notifyListeners();
+    _state = _state.copyWith(now: now, packages: packages);
+    if (stateChanged) {
+      notifyListeners();
+    } else {
+      // Still re-emit so countdown widgets tick the UI.
+      notifyListeners();
+    }
   }
 
+  /// Apply a user or AI peel attempt and return the new state's outcome.
+  /// Kept as a convenience over [_applyAttemptOn] for the user path.
   PeelOutcome _applyAttempt({
+    required Package pkg,
     required bool hit,
     required DateTime attemptedAt,
-    bool fromAi = false,
   }) {
-    var pkg = _state.package;
-    var hop = pkg.currentHop;
+    final updated = _applyAttemptOn(pkg, hit: hit, attemptedAt: attemptedAt);
+    final idx = _state.packages.indexWhere((p) => p.id == pkg.id);
+    final packages = List<Package>.from(_state.packages);
+    packages[idx] = updated;
+
     var user = _state.user;
     var feed = _state.feed;
+    DateTime? lastOpened = _state.lastOpenedAt;
+    DateTime? lastOutcome = _state.lastPeelOutcomeAt;
 
-    final outcome = hit ? PeelOutcome.hit : PeelOutcome.miss;
-
-    // After an attempt, the hop expires quickly so the package moves on.
-    final newExpiry = attemptedAt.add(GameConfig.postAttemptGrace);
-    hop = hop.copyWith(
-      outcome: outcome,
-      attemptedAt: attemptedAt,
-      expiresAt: newExpiry,
-    );
-
-    final isUser = hop.holderId == user.id;
+    final isUser = updated.currentHop.holderId == user.id;
     if (isUser) {
       user = user.copyWith(totalPeels: user.totalPeels + 1);
-      // SFX for user attempts: peel pop, then either chime or whoosh.
       _sounds.play(SoundEffect.peelPop);
       Future<void>.delayed(const Duration(milliseconds: 120), () {
         _sounds.play(hit ? SoundEffect.revealChime : SoundEffect.missWhoosh);
       });
-    }
-
-    if (hit) {
-      final layersRevealed = pkg.layersRevealed + 1;
-      final hints = [...pkg.hints, _randomHint()];
-      final coins = GameConfig.minCoinsPerLayer +
-          _rng.nextInt(
-              GameConfig.maxCoinsPerLayer - GameConfig.minCoinsPerLayer + 1);
-
-      if (isUser) {
+      if (hit) {
+        final coins = GameConfig.minCoinsPerLayer +
+            _rng.nextInt(
+                GameConfig.maxCoinsPerLayer - GameConfig.minCoinsPerLayer + 1);
         user = user.copyWith(
           coins: user.coins + coins,
           layersPeeled: user.layersPeeled + 1,
         );
-      }
-
-      if (layersRevealed >= pkg.layersTotal) {
-        if (isUser) {
+        if (updated.opened) {
           user = user.copyWith(packagesOpened: user.packagesOpened + 1);
+          lastOpened = attemptedAt;
+          Future<void>.delayed(const Duration(milliseconds: 350), () {
+            _sounds.play(SoundEffect.openFanfare);
+          });
         }
-        pkg = pkg.copyWith(
-          layersRevealed: layersRevealed,
-          hints: hints,
-          opened: true,
-          hops: [...pkg.hops..removeLast(), hop],
-        );
-      } else {
-        pkg = pkg.copyWith(
-          layersRevealed: layersRevealed,
-          hints: hints,
-          hops: [...pkg.hops..removeLast(), hop],
-        );
       }
-    } else {
-      pkg = pkg.copyWith(hops: [...pkg.hops..removeLast(), hop]);
+      lastOutcome = attemptedAt;
     }
 
     feed = _prependFeed(FeedEntry(
       id: _newId('feed'),
-      playerId: hop.holderId,
-      packageId: pkg.id,
-      outcome: outcome,
+      playerId: updated.currentHop.holderId,
+      packageId: updated.id,
+      outcome: updated.currentHop.outcome,
       at: attemptedAt,
     ));
 
-    final lastOutcomeAt = isUser ? attemptedAt : _state.lastPeelOutcomeAt;
-
     _state = _state.copyWith(
       now: attemptedAt,
-      package: pkg,
+      packages: packages,
       user: user,
       feed: feed,
-      lastPeelOutcomeAt: lastOutcomeAt,
+      lastOpenedAt: lastOpened,
+      lastPeelOutcomeAt: lastOutcome,
     );
+    notifyListeners();
+    return updated.currentHop.outcome;
+  }
 
-    // If that was the final layer, spawn a fresh package after the grace.
-    if (pkg.opened) {
-      final lastOpened = isUser ? attemptedAt : _state.lastOpenedAt;
-      _state = _state.copyWith(lastOpenedAt: lastOpened);
-      if (isUser) {
-        // Big-win fanfare on a full open by the user.
-        Future<void>.delayed(const Duration(milliseconds: 350), () {
-          _sounds.play(SoundEffect.openFanfare);
-        });
-      }
+  /// Like [_applyAttempt] but pure — it only returns the updated
+  /// Package, it does not touch the user stats / sounds / feed. Used
+  /// from inside the tick loop for AI attempts; the outer loop then
+  /// appends a feed row.
+  Package _applyAttemptOn(
+    Package pkg, {
+    required bool hit,
+    required DateTime attemptedAt,
+  }) {
+    final outcome = hit ? PeelOutcome.hit : PeelOutcome.miss;
+    final newExpiry = attemptedAt.add(GameConfig.postAttemptGrace);
+    final updatedHop = pkg.currentHop.copyWith(
+      outcome: outcome,
+      attemptedAt: attemptedAt,
+      expiresAt: newExpiry,
+    );
+    var updated = pkg.copyWith(
+      hops: [...pkg.hops..removeLast(), updatedHop],
+      peelsAccumulated: pkg.peelsAccumulated + 1,
+    );
+    if (hit) {
+      final layersRevealed = updated.layersRevealed + 1;
+      final hints = [...updated.hints, _randomHint()];
+      final opened = layersRevealed >= updated.layersTotal;
+      updated = updated.copyWith(
+        layersRevealed: layersRevealed,
+        hints: hints,
+        opened: opened,
+      );
     }
 
-    notifyListeners();
-    return outcome;
+    // AI attempts aren't tracked through _applyAttempt, so fabricate a
+    // feed row here too.
+    if (pkg.currentHop.holderId != _state.user.id) {
+      _state = _state.copyWith(
+        feed: _prependFeed(FeedEntry(
+          id: _newId('feed'),
+          playerId: pkg.currentHop.holderId,
+          packageId: pkg.id,
+          outcome: outcome,
+          at: attemptedAt,
+        )),
+      );
+    }
+    return updated;
+  }
+
+  /// Advance one package's hop chain — either bounces to the next holder
+  /// or spawns a fresh package if the current one is open.
+  Package _advanceHopOn(Package pkg, DateTime now) {
+    if (pkg.opened) {
+      return _freshPackage(
+        scope: pkg.scope,
+        regionCode: pkg.regionCode,
+        regionLabel: pkg.regionLabel,
+        regionEmoji: pkg.regionEmoji,
+        theme: pkg.theme,
+        name: pkg.name,
+        now: now,
+        startingAccumulated: pkg.peelsAccumulated, // keep the counter
+      );
+    }
+    final prevHolder = pkg.currentHop.holderId;
+    final nextHolder = _pickNextHolder(prevHolder);
+    final hop = _newHop(holderId: nextHolder, now: now);
+
+    if (nextHolder == _state.user.id) {
+      // Fire the arrival hook on the state level.
+      _state = _state.copyWith(lastArrivedToUserAt: now);
+      _sounds.play(SoundEffect.revealChime);
+      _notifications.showImmediate(
+        'Open PEELED — you have one peel attempt waiting.',
+      );
+    }
+    return pkg.copyWith(hops: [...pkg.hops, hop]);
   }
 
   // ---------------------------------------------------------------------------
@@ -403,25 +478,37 @@ class GameSimulator extends ChangeNotifier {
 
   GameState _bootstrap() {
     final now = DateTime.now();
-    // Start the first hop a few seconds ago so the remaining timer isn't
-    // suspiciously round — and pick a random AI city so the user sees
-    // motion immediately.
-    final starter = AiPlayers.all[_rng.nextInt(AiPlayers.all.length)].id;
-    final hop = _newHop(holderId: starter, now: now);
-    final pkg = Package(
-      id: _newId('pkg'),
-      rarity: _pickRarity(),
-      layersTotal: GameConfig.minLayers +
-          _rng.nextInt(GameConfig.maxLayers - GameConfig.minLayers + 1),
-      layersRevealed: 0,
-      hints: const [],
-      hops: [hop],
-      createdAt: now,
+    // Two starter packages: a long-running global one and a regional
+    // USA one. The global one is seeded with a big "accumulated peels"
+    // number so the counter on Home looks instantly alive.
+    final global = _freshPackage(
+      scope: PackageScope.global,
+      regionCode: 'global',
+      regionLabel: 'Worldwide',
+      regionEmoji: '🌍',
+      theme: PackageTheme.rarity,
+      name: 'Global Package',
+      now: now,
+      startingAccumulated: 48213 + _rng.nextInt(900),
+      rarity: PackageRarity.epic,
+      layersTotal: 50,
+    );
+    final usa = _freshPackage(
+      scope: PackageScope.region,
+      regionCode: 'usa',
+      regionLabel: 'United States',
+      regionEmoji: '🇺🇸',
+      theme: PackageTheme.usaFlag,
+      name: 'USA Drop',
+      now: now,
+      startingAccumulated: 2047 + _rng.nextInt(500),
+      rarity: PackageRarity.rare,
+      layersTotal: 10,
     );
     return GameState(
       players: AiPlayers.all,
       user: GameUser.guest,
-      package: pkg,
+      packages: [global, usa],
       feed: const [],
       now: now,
       lastArrivedToUserAt: null,
@@ -433,61 +520,39 @@ class GameSimulator extends ChangeNotifier {
     );
   }
 
-  void _advanceHop(DateTime now) {
-    if (_state.package.opened) {
-      _startNewPackage(now);
-      return;
-    }
-    final prevHolder = _state.package.currentHop.holderId;
-    final nextHolder = _pickNextHolder(prevHolder);
-    final hop = _newHop(holderId: nextHolder, now: now);
-    final pkg = _state.package.copyWith(hops: [..._state.package.hops, hop]);
-
-    DateTime? arrived = _state.lastArrivedToUserAt;
-    if (nextHolder == _state.user.id) {
-      arrived = now;
-      // Foreground arrival: play a chime + fire a local notification so
-      // the OS surface is consistent whether the app is open or backgrounded.
-      _sounds.play(SoundEffect.revealChime);
-      _notifications.showImmediate(
-        'Open PEELED — you have one peel attempt waiting.',
-      );
-    }
-
-    _state = _state.copyWith(
-      now: now,
-      package: pkg,
-      lastArrivedToUserAt: arrived,
-    );
-    notifyListeners();
-  }
-
-  void _startNewPackage(DateTime now) {
-    final starter = _pickNextHolder(_state.package.currentHop.holderId);
+  /// Build a brand-new package (fresh hop chain, zero layers revealed).
+  Package _freshPackage({
+    required PackageScope scope,
+    required String regionCode,
+    required String regionLabel,
+    required String regionEmoji,
+    required PackageTheme theme,
+    required String name,
+    required DateTime now,
+    required int startingAccumulated,
+    PackageRarity? rarity,
+    int? layersTotal,
+  }) {
+    final starter = AiPlayers.all[_rng.nextInt(AiPlayers.all.length)].id;
     final hop = _newHop(holderId: starter, now: now);
-    final pkg = Package(
-      id: _newId('pkg'),
-      rarity: _pickRarity(),
-      layersTotal: GameConfig.minLayers +
-          _rng.nextInt(GameConfig.maxLayers - GameConfig.minLayers + 1),
+    return Package(
+      id: _newId('pkg_${regionCode}'),
+      name: name,
+      scope: scope,
+      regionCode: regionCode,
+      regionLabel: regionLabel,
+      regionEmoji: regionEmoji,
+      theme: theme,
+      rarity: rarity ?? _pickRarity(),
+      layersTotal: layersTotal ??
+          GameConfig.minLayers +
+              _rng.nextInt(GameConfig.maxLayers - GameConfig.minLayers + 1),
       layersRevealed: 0,
       hints: const [],
       hops: [hop],
       createdAt: now,
+      peelsAccumulated: startingAccumulated,
     );
-    DateTime? arrived = _state.lastArrivedToUserAt;
-    if (starter == _state.user.id) {
-      arrived = now;
-      _sounds.play(SoundEffect.revealChime);
-      _notifications
-          .showImmediate('A new package landed in your hands. Tap to peel.');
-    }
-    _state = _state.copyWith(
-      now: now,
-      package: pkg,
-      lastArrivedToUserAt: arrived,
-    );
-    notifyListeners();
   }
 
   PackageHop _newHop({required String holderId, required DateTime now}) {

@@ -9,6 +9,7 @@ class GameUser {
     required this.avatarUrl,
     required this.city,
     required this.flag,
+    required this.regionCode,
     required this.coins,
     required this.gems,
     required this.packagesOpened,
@@ -22,6 +23,7 @@ class GameUser {
   final String avatarUrl;
   final String city;
   final String flag;
+  final String regionCode;
   final int coins;
   final int gems;
   final int packagesOpened;
@@ -35,10 +37,12 @@ class GameUser {
     id: 'me',
     handle: 'you',
     avatarEmoji: '🎁',
-    // Default real-portrait — replaced when the user picks one in Auth.
     avatarUrl: 'https://i.pravatar.cc/200?img=1',
     city: 'Earth',
     flag: '🌍',
+    // Default to 'usa' so the ships-with USA drop shows in testing.
+    // Replaced with the real region once we wire geolocation.
+    regionCode: 'usa',
     coins: 0,
     gems: 0,
     packagesOpened: 0,
@@ -52,6 +56,7 @@ class GameUser {
     String? avatarUrl,
     String? city,
     String? flag,
+    String? regionCode,
     int? coins,
     int? gems,
     int? packagesOpened,
@@ -65,6 +70,7 @@ class GameUser {
         avatarUrl: avatarUrl ?? this.avatarUrl,
         city: city ?? this.city,
         flag: flag ?? this.flag,
+        regionCode: regionCode ?? this.regionCode,
         coins: coins ?? this.coins,
         gems: gems ?? this.gems,
         packagesOpened: packagesOpened ?? this.packagesOpened,
