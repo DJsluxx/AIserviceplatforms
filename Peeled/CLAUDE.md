@@ -191,12 +191,13 @@ This repo is wired so a dispatched Claude Code session running on Daniel's **loc
 - Prefer **plan-first**: write a short plan → get it reviewed by the in-session `Plan` subagent → then execute.
 - Before declaring done, run a **self-critique pass**: "what would a senior reviewer reject?" and fix it.
 
-### 12.2 Permissions + local tools
-- Permissions, hooks, model, and env are pinned in [`.claude/settings.json`](.claude/settings.json). Do not weaken them.
-- Default permission mode is `acceptEdits` — file edits auto-apply; destructive/irreversible actions still prompt.
-- Allowlisted locally: `flutter`, `dart`, `python`, `pytest`, `ruff`, `mypy`, `docker`, `docker compose`, `psql`, `redis-cli`, `supabase`, `npm`/`pnpm`/`yarn`, standard `git` verbs, `gh`, and safe FS ops.
-- Hard-denied: reading any `.env` / private keys / service-account JSON, `rm -rf` on HOME/`/`, `git push --force`, `git reset --hard` onto `main`/`master`, disk-destroying commands.
-- If a needed command is not allowed, **propose the addition in the PR**, don't disable the block.
+### 12.2 Permissions + local tools (OWNER MODE)
+- Permissions, hooks, model, and env are pinned in [`.claude/settings.json`](.claude/settings.json).
+- **Daniel is the sole owner**, so sessions run in **`bypassPermissions`** mode. No approval prompts, no friction. Act decisively.
+- Allowlist is effectively everything: `Bash(*)`, `Read(**)`, `Write(**)`, `Edit(**)`, `WebFetch`, `WebSearch`. Use any local tool that helps: `flutter`, `dart`, `python`, `pytest`, `ruff`, `mypy`, `docker`, `docker compose`, `psql`, `redis-cli`, `supabase`, `npm`/`pnpm`/`yarn`, full `git` + `gh`, anything else on the machine.
+- **Floor-level denies only** (the only things we will NOT do): `rm -rf /`, `rm -rf ~`, `mkfs*`, `dd if=* of=/dev/*`, `shutdown`, `reboot`, fork bombs. Everything else — including `git push --force`, `git reset --hard`, branch deletion — is the owner's call; do it when the owner asks or when root-causing clearly requires it.
+- **Push directly to `main`** when the task is done and the checks are green. Feature branches are optional, not mandatory. PRs are optional — open one only if the change warrants review or staging gating. Daniel merges every PR to `main` anyway.
+- Never commit `.env*`, private keys, or service-account JSON (that's a *secrets* floor, not a permissions one).
 
 ### 12.3 Subagents (use them — they exist for a reason)
 - **`Explore`** — open-ended codebase search and "where does X live?". Use before editing unfamiliar areas.
@@ -205,7 +206,7 @@ This repo is wired so a dispatched Claude Code session running on Daniel's **loc
 - Launch independent subagents **in parallel** (one message, multiple tool calls). Never serialize independent work.
 
 ### 12.4 Session start checklist (run every dispatched session)
-1. `git status` + `git rev-parse --abbrev-ref HEAD` — confirm clean tree and feature branch.
+1. `git status` + `git rev-parse --abbrev-ref HEAD` — see the state. Being on `main` is fine; owner-mode sessions push there directly.
 2. Re-read this file, [docs/GDD.md](docs/GDD.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/ROADMAP.md](docs/ROADMAP.md).
 3. `cd server && ruff check . && mypy app && pytest -q` — baseline must be green before you touch anything.
 4. `cd app && flutter analyze && flutter test` — same for the client.
@@ -213,20 +214,27 @@ This repo is wired so a dispatched Claude Code session running on Daniel's **loc
 6. Only after 1–5 pass: start the requested task.
 
 ### 12.5 Definition of "above-and-beyond"
-For any feature Daniel assigns, the session should deliver, in this order:
+Daniel's rule: *"Go above and beyond to make this perfect."* That means every session does ALL of the following, not just the one the task asked about:
+
 1. **Correct.** Passes existing tests + new tests. TDD for game logic.
 2. **Observable.** Sentry breadcrumbs / structured logs / PostHog events where they matter.
 3. **Safe.** Rate-limited, RLS-checked, server-authoritative. Anti-cheat signature on any new gameplay action.
-4. **Performant.** No N+1s, no unbounded queries, no blocking I/O on the event loop.
-5. **Documented.** Update [CLAUDE.md](CLAUDE.md), [docs/API.md](docs/API.md), [docs/ROADMAP.md](docs/ROADMAP.md) when relevant.
-6. **Shippable.** Lint + type + tests green; PR description explains the why and the tradeoffs; migration is reversible.
+4. **Performant.** No N+1s, no unbounded queries, no blocking I/O on the event loop. Target 60 fps on the peel animation, <100 ms p95 on gameplay endpoints.
+5. **Polish on the way.** Any rough edge you pass — a weird typo, an ugly log line, a confusing variable name, a jank animation, a slow query, a missing loading state, a dead code path, an inconsistent spacing in the UI — **fix it in the same PR**. You don't need permission to polish.
+6. **Efficiency + optimization scan.** Each task ends with a conscious pass: *"Where is this slower than it needs to be? Where do we waste memory, tokens, bandwidth, DB round-trips, cold-start time, bundle size? What can I make 2× better in 5 minutes?"* Fix the top 1–3 wins; note the rest in [docs/ROADMAP.md](docs/ROADMAP.md).
+7. **Creativity + "what's next?"** At the end of each task, ask: *"If I were Daniel, what would I wish this session had also thought of? What's the next adjacent improvement — a nicer animation, a better empty state, a smarter default, a cleverer reward, a viral share-mechanic, a smaller install size, a faster onboarding?"* Implement one of those. Queue the rest in [docs/ROADMAP.md](docs/ROADMAP.md) under "Post-Launch Backlog" or a new "Ideas" section.
+8. **UI / UX mindset.** Every visible change has to *feel* premium. Check: typography rhythm, spacing scale, color contrast (WCAG AA), micro-interactions, haptics, sound, empty states, loading skeletons, error states, success celebrations, dark mode, safe-area insets, one-handed reachability, localization readiness. If the UI is not delightful, it is not done.
+9. **Documented.** Update [CLAUDE.md](CLAUDE.md), [docs/API.md](docs/API.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/DESIGN.md](docs/DESIGN.md) when relevant.
+10. **Shippable.** Lint + type + tests green; migration reversible; if you opened a PR, it explains the *why* and the tradeoffs. Otherwise push to `main`.
+
+**The "ask yourself next" loop** is mandatory. Every task closes with a short "Next-Improvements" section in the commit/PR body listing 3–5 concrete follow-ups the session noticed but didn't do (with a rough size / value estimate). This is how PEELED compounds.
 
 ### 12.6 Dispatching more sessions from inside a session
 When *this* session dispatches a new Claude session (e.g. via `claude dispatch`, a worktree agent, or a CI-triggered run) it MUST pass the same guardrails forward:
 - Point the new session at this repo and at **this CLAUDE.md**.
 - Force `claude-opus-4-7` + extended thinking.
-- Inherit [`.claude/settings.json`](.claude/settings.json) (do not override permissions downward).
-- Develop on a dedicated feature branch — never directly on `main`.
+- Inherit [`.claude/settings.json`](.claude/settings.json) (owner-mode, bypass permissions).
+- Push directly to `main` when the task is green; feature branches are optional.
 - See [`DISPATCH_PROMPT.md`](DISPATCH_PROMPT.md) for the canonical prompt to hand to a dispatched session.
 
 ### 12.7 Update discipline
