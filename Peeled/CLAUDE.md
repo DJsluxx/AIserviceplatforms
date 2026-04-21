@@ -178,3 +178,56 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for milestones.
 3. **TDD for server game logic.** Router, layer engine, reward engine, anti-cheat — test-first, always.
 4. **Reference [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** before adding new services.
 5. **Update CLAUDE.md** if the tech stack, layout, or architecture changes.
+
+---
+
+## 12. Local Dispatch & Max-Capability Session
+
+This repo is wired so a dispatched Claude Code session running on Daniel's **local PC** boots with maximum tools, maximum model, and a clear "go beyond" playbook. When any new session starts here it MUST:
+
+### 12.1 Model + thinking
+- Use **`claude-opus-4-7`** (Opus 4.7, 1M context). Do not downgrade silently.
+- Run in **extended-thinking / ultra-think** mode for any non-trivial task (anything that touches server game logic, DB schema, auth, payments, anti-cheat, or cross-cutting refactors).
+- Prefer **plan-first**: write a short plan → get it reviewed by the in-session `Plan` subagent → then execute.
+- Before declaring done, run a **self-critique pass**: "what would a senior reviewer reject?" and fix it.
+
+### 12.2 Permissions + local tools
+- Permissions, hooks, model, and env are pinned in [`.claude/settings.json`](.claude/settings.json). Do not weaken them.
+- Default permission mode is `acceptEdits` — file edits auto-apply; destructive/irreversible actions still prompt.
+- Allowlisted locally: `flutter`, `dart`, `python`, `pytest`, `ruff`, `mypy`, `docker`, `docker compose`, `psql`, `redis-cli`, `supabase`, `npm`/`pnpm`/`yarn`, standard `git` verbs, `gh`, and safe FS ops.
+- Hard-denied: reading any `.env` / private keys / service-account JSON, `rm -rf` on HOME/`/`, `git push --force`, `git reset --hard` onto `main`/`master`, disk-destroying commands.
+- If a needed command is not allowed, **propose the addition in the PR**, don't disable the block.
+
+### 12.3 Subagents (use them — they exist for a reason)
+- **`Explore`** — open-ended codebase search and "where does X live?". Use before editing unfamiliar areas.
+- **`Plan`** — architect agent. Mandatory for any change touching `server/app/services/package_router.py`, `layer_engine.py`, `reward_engine.py`, `anti_cheat.py`, or `db/migrations/*`.
+- **`general-purpose`** — multi-step research tasks that would otherwise pollute the main context.
+- Launch independent subagents **in parallel** (one message, multiple tool calls). Never serialize independent work.
+
+### 12.4 Session start checklist (run every dispatched session)
+1. `git status` + `git rev-parse --abbrev-ref HEAD` — confirm clean tree and feature branch.
+2. Re-read this file, [docs/GDD.md](docs/GDD.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/ROADMAP.md](docs/ROADMAP.md).
+3. `cd server && ruff check . && mypy app && pytest -q` — baseline must be green before you touch anything.
+4. `cd app && flutter analyze && flutter test` — same for the client.
+5. `docker compose -f infra/docker-compose.yml up -d postgres redis` — have real infra for integration work.
+6. Only after 1–5 pass: start the requested task.
+
+### 12.5 Definition of "above-and-beyond"
+For any feature Daniel assigns, the session should deliver, in this order:
+1. **Correct.** Passes existing tests + new tests. TDD for game logic.
+2. **Observable.** Sentry breadcrumbs / structured logs / PostHog events where they matter.
+3. **Safe.** Rate-limited, RLS-checked, server-authoritative. Anti-cheat signature on any new gameplay action.
+4. **Performant.** No N+1s, no unbounded queries, no blocking I/O on the event loop.
+5. **Documented.** Update [CLAUDE.md](CLAUDE.md), [docs/API.md](docs/API.md), [docs/ROADMAP.md](docs/ROADMAP.md) when relevant.
+6. **Shippable.** Lint + type + tests green; PR description explains the why and the tradeoffs; migration is reversible.
+
+### 12.6 Dispatching more sessions from inside a session
+When *this* session dispatches a new Claude session (e.g. via `claude dispatch`, a worktree agent, or a CI-triggered run) it MUST pass the same guardrails forward:
+- Point the new session at this repo and at **this CLAUDE.md**.
+- Force `claude-opus-4-7` + extended thinking.
+- Inherit [`.claude/settings.json`](.claude/settings.json) (do not override permissions downward).
+- Develop on a dedicated feature branch — never directly on `main`.
+- See [`DISPATCH_PROMPT.md`](DISPATCH_PROMPT.md) for the canonical prompt to hand to a dispatched session.
+
+### 12.7 Update discipline
+Whenever you change tech stack, add a service, change a migration, or alter a core principle: **update this CLAUDE.md in the same PR**. A stale CLAUDE.md is treated as a bug.
