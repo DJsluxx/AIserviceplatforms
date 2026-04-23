@@ -471,6 +471,7 @@ class GameSimulator extends ChangeNotifier {
       _sounds.play(SoundEffect.revealChime);
       _notifications.showImmediate(
         'Open PEELED — you have one peel attempt waiting.',
+        deepLink: '/opening/${pkg.id}',
       );
     }
     return pkg.copyWith(hops: [...pkg.hops, hop]);

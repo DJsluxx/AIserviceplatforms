@@ -31,6 +31,18 @@ class NotificationService {
   bool _enabled = true;
   final Random _rng = Random();
 
+  /// Deep-link payload used on every scheduled/immediate notification.
+  /// When the user taps the notification, the payload is handed to
+  /// [onTap] (set by the app). The convention is a go_router path,
+  /// e.g. `"/opening/pkg_123"`, or the sentinel `"/home"` when no
+  /// specific package is known yet.
+  String _lastPayload = '/home';
+
+  /// App-level callback fired with the notification payload when the
+  /// user taps a PEELED notification. Set once from main.dart so the
+  /// router can navigate.
+  void Function(String payload)? onTap;
+
   /// Initialise the plugin, request permission on Android 13+ / iOS,
   /// and create the Android channel. Safe to call repeatedly. Returns
   /// quietly on web.
@@ -45,6 +57,10 @@ class NotificationService {
     );
     await _plugin.initialize(
       const InitializationSettings(android: android, iOS: ios),
+      onDidReceiveNotificationResponse: (resp) {
+        final payload = resp.payload ?? _lastPayload;
+        onTap?.call(payload);
+      },
     );
 
     final androidImpl = _plugin.resolvePlatformSpecificImplementation<
@@ -116,6 +132,7 @@ class NotificationService {
             ),
             iOS: DarwinNotificationDetails(),
           ),
+          payload: _lastPayload,
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
@@ -127,9 +144,14 @@ class NotificationService {
   }
 
   /// Foreground arrival ping. Called from the simulator when the
-  /// package lands in the user's hands while the app is open.
-  Future<void> showImmediate(String body) async {
+  /// package lands in the user's hands while the app is open. If
+  /// [deepLink] is provided it becomes the notification's tap payload;
+  /// we also store it as a fallback for the staggered reminders that
+  /// fire later.
+  Future<void> showImmediate(String body, {String? deepLink}) async {
     if (kIsWeb || !_enabled || !_initialized) return;
+    final payload = deepLink ?? _lastPayload;
+    _lastPayload = payload;
     try {
       await _plugin.show(
         0,
@@ -145,6 +167,7 @@ class NotificationService {
           ),
           iOS: DarwinNotificationDetails(),
         ),
+        payload: payload,
       );
     } catch (_) {/* swallow */}
   }

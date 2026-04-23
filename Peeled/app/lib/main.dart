@@ -38,6 +38,17 @@ class _PeeledAppState extends ConsumerState<PeeledApp>
     Future<void>.microtask(() async {
       final sim = ref.read(gameSimulatorProvider);
       await sim.notifications.init();
+      // Wire notification tap → deep link via go_router. Safe to set even
+      // on web (the service no-ops on web so this callback never fires).
+      sim.notifications.onTap = (payload) {
+        final router = ref.read(appRouterProvider);
+        // Accept either `/opening/<id>`, `/home`, or a bare id fallback.
+        if (payload.startsWith('/')) {
+          router.push(payload);
+        } else {
+          router.push('/home');
+        }
+      };
     });
   }
 

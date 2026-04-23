@@ -7,6 +7,7 @@ import '../../features/home/home_screen.dart';
 import '../../features/intro/intro_screen.dart';
 import '../../features/leaderboard/leaderboard_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/opening/opening_screen.dart';
 import '../../features/package/peel_screen.dart';
 import '../../features/package_detail/package_detail_screen.dart';
 import '../../features/profile/profile_screen.dart';
@@ -34,6 +35,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/peel/:id',
         builder: (_, state) =>
             PeelScreen(packageId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/opening/:id',
+        builder: (_, state) =>
+            OpeningPackageScreen(packageId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/map',
