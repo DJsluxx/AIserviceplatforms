@@ -3,8 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/theme/app_colors.dart';
-
 /// Circular "press-and-hold" ring that fills as the user sustains contact.
 ///
 /// Anti-cheat: a single tap will NEVER trigger a peel. The user must hold

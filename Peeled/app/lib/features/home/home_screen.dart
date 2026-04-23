@@ -8,6 +8,7 @@ import '../../core/theme/app_tokens.dart';
 import '../../data/models/game_state.dart';
 import '../../data/models/player.dart';
 import '../../data/providers.dart';
+import '../../data/services/game_simulator.dart';
 import '../../shared/widgets/coin_balance.dart';
 import '../../shared/widgets/juicy_button.dart';
 import '../../shared/widgets/peel_wordmark.dart';
