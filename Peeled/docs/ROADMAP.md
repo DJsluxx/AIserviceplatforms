@@ -1,6 +1,6 @@
 # PEELED — Roadmap
 
-**Last updated:** 2026-04-18
+**Last updated:** 2026-04-23
 
 ---
 
@@ -17,13 +17,16 @@
 - [x] Docker compose for local dev
 
 ### M1 — Core Loop Playable (Weeks 2–3)
-- [ ] End-to-end: receive → peel → pass → receive again (no bots yet)
-- [ ] Live globe with 5 concurrent arcs
-- [ ] Auth (email + anon)
-- [ ] FCM push fully wired
-- [ ] 3 rarity tiers working with reward delivery
-- [ ] Basic leaderboard (weekly global)
+- [x] End-to-end: receive → peel → pass → receive again (sim, pre-server)
+- [ ] Live globe with 5 concurrent arcs (partial: map features them, tuning pending)
+- [ ] Auth (email + anon) — UI only right now
+- [ ] FCM push fully wired — local notifications working, FCM token flow pending
+- [x] Deep-link from notification → `/opening/:id`
+- [ ] 3 rarity tiers working with reward delivery (6 rarities exist, reward ties in)
+- [ ] Basic leaderboard (weekly global) — UI shipped, backend pending
 - [ ] Share card generator (PNG)
+- [x] **Sanctuary Home** — floating hero package, beam of light, stylised globe, hex pedestal, rarity-themed dust, holder chip with live glow, compressed live packages rail
+- [x] **Opening screen** — cinematic press-and-hold-to-peel ring with staged haptics, unwrap burst, idempotent server-authoritative attempt, reduced-motion fallback, anti-cheat guards (not-holder / already-peeled / expired hop)
 
 ### M2 — Social + Monetization (Weeks 4–5)
 - [ ] Friends (follow model) + send-to-friend

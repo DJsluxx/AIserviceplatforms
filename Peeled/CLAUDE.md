@@ -162,10 +162,10 @@ Never commit `.env`. Copy `.env.example` and fill in values.
 
 ## 10. Current Status
 
-- **Phase:** Initial scaffold + foundational systems (Week 1).
-- **Built:** GDD, architecture doc, DB schema, FastAPI skeleton with package router, Flutter skeleton with peel-screen prototype, CI pipelines, Docker compose.
-- **Next:** Payment integration (IAP + RevenueCat), Mapbox globe tuning, FCM push wiring, playtest telemetry, seasonal event engine.
-- **Launch target:** Beta in 8 weeks. Soft-launch in 1 market, then global.
+- **Phase:** M1 core-loop sim playable end-to-end on web + mobile (Week 3).
+- **Built:** GDD, architecture doc, DB schema, FastAPI skeleton with package router, Flutter client with the new **Sanctuary Home** (floating hero package on hex pedestal, rarity-themed beam of light, stylised globe, ambient dust, compressed live rail, holder chip with live glow), **cinematic Opening flow** (`/opening/:id`) with press-and-hold-to-peel anti-cheat gesture, idempotent reward delivery through the sim, notification deep-link wiring, reduced-motion fallback + semantics, CI pipelines, Docker compose.
+- **Next:** real backend (FastAPI endpoints + Postgres event sourcing + server-signed action tokens), FCM (real push, not just local notifications), Mapbox globe tuning for 5 concurrent arcs, 3-tier reward delivery hardening, share-card PNG generator, seasonal event engine.
+- **Launch target:** Beta in 6 weeks. Soft-launch in 1 market, then global.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for milestones.
 
