@@ -23,12 +23,17 @@ class GameConfig {
   /// short grace so the player sees the result then it hops on.
   static const Duration postAttemptGrace = Duration(seconds: 3);
 
-  /// Probability a single peel attempt reveals a layer.
-  static const double peelHitChance = 0.40;
+  /// Per-tick probability an AI holder chooses to peel, *given* they
+  /// are in the "active" cohort this hop. ~15 % per 1 s tick ≈ avg peel
+  /// at ~7 s of a 5-minute window, which matches "engaged player
+  /// reacting to a push". Tune up to make the world feel busier.
+  static const double aiPeelChancePerTick = 0.15;
 
-  /// Per-tick chance an AI holder decides to peel. ~5 % = on average an
-  /// AI attempts ~20 s in, well under the min 30 s window.
-  static const double aiAttemptChancePerTick = 0.05;
+  /// Per-hop probability an AI holder is "idle" — they won't peel at
+  /// all, the hop expires, and the package keeps traveling as a
+  /// timeout miss. Keeps the live feed varied: most hops produce a
+  /// layer, a minority occasionally "fall asleep on the package".
+  static const double aiIdleChancePerHop = 0.09;
 
   /// Per-package bias toward picking the user as next holder while
   /// the real-player base is small. 0.33 means ~1 in 3 hops lands in
@@ -213,6 +218,12 @@ class GameSimulator extends ChangeNotifier {
   late GameState _state;
   Timer? _ticker;
 
+  /// AI hops that rolled "idle" at start — these hops will intentionally
+  /// NOT peel. When the 5-minute window expires they produce a timeout
+  /// miss ('fell asleep on the package'). Keyed by PackageHop.id so a
+  /// fresh hop to the same AI gets a new roll.
+  final Set<String> _aiIdleHops = <String>{};
+
   GameState get state => _state;
   SoundService get sounds => _sounds;
   NotificationService get notifications => _notifications;
@@ -229,15 +240,22 @@ class GameSimulator extends ChangeNotifier {
   // Public API
   // ---------------------------------------------------------------------------
 
-  /// Player tapped peel on [packageId]. Exactly one attempt per hop.
+  /// Player committed a peel on [packageId]. By design, every successful
+  /// action peels exactly one layer — luck only enters the game via
+  /// WHICH layer (and therefore whether this peel happens to be the
+  /// final one that opens the package). Idempotent: re-calls after the
+  /// hop resolved return the recorded outcome unchanged.
+  ///
+  /// The only way a holder produces a "miss" is by NOT peeling in their
+  /// 5-minute window — that's the timeout path, driven by the ticker.
   PeelOutcome userPeel(String packageId) {
     final pkg = _state.packageById(packageId);
     if (pkg == null) return PeelOutcome.none;
     if (pkg.currentHop.holderId != _state.user.id) return PeelOutcome.none;
     if (pkg.currentHop.peelAttempted) return pkg.currentHop.outcome;
+    if (pkg.currentHop.isExpired(DateTime.now())) return PeelOutcome.miss;
     final now = DateTime.now();
-    final hit = _rng.nextDouble() < GameConfig.peelHitChance;
-    return _applyAttempt(pkg: pkg, hit: hit, attemptedAt: now);
+    return _applyAttempt(pkg: pkg, attemptedAt: now);
   }
 
   void setSoundEnabled(bool v) {
@@ -309,15 +327,21 @@ class GameSimulator extends ChangeNotifier {
         pkg = pkg.copyWith(peelsAccumulated: pkg.peelsAccumulated + ambient);
       }
 
-      // Expired hop? Advance.
+      // Expired hop? Mark it as a timeout miss (if no attempt happened)
+      // and advance to the next holder.
       if (pkg.currentHop.isExpired(now)) {
+        if (!pkg.currentHop.peelAttempted) {
+          pkg = _markHopTimeout(pkg, now);
+        }
         pkg = _advanceHopOn(pkg, now);
       } else if (pkg.currentHop.holderId != _state.user.id &&
           !pkg.currentHop.peelAttempted) {
-        // AI holder: maybe attempt.
-        if (_rng.nextDouble() < GameConfig.aiAttemptChancePerTick) {
-          final hit = _rng.nextDouble() < GameConfig.peelHitChance;
-          pkg = _applyAttemptOn(pkg, hit: hit, attemptedAt: now);
+        // AI holder — respect per-hop idle roll. Active holders peel
+        // within a few seconds; idle ones stay silent and time out.
+        final idle = _aiIdleHops.contains(pkg.currentHop.id);
+        if (!idle &&
+            _rng.nextDouble() < GameConfig.aiPeelChancePerTick) {
+          pkg = _applyAttemptOn(pkg, attemptedAt: now);
         }
       }
 
@@ -336,14 +360,14 @@ class GameSimulator extends ChangeNotifier {
     }
   }
 
-  /// Apply a user or AI peel attempt and return the new state's outcome.
-  /// Kept as a convenience over [_applyAttemptOn] for the user path.
+  /// Apply a user peel. ALWAYS reveals a layer (the spec: every action
+  /// peels). Never misses from an action — misses only come from the
+  /// timeout path in [_markHopTimeout].
   PeelOutcome _applyAttempt({
     required Package pkg,
-    required bool hit,
     required DateTime attemptedAt,
   }) {
-    final updated = _applyAttemptOn(pkg, hit: hit, attemptedAt: attemptedAt);
+    final updated = _applyAttemptOn(pkg, attemptedAt: attemptedAt);
     final idx = _state.packages.indexWhere((p) => p.id == pkg.id);
     final packages = List<Package>.from(_state.packages);
     packages[idx] = updated;
@@ -358,23 +382,26 @@ class GameSimulator extends ChangeNotifier {
       user = user.copyWith(totalPeels: user.totalPeels + 1);
       _sounds.play(SoundEffect.peelPop);
       Future<void>.delayed(const Duration(milliseconds: 120), () {
-        _sounds.play(hit ? SoundEffect.revealChime : SoundEffect.missWhoosh);
+        _sounds.play(SoundEffect.revealChime);
       });
-      if (hit) {
-        final coins = GameConfig.minCoinsPerLayer +
-            _rng.nextInt(
-                GameConfig.maxCoinsPerLayer - GameConfig.minCoinsPerLayer + 1);
-        user = user.copyWith(
-          coins: user.coins + coins,
-          layersPeeled: user.layersPeeled + 1,
-        );
-        if (updated.opened) {
-          user = user.copyWith(packagesOpened: user.packagesOpened + 1);
-          lastOpened = attemptedAt;
-          Future<void>.delayed(const Duration(milliseconds: 350), () {
-            _sounds.play(SoundEffect.openFanfare);
-          });
-        }
+      var coins = GameConfig.minCoinsPerLayer +
+          _rng.nextInt(GameConfig.maxCoinsPerLayer -
+              GameConfig.minCoinsPerLayer +
+              1);
+      // Final-layer jackpot: double the coin drop when the user's peel
+      // happens to be the one that opens the package. Gives the win
+      // moment real weight.
+      if (updated.opened) coins *= 2;
+      user = user.copyWith(
+        coins: user.coins + coins,
+        layersPeeled: user.layersPeeled + 1,
+      );
+      if (updated.opened) {
+        user = user.copyWith(packagesOpened: user.packagesOpened + 1);
+        lastOpened = attemptedAt;
+        Future<void>.delayed(const Duration(milliseconds: 350), () {
+          _sounds.play(SoundEffect.openFanfare);
+        });
       }
       lastOutcome = attemptedAt;
     }
@@ -399,50 +426,77 @@ class GameSimulator extends ChangeNotifier {
     return updated.currentHop.outcome;
   }
 
-  /// Like [_applyAttempt] but pure — it only returns the updated
-  /// Package, it does not touch the user stats / sounds / feed. Used
-  /// from inside the tick loop for AI attempts; the outer loop then
-  /// appends a feed row.
+  /// Pure-data peel: stamps the current hop with a HIT, appends a hint
+  /// and increments layersRevealed (opening the package if the final
+  /// layer), and adds +1 to peelsAccumulated. No side-effects on sounds
+  /// / user stats / feed beyond the AI-feed shortcut. Used both by the
+  /// user path (through [_applyAttempt]) and by the AI tick.
   Package _applyAttemptOn(
     Package pkg, {
-    required bool hit,
     required DateTime attemptedAt,
   }) {
-    final outcome = hit ? PeelOutcome.hit : PeelOutcome.miss;
     final newExpiry = attemptedAt.add(GameConfig.postAttemptGrace);
     final updatedHop = pkg.currentHop.copyWith(
-      outcome: outcome,
+      outcome: PeelOutcome.hit,
       attemptedAt: attemptedAt,
       expiresAt: newExpiry,
     );
-    var updated = pkg.copyWith(
+    final layersRevealed = pkg.layersRevealed + 1;
+    final hints = [...pkg.hints, _randomHint()];
+    final opened = layersRevealed >= pkg.layersTotal;
+    final updated = pkg.copyWith(
       hops: [...pkg.hops..removeLast(), updatedHop],
       peelsAccumulated: pkg.peelsAccumulated + 1,
+      layersRevealed: layersRevealed,
+      hints: hints,
+      opened: opened,
     );
-    if (hit) {
-      final layersRevealed = updated.layersRevealed + 1;
-      final hints = [...updated.hints, _randomHint()];
-      final opened = layersRevealed >= updated.layersTotal;
-      updated = updated.copyWith(
-        layersRevealed: layersRevealed,
-        hints: hints,
-        opened: opened,
-      );
-    }
 
-    // AI attempts aren't tracked through _applyAttempt, so fabricate a
-    // feed row here too.
+    // AI peels aren't routed through [_applyAttempt], so fabricate the
+    // feed row inline. Don't duplicate the user path — it appends its
+    // own row after this returns.
     if (pkg.currentHop.holderId != _state.user.id) {
       _state = _state.copyWith(
         feed: _prependFeed(FeedEntry(
           id: _newId('feed'),
           playerId: pkg.currentHop.holderId,
           packageId: pkg.id,
-          outcome: outcome,
+          outcome: PeelOutcome.hit,
           at: attemptedAt,
         )),
       );
     }
+    return updated;
+  }
+
+  /// Stamps an expired-without-action hop as a timeout miss and appends
+  /// a "fell asleep on the package" feed row. Called from the tick loop
+  /// just before we advance to the next holder.
+  Package _markHopTimeout(Package pkg, DateTime at) {
+    final updatedHop = pkg.currentHop.copyWith(
+      outcome: PeelOutcome.miss,
+      attemptedAt: at,
+    );
+    final updated = pkg.copyWith(
+      hops: [...pkg.hops..removeLast(), updatedHop],
+    );
+    // Emit a miss feed row — ONLY fabricated here; not when a hop
+    // successfully peels.
+    _state = _state.copyWith(
+      feed: _prependFeed(FeedEntry(
+        id: _newId('feed'),
+        playerId: pkg.currentHop.holderId,
+        packageId: pkg.id,
+        outcome: PeelOutcome.miss,
+        at: at,
+      )),
+    );
+    // If this was the user's hop and it quietly timed out, surface a
+    // soft whoosh so the app doesn't feel dead.
+    if (pkg.currentHop.holderId == _state.user.id) {
+      _sounds.play(SoundEffect.missWhoosh);
+    }
+    _aiIdleHops.remove(pkg.currentHop.id);
     return updated;
   }
 
@@ -465,12 +519,21 @@ class GameSimulator extends ChangeNotifier {
     final nextHolder = _pickNextHolder(prevHolder);
     final hop = _newHop(holderId: nextHolder, now: now);
 
+    // Roll per-hop idle for AI holders. Idle = won't peel, will let the
+    // 5-minute window expire. Keeps the feed varied ("fell asleep on
+    // the package" showing occasionally) without making every hop
+    // guaranteed to peel.
+    if (nextHolder != _state.user.id &&
+        _rng.nextDouble() < GameConfig.aiIdleChancePerHop) {
+      _aiIdleHops.add(hop.id);
+    }
+
     if (nextHolder == _state.user.id) {
       // Fire the arrival hook on the state level.
       _state = _state.copyWith(lastArrivedToUserAt: now);
       _sounds.play(SoundEffect.revealChime);
       _notifications.showImmediate(
-        'Open PEELED — you have one peel attempt waiting.',
+        'Open PEELED — peel a layer before the timer runs out.',
         deepLink: '/opening/${pkg.id}',
       );
     }
@@ -496,7 +559,9 @@ class GameSimulator extends ChangeNotifier {
       now: now,
       startingAccumulated: 48213 + _rng.nextInt(900),
       rarity: PackageRarity.epic,
-      layersTotal: 50,
+      // 21 real layers to open under the new "every action peels one
+      // layer" mechanic. Feels legendary but is actually reachable.
+      layersTotal: 21,
     );
     final usa = _freshPackage(
       scope: PackageScope.region,

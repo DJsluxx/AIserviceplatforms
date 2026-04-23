@@ -417,48 +417,59 @@ class _PeelTargetState extends State<_PeelTarget>
   }
 }
 
+/// Layer counter that hides the total — players must peel to find out
+/// how many layers the package has. Shows the revealed count plus a
+/// trailing "???" so the unknown depth is front-of-mind.
 class _LayersIndicator extends StatelessWidget {
-  const _LayersIndicator(
-      {required this.revealed,
-      required this.total,
-      required this.color});
+  const _LayersIndicator({
+    required this.revealed,
+    required this.total, // kept for backwards compat; ignored in the UI.
+    required this.color,
+  });
   final int revealed;
   final int total;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    if (total > 14) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.layers_outlined,
-              size: 14, color: AppColors.textMuted),
-          const SizedBox(width: 6),
-          Text('$revealed revealed',
-              style: const TextStyle(
-                  color: AppColors.textOnDark, fontWeight: FontWeight.w800)),
-        ],
-      );
-    }
+    final cap = revealed.clamp(0, 8);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(total, (i) {
-        final on = i < revealed;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 3),
-          child: Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: on ? color : Colors.white.withOpacity(0.1),
-              border: Border.all(
-                  color: on ? color : Colors.white.withOpacity(0.15)),
+      children: [
+        const Icon(Icons.layers_outlined,
+            size: 14, color: AppColors.textMuted),
+        const SizedBox(width: 6),
+        for (int i = 0; i < cap; i++)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color,
+                border: Border.all(color: color),
+              ),
             ),
           ),
-        );
-      }),
+        if (revealed > 8)
+          Padding(
+            padding: const EdgeInsets.only(left: 2),
+            child: Text('+${revealed - 8}',
+                style: TextStyle(
+                    color: color, fontSize: 11, fontWeight: FontWeight.w800)),
+          ),
+        const SizedBox(width: 8),
+        Text(
+          '·  ???',
+          style: TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -367,7 +367,9 @@ class _FeedRow extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                   TextSpan(
-                    text: hit ? 'peeled a layer in ' : 'missed in ',
+                    text: hit
+                        ? 'peeled a layer in '
+                        : 'fell asleep on the package in ',
                     style: const TextStyle(color: AppColors.textMuted),
                   ),
                   TextSpan(text: '${p.city} ${p.flag}'),
@@ -378,7 +380,7 @@ class _FeedRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 6),
-          Text(hit ? '✨' : '🍃', style: const TextStyle(fontSize: 12)),
+          Text(hit ? '✨' : '💤', style: const TextStyle(fontSize: 12)),
           const SizedBox(width: 4),
           Text(
             _relative(state.now, entry.at),

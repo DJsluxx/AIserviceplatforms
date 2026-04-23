@@ -162,7 +162,7 @@ class _RailChip extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                '${package.regionEmoji} ${package.layersRevealed}/${package.layersTotal}',
+                '${package.regionEmoji} · ${package.layersRevealed}',
                 style: const TextStyle(
                   color: AppColors.textOnDark,
                   fontSize: 10,

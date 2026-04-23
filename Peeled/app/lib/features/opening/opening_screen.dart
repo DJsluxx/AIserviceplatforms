@@ -42,7 +42,14 @@ class OpeningPackageScreen extends ConsumerStatefulWidget {
       _OpeningPackageScreenState();
 }
 
-enum _Phase { arming, revealed, miss, opened }
+/// In the new core loop, every ACTED peel reveals a layer — so the
+/// commit state machine is:
+///   arming  → revealed   (a layer just peeled, package still traveling)
+///   arming  → opened     (final layer peeled, prize awarded)
+/// A "miss" only exists for timeout hops — those never reach this
+/// screen because the guard redirects them to the "window closed"
+/// scaffold before this enum matters.
+enum _Phase { arming, revealed, opened }
 
 class _OpeningPackageScreenState
     extends ConsumerState<OpeningPackageScreen> {
@@ -58,22 +65,19 @@ class _OpeningPackageScreenState
 
   void _handleCommit(WidgetRef ref, Package pkg) {
     final sim = ref.read(gameStateProvider);
-    final outcome = sim.userPeel(pkg.id);
-    setState(() {
-      _burstOn = outcome == PeelOutcome.hit;
-    });
+    // In the new mechanic the simulator always returns PeelOutcome.hit
+    // for an in-window action. We still trigger the burst up-front so
+    // the unwrap visual is in sync with the sound before the state
+    // propagates through the ChangeNotifier.
+    sim.userPeel(pkg.id);
+    setState(() => _burstOn = true);
     Future<void>.delayed(const Duration(milliseconds: 520), () {
       if (!mounted) return;
       final s = ref.read(gameStateProvider).state;
       final post = s.packageById(pkg.id);
       setState(() {
-        if (post != null && post.opened) {
-          _phase = _Phase.opened;
-        } else if (outcome == PeelOutcome.hit) {
-          _phase = _Phase.revealed;
-        } else {
-          _phase = _Phase.miss;
-        }
+        _phase =
+            (post != null && post.opened) ? _Phase.opened : _Phase.revealed;
       });
     });
   }
@@ -108,12 +112,13 @@ class _OpeningPackageScreenState
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         setState(() {
+          // Attempted hops are always hits in the new mechanic. If the
+          // hop somehow carries a miss (legacy state), bounce home —
+          // the window-closed guard will surface the right message.
           if (pkg.opened) {
             _phase = _Phase.opened;
           } else if (hop.outcome == PeelOutcome.hit) {
             _phase = _Phase.revealed;
-          } else {
-            _phase = _Phase.miss;
           }
         });
       });
@@ -203,7 +208,6 @@ class _OpeningPackageScreenState
                     sim.notifications.cancelAll();
                     context.go('/home');
                   },
-                  onPlayAgain: () => context.go('/home'),
                 ),
                 const SizedBox(height: AppSpacing.lg),
               ],
@@ -317,10 +321,7 @@ class _Instruction extends StatelessWidget {
         label = 'HOLD TO PEEL';
         break;
       case _Phase.revealed:
-        label = 'LAYER REVEALED';
-        break;
-      case _Phase.miss:
-        label = 'NO LUCK THIS TIME';
+        label = 'LAYER PEELED';
         break;
       case _Phase.opened:
         label = 'YOU OPENED IT';
@@ -406,14 +407,12 @@ class _BottomCards extends StatelessWidget {
     required this.phase,
     required this.coinsGained,
     required this.onDone,
-    required this.onPlayAgain,
   });
 
   final Package pkg;
   final _Phase phase;
   final int coinsGained;
   final VoidCallback onDone;
-  final VoidCallback onPlayAgain;
 
   @override
   Widget build(BuildContext context) {
@@ -440,15 +439,6 @@ class _BottomCards extends StatelessWidget {
           reward: coinsGained,
           primary: 'Back to Sanctuary',
           onPrimary: onDone,
-        );
-      case _Phase.miss:
-        return _ResultCard(
-          accent: AppColors.kraft,
-          emoji: '🍃',
-          title: 'The package slips away untouched.',
-          reward: 0,
-          primary: 'Watch it travel',
-          onPrimary: onPlayAgain,
         );
       case _Phase.opened:
         return _ResultCard(

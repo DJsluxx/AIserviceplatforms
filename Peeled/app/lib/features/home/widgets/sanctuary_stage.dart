@@ -36,16 +36,39 @@ class SanctuaryStage extends StatefulWidget {
 }
 
 class _SanctuaryStageState extends State<SanctuaryStage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   // Drives pedestal pulse (expanding rings).
   late final AnimationController _pulse = AnimationController(
     vsync: this,
     duration: const Duration(seconds: 4),
   )..repeat();
 
+  // One-shot ripple that plays whenever the featured package's layer
+  // count ticks up. Gives every peel a visible celebration.
+  late final AnimationController _peelRipple = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  );
+  int? _seenLayers;
+
+  @override
+  void didUpdateWidget(covariant SanctuaryStage old) {
+    super.didUpdateWidget(old);
+    final current = widget.package.layersRevealed;
+    if (_seenLayers == null || widget.package.id != old.package.id) {
+      _seenLayers = current;
+    } else if (current > _seenLayers!) {
+      _seenLayers = current;
+      _peelRipple
+        ..reset()
+        ..forward();
+    }
+  }
+
   @override
   void dispose() {
     _pulse.dispose();
+    _peelRipple.dispose();
     super.dispose();
   }
 
@@ -116,6 +139,27 @@ class _SanctuaryStageState extends State<SanctuaryStage>
                 ),
               ),
 
+              // Layer-peeled ripple — only animates while _peelRipple
+              // is forwarding. One-shot expanding ring centred on the
+              // pedestal.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _peelRipple,
+                    builder: (_, __) {
+                      final t = _peelRipple.value;
+                      if (t == 0) return const SizedBox.shrink();
+                      return CustomPaint(
+                        painter: _PeelRipplePainter(
+                          progress: t,
+                          accent: palette.fill,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+
               // Floating package — centred on the pedestal. Scaled in
               // with a soft spring on package swap.
               Positioned.fill(
@@ -173,7 +217,7 @@ class _SanctuaryStageState extends State<SanctuaryStage>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${_fmt(pkg.peelsAccumulated)} peels · layer ${pkg.layersRevealed}/${pkg.layersTotal}',
+                      '${_fmt(pkg.peelsAccumulated)} peels · ${pkg.layersRevealed} layers unwrapped',
                       style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 12,
@@ -251,6 +295,38 @@ class _RarityTag extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Painter for the peel-celebration ripple. Two concentric rings
+/// expanding from the pedestal centre, fading as they grow.
+class _PeelRipplePainter extends CustomPainter {
+  _PeelRipplePainter({required this.progress, required this.accent});
+  final double progress;
+  final Color accent;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height * 0.56);
+    final maxR = size.shortestSide * 0.55;
+    for (int i = 0; i < 2; i++) {
+      final t = (progress + i * 0.22).clamp(0.0, 1.0);
+      if (t <= 0 || t >= 1) continue;
+      final r = maxR * t;
+      final alpha = (1 - t) * (0.55 - i * 0.15);
+      canvas.drawCircle(
+        center,
+        r,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5
+          ..color = accent.withOpacity(alpha.clamp(0.0, 1.0)),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PeelRipplePainter old) =>
+      old.progress != progress || old.accent != accent;
 }
 
 class _CountdownCapsule extends StatelessWidget {
