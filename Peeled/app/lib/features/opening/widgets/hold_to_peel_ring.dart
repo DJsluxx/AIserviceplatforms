@@ -98,29 +98,61 @@ class _HoldToPeelRingState extends State<HoldToPeelRing>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _startHold(),
-      onTapUp: (_) => _cancelHold(),
-      onTapCancel: _cancelHold,
-      onLongPressStart: (_) => _startHold(),
-      onLongPressEnd: (_) => _cancelHold(),
-      onLongPressCancel: _cancelHold,
-      child: SizedBox(
-        width: widget.size,
-        height: widget.size,
-        child: AnimatedBuilder(
-          animation: _ctrl,
-          builder: (_, __) {
-            return CustomPaint(
-              painter: _RingPainter(
-                progress: _ctrl.value,
-                accent: widget.accent,
-                enabled: widget.enabled,
-              ),
-              child: Center(child: widget.child),
-            );
+    // Reduced-motion: drop the hold-ring interaction to a single button
+    // activation. Anti-cheat still enforced server-side; this just keeps
+    // the UX accessible to motor-impaired / reduced-motion users.
+    final reduce =
+        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (reduce) {
+      return Semantics(
+        button: true,
+        label: 'Peel the package',
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (!widget.enabled || _committed) return;
+            _committed = true;
+            if (widget.haptics) HapticFeedback.heavyImpact();
+            widget.onCommit();
           },
+          child: SizedBox(
+            width: widget.size,
+            height: widget.size,
+            child: Center(child: widget.child),
+          ),
+        ),
+      );
+    }
+    return Semantics(
+      button: true,
+      label: 'Press and hold to peel the package',
+      hint: 'Hold for 1.4 seconds. Releasing early cancels.',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => _startHold(),
+        onTapUp: (_) => _cancelHold(),
+        onTapCancel: _cancelHold,
+        onLongPressStart: (_) => _startHold(),
+        onLongPressEnd: (_) => _cancelHold(),
+        onLongPressCancel: _cancelHold,
+        onPanEnd: (_) => _cancelHold(),
+        onPanCancel: _cancelHold,
+        child: SizedBox(
+          width: widget.size,
+          height: widget.size,
+          child: AnimatedBuilder(
+            animation: _ctrl,
+            builder: (_, __) {
+              return CustomPaint(
+                painter: _RingPainter(
+                  progress: _ctrl.value,
+                  accent: widget.accent,
+                  enabled: widget.enabled,
+                ),
+                child: Center(child: widget.child),
+              );
+            },
+          ),
         ),
       ),
     );

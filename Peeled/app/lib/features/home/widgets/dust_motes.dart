@@ -51,6 +51,23 @@ class _DustMotesState extends State<DustMotes>
 
   @override
   Widget build(BuildContext context) {
+    // Respect the OS "reduce motion" setting: draw a single still frame
+    // of dust instead of running the ticker.
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (reduce) {
+      return IgnorePointer(
+        child: RepaintBoundary(
+          child: CustomPaint(
+            painter: _DustPainter(
+              pool: _pool,
+              time: 0.0,
+              accent: widget.accent,
+            ),
+            size: Size.infinite,
+          ),
+        ),
+      );
+    }
     return IgnorePointer(
       child: RepaintBoundary(
         child: AnimatedBuilder(
