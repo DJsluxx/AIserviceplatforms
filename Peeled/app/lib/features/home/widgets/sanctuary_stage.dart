@@ -83,9 +83,9 @@ class _SanctuaryStageState extends State<SanctuaryStage>
                 )
                     .animate()
                     .fadeIn(duration: 520.ms, curve: Curves.easeOutCubic)
-                    .scaleY(
-                      begin: 0.7,
-                      end: 1.0,
+                    .scale(
+                      begin: const Offset(1, 0.7),
+                      end: const Offset(1, 1),
                       alignment: Alignment.topCenter,
                       duration: 520.ms,
                       curve: Curves.easeOutCubic,
