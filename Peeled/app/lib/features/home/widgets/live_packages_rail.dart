@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -44,7 +45,20 @@ class LivePackagesRail extends StatelessWidget {
               if (hapticsEnabled) HapticFeedback.selectionClick();
               onPick(p.id);
             },
-          );
+          )
+              .animate()
+              .fadeIn(
+                delay: Duration(milliseconds: 80 * (i - 1)),
+                duration: 320.ms,
+                curve: Curves.easeOutCubic,
+              )
+              .slideY(
+                begin: 0.25,
+                end: 0,
+                delay: Duration(milliseconds: 80 * (i - 1)),
+                duration: 320.ms,
+                curve: Curves.easeOutCubic,
+              );
         },
       ),
     );

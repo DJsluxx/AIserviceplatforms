@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -326,7 +327,7 @@ class _Instruction extends StatelessWidget {
         label = 'YOU OPENED IT';
         break;
     }
-    return Text(
+    final text = Text(
       label,
       style: const TextStyle(
         color: AppColors.textOnDark,
@@ -335,6 +336,12 @@ class _Instruction extends StatelessWidget {
         letterSpacing: 3,
       ),
     );
+    // Gentle breathing on the arming label so the user's eye keeps
+    // landing on the instruction without it feeling pushy.
+    if (phase != _Phase.arming) return text;
+    return text
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .fadeIn(duration: 900.ms, curve: Curves.easeInOut, begin: 0.5);
   }
 }
 
