@@ -101,8 +101,7 @@ class _HoldToPeelRingState extends State<HoldToPeelRing>
     // Reduced-motion: drop the hold-ring interaction to a single button
     // activation. Anti-cheat still enforced server-side; this just keeps
     // the UX accessible to motor-impaired / reduced-motion users.
-    final reduce =
-        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final reduce = MediaQuery.of(context).disableAnimations;
     if (reduce) {
       return Semantics(
         button: true,

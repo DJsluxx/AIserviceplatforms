@@ -53,7 +53,7 @@ class _DustMotesState extends State<DustMotes>
   Widget build(BuildContext context) {
     // Respect the OS "reduce motion" setting: draw a single still frame
     // of dust instead of running the ticker.
-    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final reduce = MediaQuery.of(context).disableAnimations;
     if (reduce) {
       return IgnorePointer(
         child: RepaintBoundary(

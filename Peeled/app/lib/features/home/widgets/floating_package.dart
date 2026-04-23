@@ -55,7 +55,7 @@ class _FloatingPackageState extends State<FloatingPackage>
   @override
   Widget build(BuildContext context) {
     // Reduced-motion: hold the package still, no bob, no spin.
-    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final reduce = MediaQuery.of(context).disableAnimations;
     if (reduce) {
       return RepaintBoundary(
         child: SizedBox(
