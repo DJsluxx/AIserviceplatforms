@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Opened PEELED package">
+  <defs>
+    <linearGradient id="op_inner" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE9A0"/>
+      <stop offset="1" stop-color="#F2B84B"/>
+    </linearGradient>
+    <radialGradient id="op_beam" cx="50%" cy="0%" r="80%">
+      <stop offset="0" stop-color="#FFF5E8" stop-opacity="0.95"/>
+      <stop offset="0.6" stop-color="#FFE9A0" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#FFE9A0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="op_flaps" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D9B28A"/>
+      <stop offset="1" stop-color="#8B5E3C"/>
+    </linearGradient>
+    <radialGradient id="op_prize" cx="50%" cy="50%" r="60%">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.6" stop-color="#FFE9A0"/>
+      <stop offset="1" stop-color="#F2B84B"/>
+    </radialGradient>
+  </defs>
+
+  <path d="M80 180 L320 180 L400 0 L0 0 Z" fill="url(#op_beam)"/>
+
+  <ellipse cx="200" cy="322" rx="130" ry="14" fill="#1A1B2E" opacity="0.3"/>
+
+  <polygon points="90,180 310,180 340,310 60,310" fill="#B58668"/>
+  <polygon points="90,180 310,180 310,190 90,190" fill="#8B5E3C"/>
+
+  <polygon points="90,180 60,110 120,130 150,180" fill="url(#op_flaps)"/>
+  <polygon points="150,180 120,130 200,120 200,180" fill="url(#op_flaps)" opacity="0.9"/>
+  <polygon points="250,180 200,120 280,130 300,180" fill="url(#op_flaps)" opacity="0.9"/>
+  <polygon points="310,180 340,110 280,130 250,180" fill="url(#op_flaps)"/>
+
+  <circle cx="200" cy="170" r="52" fill="url(#op_prize)" opacity="0.6"/>
+  <circle cx="200" cy="170" r="36" fill="url(#op_prize)"/>
+  <circle cx="200" cy="170" r="20" fill="#FFFFFF" opacity="0.95"/>
+
+  <g fill="#F2B84B">
+    <circle cx="90" cy="90" r="4"/>
+    <circle cx="310" cy="90" r="4"/>
+    <circle cx="60" cy="140" r="3"/>
+    <circle cx="340" cy="140" r="3"/>
+    <circle cx="140" cy="60" r="3"/>
+    <circle cx="260" cy="60" r="3"/>
+    <circle cx="200" cy="40" r="5"/>
+  </g>
+  <g fill="#FFFFFF" opacity="0.9">
+    <circle cx="120" cy="100" r="2"/>
+    <circle cx="280" cy="100" r="2"/>
+    <circle cx="170" cy="80" r="2"/>
+    <circle cx="230" cy="80" r="2"/>
+  </g>
+</svg>

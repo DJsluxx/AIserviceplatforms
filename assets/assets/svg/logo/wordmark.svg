@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 80" fill="none" role="img" aria-label="PEELED wordmark">
+  <defs>
+    <linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF6B57"/>
+      <stop offset="1" stop-color="#E4513F"/>
+    </linearGradient>
+  </defs>
+  <!-- P  -->
+  <path d="M10 12 h22 a22 22 0 0 1 0 44 H22 v12 H10 Z M22 24 v20 h10 a10 10 0 0 0 0-20 Z" fill="#1A1B2E"/>
+  <!-- E -->
+  <path d="M80 12 h40 v12 H92 v12 h24 v12 H92 v12 h28 v12 H80 Z" fill="#1A1B2E"/>
+  <!-- E -->
+  <path d="M138 12 h40 v12 H150 v12 h24 v12 H150 v12 h28 v12 H138 Z" fill="#1A1B2E"/>
+  <!-- L -->
+  <path d="M196 12 h12 v56 h28 v12 H196 Z" fill="#1A1B2E"/>
+  <!-- E -->
+  <path d="M250 12 h40 v12 H262 v12 h24 v12 H262 v12 h28 v12 H250 Z" fill="#1A1B2E"/>
+  <!-- D -->
+  <path d="M308 12 h22 a30 30 0 0 1 0 56 H308 Z M320 24 v44 h10 a18 18 0 0 0 0 -44 Z" fill="#1A1B2E"/>
+  <!-- coral ribbon accent slipping through the first E -->
+  <path d="M82 38 q12 -14 28 0 q12 14 28 0" stroke="url(#ribbon)" stroke-width="5" stroke-linecap="round" fill="none"/>
+</svg>

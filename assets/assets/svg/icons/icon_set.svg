@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PEELED — icon set. Each glyph is 24x24 sat on a 48x48 tile for preview.
+  At runtime each icon is sliced via a symbol reference.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 96" role="img" aria-label="PEELED icon set">
+  <defs>
+    <style>
+      .s  { fill: none; stroke: #1A1B2E; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+      .a  { fill: #FF6B57; opacity: 0.25; }
+      .g  { fill: #F2B84B; }
+    </style>
+    <symbol id="ic-globe" viewBox="0 0 24 24">
+      <circle class="a" cx="12" cy="12" r="10"/>
+      <circle class="s" cx="12" cy="12" r="10"/>
+      <ellipse class="s" cx="12" cy="12" rx="10" ry="4.5"/>
+      <path class="s" d="M12 2 Q7 12 12 22 Q17 12 12 2"/>
+    </symbol>
+    <symbol id="ic-inbox" viewBox="0 0 24 24">
+      <path class="a" d="M3 14 L6 6 H18 L21 14 V20 H3 Z"/>
+      <path class="s" d="M3 14 L6 6 H18 L21 14 V20 H3 Z"/>
+      <path class="s" d="M3 14 H9 L10.5 16 H13.5 L15 14 H21"/>
+    </symbol>
+    <symbol id="ic-peel" viewBox="0 0 24 24">
+      <path class="a" d="M5 5 H17 V17 Q13 21 9 17 Z"/>
+      <path class="s" d="M5 5 H17 V17 L13 21 L5 21 Z"/>
+      <path class="s" d="M17 17 L13 17 L13 21"/>
+    </symbol>
+    <symbol id="ic-pass" viewBox="0 0 24 24">
+      <path class="s" d="M4 12 H18"/>
+      <path class="s" d="M14 8 L18 12 L14 16"/>
+      <circle class="g" cx="20" cy="12" r="2"/>
+    </symbol>
+    <symbol id="ic-send" viewBox="0 0 24 24">
+      <path class="a" d="M3 21 L21 12 L3 3 L5 12 Z"/>
+      <path class="s" d="M3 21 L21 12 L3 3 L5 12 Z"/>
+      <path class="s" d="M5 12 H13"/>
+    </symbol>
+    <symbol id="ic-friend" viewBox="0 0 24 24">
+      <circle class="s" cx="12" cy="8" r="4"/>
+      <path class="s" d="M4 20 Q6 14 12 14 Q18 14 20 20"/>
+    </symbol>
+    <symbol id="ic-flame" viewBox="0 0 24 24">
+      <path class="a" d="M12 2 Q16 8 16 12 Q16 18 12 22 Q8 18 8 12 Q8 8 12 2"/>
+      <path class="s" d="M12 2 Q16 8 16 12 Q16 18 12 22 Q8 18 8 12 Q8 8 12 2"/>
+      <path class="s" d="M12 10 Q13 14 12 18 Q11 14 12 10"/>
+    </symbol>
+    <symbol id="ic-coin" viewBox="0 0 24 24">
+      <circle class="a" cx="12" cy="12" r="9"/>
+      <circle class="s" cx="12" cy="12" r="9"/>
+      <circle class="s" cx="12" cy="12" r="5.5"/>
+    </symbol>
+    <symbol id="ic-token" viewBox="0 0 24 24">
+      <polygon class="a" points="12,3 20,8 20,16 12,21 4,16 4,8"/>
+      <polygon class="s" points="12,3 20,8 20,16 12,21 4,16 4,8"/>
+      <path class="s" d="M12 3 V21"/>
+    </symbol>
+    <symbol id="ic-trophy" viewBox="0 0 24 24">
+      <path class="a" d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/>
+      <path class="s" d="M7 4 H17 V10 A5 5 0 0 1 7 10 Z"/>
+      <path class="s" d="M4 6 H7"/>
+      <path class="s" d="M17 6 H20"/>
+      <path class="s" d="M10 15 H14 V20 H10 Z"/>
+    </symbol>
+    <symbol id="ic-bell" viewBox="0 0 24 24">
+      <path class="s" d="M6 16 Q6 8 12 8 Q18 8 18 16 Z"/>
+      <path class="s" d="M4 16 H20"/>
+      <path class="s" d="M10 19 Q12 21 14 19"/>
+    </symbol>
+    <symbol id="ic-hourglass" viewBox="0 0 24 24">
+      <path class="a" d="M6 3 H18 L12 12 L18 21 H6 L12 12 Z"/>
+      <path class="s" d="M6 3 H18 L12 12 L18 21 H6 L12 12 Z"/>
+      <path class="s" d="M6 3 H18"/>
+      <path class="s" d="M6 21 H18"/>
+    </symbol>
+    <symbol id="ic-close" viewBox="0 0 24 24">
+      <path class="s" d="M6 6 L18 18"/>
+      <path class="s" d="M18 6 L6 18"/>
+    </symbol>
+  </defs>
+
+  <!-- Preview grid -->
+  <g>
+    <use href="#ic-globe"    x="0"    y="36" width="24" height="24"/>
+    <use href="#ic-inbox"    x="48"   y="36" width="24" height="24"/>
+    <use href="#ic-peel"     x="96"   y="36" width="24" height="24"/>
+    <use href="#ic-pass"     x="144"  y="36" width="24" height="24"/>
+    <use href="#ic-send"     x="192"  y="36" width="24" height="24"/>
+    <use href="#ic-friend"   x="240"  y="36" width="24" height="24"/>
+    <use href="#ic-flame"    x="288"  y="36" width="24" height="24"/>
+    <use href="#ic-coin"     x="336"  y="36" width="24" height="24"/>
+    <use href="#ic-token"    x="384"  y="36" width="24" height="24"/>
+    <use href="#ic-trophy"   x="432"  y="36" width="24" height="24"/>
+    <use href="#ic-bell"     x="480"  y="36" width="24" height="24"/>
+    <use href="#ic-hourglass" x="528" y="36" width="24" height="24"/>
+  </g>
+</svg>
