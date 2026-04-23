@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -8,6 +9,8 @@ import '../../../shared/widgets/player_avatar.dart';
 /// Floating glass pill under the hero stage that shows who currently
 /// HOLDS this package: avatar, @handle, city + flag, and a "holding"
 /// micro-label. Uses the player's real avatar photo when available.
+/// When the holder is the local user the pill softly breathes with a
+/// coral glow so it reads as "this is YOUR turn right now".
 class HolderChip extends StatelessWidget {
   const HolderChip({
     super.key,
@@ -20,7 +23,7 @@ class HolderChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final chip = Container(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.xs,
         AppSpacing.xs,
@@ -104,6 +107,27 @@ class HolderChip extends StatelessWidget {
         ],
       ),
     );
+    if (!isUser) return chip;
+    // Soft breathing glow when the user is the holder — drives the eye
+    // to the big CTA button without a hard animation.
+    return chip
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .custom(
+          duration: 1400.ms,
+          builder: (_, t, child) => DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.coral.withOpacity(0.18 + t * 0.28),
+                  blurRadius: 20 + t * 10,
+                  spreadRadius: 1 + t * 1.5,
+                ),
+              ],
+            ),
+            child: child,
+          ),
+        );
   }
 
   /// Derives an `@handle` from the player's display name. The AI roster

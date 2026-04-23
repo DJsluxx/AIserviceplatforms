@@ -155,8 +155,12 @@ class _SanctuaryBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final holder = state.holderOf(featured);
+    // "isUser" controls the big CTA and the holder-chip pulse. Only true
+    // when the user still has an unplayed turn — hides the CTA during
+    // post-attempt grace so we never offer an action the sim will no-op.
     final isUser = featured.currentHop.holderId == state.user.id &&
-        !featured.opened;
+        !featured.opened &&
+        !featured.currentHop.peelAttempted;
     return LayoutBuilder(
       builder: (context, c) {
         final stageH = (c.maxHeight * 0.62).clamp(380.0, 560.0);

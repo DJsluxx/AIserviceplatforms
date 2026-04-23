@@ -101,6 +101,23 @@ class _OpeningPackageScreenState
         onCta: () => context.go('/home'),
       );
     }
+    // If the user lands here AFTER the hop has already resolved (e.g.
+    // tapped a stale notification), show the matching result phase
+    // immediately rather than re-arming the ring.
+    if (alreadyPeeled && _phase == _Phase.arming) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          if (pkg.opened) {
+            _phase = _Phase.opened;
+          } else if (hop.outcome == PeelOutcome.hit) {
+            _phase = _Phase.revealed;
+          } else {
+            _phase = _Phase.miss;
+          }
+        });
+      });
+    }
     if (pkg.opened) {
       return _GuardScaffold(
         title: 'This package is already open',

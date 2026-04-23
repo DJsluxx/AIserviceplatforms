@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -66,17 +67,29 @@ class _SanctuaryStageState extends State<SanctuaryStage>
               SanctuaryBackground(accent: palette.fill),
 
               // Beam of light (covers the top 70% of the stage so its
-              // gradient fades into the pedestal area).
+              // gradient fades into the pedestal area). "Turns on" with
+              // a 500 ms ease-out when the package first takes the stage
+              // — keyed to package id so swaps re-play the sweep.
               Positioned(
                 left: 0,
                 right: 0,
                 top: 0,
                 height: h * 0.74,
                 child: BeamOfLight(
+                  key: ValueKey('beam-${pkg.id}'),
                   accent: palette.fill,
                   topWidth: 52,
                   bottomWidth: w * 0.72,
-                ),
+                )
+                    .animate()
+                    .fadeIn(duration: 520.ms, curve: Curves.easeOutCubic)
+                    .scaleY(
+                      begin: 0.7,
+                      end: 1.0,
+                      alignment: Alignment.topCenter,
+                      duration: 520.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
               ),
 
               // Dust motes inside the beam.
@@ -103,15 +116,25 @@ class _SanctuaryStageState extends State<SanctuaryStage>
                 ),
               ),
 
-              // Floating package — centred on the pedestal.
+              // Floating package — centred on the pedestal. Scaled in
+              // with a soft spring on package swap.
               Positioned.fill(
                 child: Align(
                   alignment: const Alignment(0, -0.12),
                   child: FloatingPackage(
+                    key: ValueKey('float-${pkg.id}'),
                     theme: pkg.theme,
                     rarity: pkg.rarity,
                     size: packageSize,
-                  ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 420.ms, curve: Curves.easeOut)
+                      .scale(
+                        begin: const Offset(0.7, 0.7),
+                        end: const Offset(1.0, 1.0),
+                        duration: 520.ms,
+                        curve: Curves.easeOutBack,
+                      ),
                 ),
               ),
 
